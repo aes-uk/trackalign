@@ -1247,31 +1247,35 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
   const toeL = calcJosamToe(axle.frontScaleLeft,  axle.rearScaleLeft);
   const toeR = calcJosamToe(axle.frontScaleRight, axle.rearScaleRight);
 
-  const ScaleInput = ({label, value, onCh}) => (
-    <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
-      <label style={{fontSize:9,color:"#050505",fontFamily:FB,textTransform:"uppercase",
-        letterSpacing:"0.06em",textAlign:"center"}}>{label}</label>
-      <input
-        type="number"
-        step="0.1"
-        key={value}
-        defaultValue={value===undefined||value===null||value===""?"":value}
-        onBlur={e=>onCh(e.target.value)}
-        onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab")onCh(e.target.value);}}
-        placeholder="0.0"
-        style={{width:72,boxSizing:"border-box",background:"#e5e5e5",
-          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
-          padding:"6px 4px",color:"#050505",
-          fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
-    </div>
-  );
+  const ScaleInput = ({label, value, onCh}) => {
+    const round = v => v===""||v===undefined||v===null ? "" : String(Math.round(parseFloat(v)));
+    return (
+      <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+        <label style={{fontSize:9,color:"#050505",fontFamily:FB,textTransform:"uppercase",
+          letterSpacing:"0.06em",textAlign:"center"}}>{label}</label>
+        <input
+          type="number"
+          step="1"
+          className="no-spin"
+          key={value}
+          defaultValue={value===undefined||value===null||value===""?"":value}
+          onBlur={e=>onCh(round(e.target.value))}
+          onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab")onCh(round(e.target.value));}}
+          placeholder="0"
+          style={{width:60,boxSizing:"border-box",background:"#e5e5e5",
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
+            padding:"6px 4px",color:"#050505",
+            fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
+      </div>
+    );
+  };
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {/* Scale readings */}
-      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:8,alignItems:"start",overflow:"hidden"}}>
+      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:4,alignItems:"start",overflow:"hidden"}}>
         {/* Left */}
-        <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center",minWidth:0}}>
           <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
             textTransform:"uppercase",letterSpacing:"0.08em"}}>LEFT</div>
           <ScaleInput label="Front Scale" value={axle.frontScaleLeft}
@@ -1280,7 +1284,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
             onCh={v=>up("rearScaleLeft",v)}/>
           {toeL!==null && (
             <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-              borderRadius:"0.3rem",padding:"6px 12px",textAlign:"center",minWidth:90}}>
+              borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center",minWidth:0,width:"100%",boxSizing:"border-box"}}>
               <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                 textTransform:"uppercase"}}>Toe Left</div>
               <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
@@ -1292,11 +1296,11 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
         </div>
 
         {/* Centre wheel visual — same diagram as direct method */}
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,paddingTop:24}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,paddingTop:14}}>
           <WheelPair
             toeLeft={toeL!==null?toeL.toFixed(1):""}
             toeRight={toeR!==null?toeR.toFixed(1):""}
-            size={220} dual={dual}
+            size={150} dual={dual}
             axleType={axle.type}
             driveSide={axle.driveSide||"RHD"}
             steerIndex={0}/>
@@ -1308,7 +1312,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
             const col = tlTotal!=="none" ? TL_COLOR[tlTotal] : "#050505";
             return (
               <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-                borderRadius:"0.3rem",padding:"4px 12px",textAlign:"center",minWidth:90}}>
+                borderRadius:"0.3rem",padding:"4px 8px",textAlign:"center",minWidth:76}}>
                 <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                   textTransform:"uppercase",letterSpacing:"0.06em"}}>Total Toe</div>
                 <div style={{fontFamily:FM,fontSize:15,color:col,fontWeight:"600"}}>
@@ -1321,7 +1325,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
         </div>
 
         {/* Right */}
-        <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center",minWidth:0}}>
           <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
             textTransform:"uppercase",letterSpacing:"0.08em"}}>RIGHT</div>
           <ScaleInput label="Front Scale" value={axle.frontScaleRight}
@@ -1330,7 +1334,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
             onCh={v=>up("rearScaleRight",v)}/>
           {toeR!==null && (
             <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-              borderRadius:"0.3rem",padding:"6px 12px",textAlign:"center",minWidth:90}}>
+              borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center",minWidth:0,width:"100%",boxSizing:"border-box"}}>
               <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                 textTransform:"uppercase"}}>Toe Right</div>
               <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
