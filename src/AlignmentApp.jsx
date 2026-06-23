@@ -2743,16 +2743,12 @@ function ReportScreen({ job, company, onClose }) {
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
-      const imgH = (canvas.height * pageW) / canvas.width;
-      let heightLeft = imgH, position = 0;
-      pdf.addImage(img, "PNG", 0, position, pageW, imgH);
-      heightLeft -= pageH;
-      while (heightLeft > 0) {
-        position -= pageH;
-        pdf.addPage();
-        pdf.addImage(img, "PNG", 0, position, pageW, imgH);
-        heightLeft -= pageH;
-      }
+      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+      const drawW = canvas.width * ratio;
+      const drawH = canvas.height * ratio;
+      const x = (pageW - drawW) / 2;
+      const y = (pageH - drawH) / 2;
+      pdf.addImage(img, "PNG", x, y, drawW, drawH);
       const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"") || "report";
       pdf.save(`${reg}-alignment-report.pdf`);
     } catch (e) {
