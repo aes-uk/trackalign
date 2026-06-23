@@ -1260,7 +1260,18 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
           key={value}
           defaultValue={value===undefined||value===null||value===""?"":value}
           onBlur={e=>onCh(round(e.target.value))}
-          onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab")onCh(round(e.target.value));}}
+          onKeyDown={e=>{
+            if(e.key==="Enter"||e.key==="Tab"){
+              onCh(round(e.target.value));
+              if(e.key==="Enter"){
+                e.preventDefault();
+                const inputs = Array.from(document.querySelectorAll("input.no-spin"));
+                const idx = inputs.indexOf(e.target);
+                if(idx>-1 && idx<inputs.length-1) inputs[idx+1].focus();
+                else e.target.blur();
+              }
+            }
+          }}
           placeholder="0"
           style={{width:60,boxSizing:"border-box",background:"#e5e5e5",
             border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
