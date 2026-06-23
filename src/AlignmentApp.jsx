@@ -1254,11 +1254,14 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
         <label style={{fontSize:9,color:"#050505",fontFamily:FB,textTransform:"uppercase",
           letterSpacing:"0.06em",textAlign:"center"}}>{label}</label>
         <input
-          type="number"
-          step="1"
+          type="text"
+          inputMode="numeric"
+          enterKeyHint="next"
+          pattern="-?[0-9]*"
           className="no-spin"
           key={value}
           defaultValue={value===undefined||value===null||value===""?"":value}
+          onInput={e=>{ e.target.value = e.target.value.replace(/[^0-9-]/g,""); }}
           onBlur={e=>onCh(round(e.target.value))}
           onKeyDown={e=>{
             if(e.key==="Enter"||e.key==="Tab"){
