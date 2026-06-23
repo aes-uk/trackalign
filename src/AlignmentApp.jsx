@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap";
 
@@ -2439,6 +2441,7 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
 ══════════════════════════════════════════════════════════════ */
 
 function ReportScreen({ job, company, onClose }) {
+  const [exporting, setExporting] = useState(false);
   const D = parseFloat(job.fullDistance)||0;
   const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
   const f1 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(1)}`;
@@ -2730,6 +2733,35 @@ function ReportScreen({ job, company, onClose }) {
     setTimeout(()=>{ w.print(); }, 500);
   };
 
+  const exportPdf = async () => {
+    const el = document.getElementById("aes-report");
+    if (!el || exporting) return;
+    setExporting(true);
+    try {
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const img = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgH = (canvas.height * pageW) / canvas.width;
+      let heightLeft = imgH, position = 0;
+      pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position -= pageH;
+        pdf.addPage();
+        pdf.addImage(img, "PNG", 0, position, pageW, imgH);
+        heightLeft -= pageH;
+      }
+      const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"") || "report";
+      pdf.save(`${reg}-alignment-report.pdf`);
+    } catch (e) {
+      alert("Could not export PDF. Please try Print / Save PDF instead.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",background:"#e8e8e8"}}>
       {/* Top bar */}
@@ -2739,6 +2771,12 @@ function ReportScreen({ job, company, onClose }) {
         <button onClick={onClose} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,lineHeight:1}}>←</button>
         <span style={{flex:1,fontFamily:FD,fontSize:15,color:"#fff",fontWeight:"600"}}>Report Preview</span>
+        <button onClick={exportPdf} disabled={exporting} style={{background:"transparent",
+          border:"1px solid #eb0000",borderRadius:"0.3rem",padding:"8px 16px",color:"#eb0000",
+          fontFamily:FB,fontWeight:"600",fontSize:13,cursor:exporting?"default":"pointer",
+          opacity:exporting?0.6:1}}>
+          {exporting ? "Exporting…" : "Export PDF"}
+        </button>
         <button onClick={printReport} style={{background:"#eb0000",border:"none",borderRadius:"0.3rem",
           padding:"8px 16px",color:"#fff",fontFamily:FB,fontWeight:"600",fontSize:13,cursor:"pointer"}}>
           Print / Save PDF
