@@ -1233,6 +1233,44 @@ function DistancePicker({ value, onChange }) {
   );
 }
 
+function ScaleInput({label, value, onCh}) {
+  const [local, setLocal] = useState(value===undefined||value===null?"":String(value));
+  useEffect(()=>{ setLocal(value===undefined||value===null?"":String(value)); }, [value]);
+  const commit = v => onCh(v===""?"":String(Math.round(parseFloat(v))));
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+      <label style={{fontSize:9,color:"#050505",fontFamily:FB,textTransform:"uppercase",
+        letterSpacing:"0.06em",textAlign:"center"}}>{label}</label>
+      <input
+        type="text"
+        inputMode="numeric"
+        enterKeyHint="next"
+        pattern="-?[0-9]*"
+        className="no-spin"
+        value={local}
+        onInput={e=>setLocal(e.target.value.replace(/[^0-9-]/g,""))}
+        onBlur={e=>commit(e.target.value)}
+        onKeyDown={e=>{
+          if(e.key==="Enter"||e.key==="Tab"){
+            commit(e.target.value);
+            if(e.key==="Enter"){
+              e.preventDefault();
+              const inputs = Array.from(document.querySelectorAll("input.no-spin"));
+              const idx = inputs.indexOf(e.target);
+              if(idx>-1 && idx<inputs.length-1) inputs[idx+1].focus();
+              else e.target.blur();
+            }
+          }
+        }}
+        placeholder="0"
+        style={{width:60,boxSizing:"border-box",background:"#e5e5e5",
+          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
+          padding:"6px 4px",color:"#050505",
+          fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
+    </div>
+  );
+}
+
 function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }) {
   const D = parseFloat(fullDistance) || 0;
   const Da = parseFloat(axle.axleDistance) || 0;
@@ -1246,43 +1284,6 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
 
   const toeL = calcJosamToe(axle.frontScaleLeft,  axle.rearScaleLeft);
   const toeR = calcJosamToe(axle.frontScaleRight, axle.rearScaleRight);
-
-  const ScaleInput = ({label, value, onCh}) => {
-    const round = v => v===""||v===undefined||v===null ? "" : String(Math.round(parseFloat(v)));
-    return (
-      <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
-        <label style={{fontSize:9,color:"#050505",fontFamily:FB,textTransform:"uppercase",
-          letterSpacing:"0.06em",textAlign:"center"}}>{label}</label>
-        <input
-          type="text"
-          inputMode="numeric"
-          enterKeyHint="next"
-          pattern="-?[0-9]*"
-          className="no-spin"
-          key={value}
-          defaultValue={value===undefined||value===null||value===""?"":value}
-          onInput={e=>{ e.target.value = e.target.value.replace(/[^0-9-]/g,""); }}
-          onBlur={e=>onCh(round(e.target.value))}
-          onKeyDown={e=>{
-            if(e.key==="Enter"||e.key==="Tab"){
-              onCh(round(e.target.value));
-              if(e.key==="Enter"){
-                e.preventDefault();
-                const inputs = Array.from(document.querySelectorAll("input.no-spin"));
-                const idx = inputs.indexOf(e.target);
-                if(idx>-1 && idx<inputs.length-1) inputs[idx+1].focus();
-                else e.target.blur();
-              }
-            }
-          }}
-          placeholder="0"
-          style={{width:60,boxSizing:"border-box",background:"#e5e5e5",
-            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
-            padding:"6px 4px",color:"#050505",
-            fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
-      </div>
-    );
-  };
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
