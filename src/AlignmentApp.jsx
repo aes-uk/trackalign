@@ -3137,7 +3137,7 @@ function ReportScreen({ job, company, onClose }) {
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
               <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
+                {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"90pt"}}>{company.name}</div>}
                 <div style={{display:"flex",gap:"16pt"}}>
                   <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
                     {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
