@@ -3487,6 +3487,28 @@ export default function App() {
   useEffect(()=>{ saveConfigs(configs); },[configs]);
   useEffect(()=>{ saveCompany(company); },[company]);
 
+  // Browser back-button support: each forward navigation pushes a history
+  // entry; popping it (via hardware/browser back) replays the same logic
+  // as the in-app back buttons, which also just call history.back().
+  const isPoppingRef = useRef(false);
+  const navInitRef = useRef(false);
+  const goBack = useCallback(() => {
+    if (configScreen === "editor") { setConfigScreen("library"); return; }
+    if (configScreen === "library") { setConfigScreen(null); setScreen(activeId?"job":"dashboard"); return; }
+    if (screen === "settings") { setScreen("dashboard"); return; }
+    if (screen === "job") { setScreen("dashboard"); return; }
+  }, [screen, configScreen, activeId]);
+  useEffect(()=>{
+    const onPopState = () => { isPoppingRef.current = true; goBack(); };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [goBack]);
+  useEffect(()=>{
+    if (!navInitRef.current) { navInitRef.current = true; return; }
+    if (isPoppingRef.current) { isPoppingRef.current = false; return; }
+    window.history.pushState(null, "");
+  }, [screen, configScreen, activeId]);
+
   const openJob =id =>{ setActiveId(id); setScreen("job"); setOpenTab("before"); };
   const deleteJob = id => setJobs(p => p.filter(j => j.id !== id));
 
@@ -3561,7 +3583,7 @@ export default function App() {
         display:"flex",flexDirection:"column"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
         {screen==="settings"&&<SettingsScreen measureMode={measureMode}
-          setMeasureMode={setMeasureMode} onBack={()=>setScreen("dashboard")}
+          setMeasureMode={setMeasureMode} onBack={()=>window.history.back()}
           company={company} setCompany={setCompany}/>}
         {configScreen==="library"&&<ConfigLibraryScreen
           configs={configs}
@@ -3583,19 +3605,19 @@ export default function App() {
           }}
           onNew={newConfig}
           onEdit={editConfig}
-          onBack={()=>{ setConfigScreen(null); setScreen(activeId?"job":"dashboard"); }}/>}
+          onBack={()=>window.history.back()}/>}
         {configScreen==="editor"&&editingConfig&&<ConfigEditorScreen
           config={editingConfig}
           onSave={saveConfig}
           onDelete={deleteConfig}
-          onBack={()=>setConfigScreen("library")}/>}
+          onBack={()=>window.history.back()}/>}
         {(screen==="dashboard"||screen==="job")&&!configScreen&&(
           <>
             <div style={{flex:1,padding:screen==="dashboard"?"18px 16px":"0"}}>
               {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}/>}
               {screen==="job"&&activeJob&&
                 <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
-                  onBack={()=>setScreen("dashboard")} initialTab={openTab}
+                  onBack={()=>window.history.back()} initialTab={openTab}
                   onOpenConfigs={openConfigLibrary} forceTab={forceTab}
                   company={company}/>}
             </div>
