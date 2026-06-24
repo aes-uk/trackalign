@@ -935,7 +935,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
       <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
       <div style={{display:"flex",alignItems:"center",gap:4}}>
-        <button type="button" onClick={toggleSign} style={{width:28,height:32,flexShrink:0,
+        <button type="button" onClick={toggleSign} onMouseDown={e=>e.preventDefault()} style={{width:28,height:32,flexShrink:0,
           background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
           border:`1.5px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.18)"}`,borderRadius:"0.3rem",
           color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:15,fontWeight:"700",
@@ -1007,7 +1007,8 @@ function AngleTolField({ tol, f, upd }) {
     padding:"5px 2px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
   return (
     <div style={{display:"flex",alignItems:"center",gap:2}}>
-      <button type="button" onClick={toggleSign} style={{width:24,height:26,flexShrink:0,
+      <button type="button" onClick={toggleSign} onMouseDown={e=>e.preventDefault()}
+        style={{width:24,height:26,flexShrink:0,
         background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
         border:`1.5px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.15)"}`,borderRadius:"0.3rem",
         color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:13,fontWeight:"700",
@@ -1030,33 +1031,57 @@ function AngleTolField({ tol, f, upd }) {
   );
 }
 
-function TolRow({ label, tolKey, tol, onChange }) {
-  const upd = (field, v) => onChange({ ...tol, [field]: v });
-  const isToe = ["toeLeft","toeRight","totalToe","steeringMiddle","outOfSquare","parallelism","twinsteer"].includes(tolKey);
-  const isAngle = ANGLE_TOL_KEYS.includes(tolKey);
-  const InputField = ({f}) => isAngle ? (
-    <AngleTolField tol={tol} f={f} upd={upd}/>
-  ) : (
+function NumTolInput({ tol, f, upd }) {
+  const init = tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]);
+  const [str, setStr] = useState(init);
+  useEffect(()=>{
+    setStr(tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]));
+  }, [tol[f]]);
+  const commit = v => upd(f, v===""?"":parseFloat(v).toFixed(1));
+  return (
     <input
-      type="number"
-      step="0.1"
-      key={tol[f]}
-      defaultValue={tol[f]===undefined||tol[f]===null||tol[f]===""?"":tol[f]}
-      onBlur={e=>{ const v=e.target.value; upd(f, v===""?"":parseFloat(v).toFixed(1)); }}
-      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; upd(f, v===""?"":parseFloat(v).toFixed(1)); } }}
+      type="text"
+      inputMode="decimal"
+      enterKeyHint="next"
+      value={str}
+      onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
+      onBlur={e=>commit(e.target.value)}
+      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
       placeholder="—"
+      className="no-spin"
       style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
         border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
         padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
   );
+}
+
+function TolRow({ label, tolKey, tol, onChange }) {
+  const upd = (field, v) => onChange({ ...tol, [field]: v });
+  const isAngle = ANGLE_TOL_KEYS.includes(tolKey);
+  if (isAngle) {
+    return (
+      <div style={{display:"flex",flexDirection:"column",gap:4,
+        padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
+        <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          {["min","max"].map(f=>(
+            <div key={f} style={{display:"flex",flexDirection:"column",gap:2}}>
+              <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase"}}>{f}</label>
+              <AngleTolField tol={tol} f={f} upd={upd}/>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div style={{display:"grid",gridTemplateColumns:isAngle?"1fr 128px 128px":"1fr 80px 80px",gap:8,alignItems:"center",
+    <div style={{display:"grid",gridTemplateColumns:"1fr 80px 80px",gap:8,alignItems:"center",
       padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
       <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
       {["min","max"].map(f=>(
         <div key={f} style={{display:"flex",flexDirection:"column",gap:2}}>
           <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase"}}>{f}</label>
-          <InputField f={f}/>
+          <NumTolInput tol={tol} f={f} upd={upd}/>
         </div>
       ))}
     </div>
@@ -1066,6 +1091,7 @@ function TolRow({ label, tolKey, tol, onChange }) {
 /* Tolerance editor for one config axle */
 function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=false }) {
   const [open, setOpen] = useState(false);
+  const [geoOpen, setGeoOpen] = useState(false);
   const upd = (field, v) => onChange({...axle, [field]:v});
   const updTol = (key, tol) => onChange({...axle, tolerances:{...axle.tolerances,[key]:tol}});
   const t = axle.tolerances || emptyAxleTolerance(axle.type);
@@ -1090,7 +1116,10 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
   ];
   const baseFields = (axle.type==="fixed") ? FIXED_FIELDS : STEER_FIELDS;
   const fields = (axle.type==="steering"&&isFirstSteer) ? baseFields.filter(([,k])=>k!=="twinsteer") : baseFields;
+  const nonGeoFields = fields.filter(([,k])=>!ANGLE_TOL_KEYS.includes(k));
+  const geoFields = fields.filter(([,k])=>ANGLE_TOL_KEYS.includes(k));
   const filledCount = fields.filter(([,k])=>hasVal(t[k]?.min)||hasVal(t[k]?.max)).length;
+  const geoFilledCount = geoFields.filter(([,k])=>hasVal(t[k]?.min)||hasVal(t[k]?.max)).length;
 
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",overflow:"hidden"}}>
@@ -1141,10 +1170,30 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
             <span style={{fontSize:9,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase",textAlign:"center"}}>Min</span>
             <span style={{fontSize:9,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase",textAlign:"center"}}>Max</span>
           </div>
-          {fields.map(([label,key])=>(
+          {nonGeoFields.map(([label,key])=>(
             <TolRow key={key} label={label} tolKey={key} tol={t[key]||emptyTolerance()}
               onChange={tol=>updTol(key,tol)}/>
           ))}
+          {geoFields.length>0 && (
+            <div style={{marginTop:8,border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",overflow:"hidden"}}>
+              <button onClick={()=>setGeoOpen(o=>!o)} style={{
+                width:"100%",background:"#efefef",border:"none",
+                padding:"7px 10px",display:"flex",justifyContent:"space-between",alignItems:"center",
+                cursor:"pointer",fontFamily:FB,fontSize:10,color:geoOpen?"#eb0000":"rgba(5,5,5,0.5)",
+                textTransform:"uppercase",letterSpacing:"0.06em"}}>
+                <span>Geo Tolerances {geoFilledCount>0&&`(${geoFilledCount} set)`}</span>
+                <span style={{transform:geoOpen?"rotate(180deg)":"rotate(0deg)",transition:"transform 0.2s"}}>▾</span>
+              </button>
+              {geoOpen && (
+                <div style={{padding:"8px 10px 4px"}}>
+                  {geoFields.map(([label,key])=>(
+                    <TolRow key={key} label={label} tolKey={key} tol={t[key]||emptyTolerance()}
+                      onChange={tol=>updTol(key,tol)}/>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
