@@ -63,7 +63,7 @@ const TL_BORDER= { green:"rgba(22,163,74,0.25)", amber:"rgba(217,119,6,0.25)", r
 function decToDM(v) {
   if (v===""||v===null||v===undefined||isNaN(parseFloat(v))) return { sign:1, deg:"", min:"" };
   const num = parseFloat(v);
-  const sign = num<0 ? -1 : 1;
+  const sign = (num<0 || Object.is(num,-0)) ? -1 : 1;
   const abs = Math.abs(num);
   let deg = Math.floor(abs+1e-9);
   let min = Math.round((abs-deg)*60);
@@ -921,7 +921,9 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   }, [value]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
-    onChange(dec===""?"":dec.toFixed(4));
+    if (dec==="") { onChange(""); return; }
+    const s = Math.abs(dec).toFixed(4);
+    onChange(newSign<0 ? `-${s}` : s);
   };
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fieldStyle = {
@@ -1032,7 +1034,9 @@ function AngleTolField({ tol, f, upd }) {
   }, [tol[f]]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
-    upd(f, dec===""?"":dec.toFixed(4));
+    if (dec==="") { upd(f, ""); return; }
+    const s = Math.abs(dec).toFixed(4);
+    upd(f, newSign<0 ? `-${s}` : s);
   };
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fStyle = {flex:1,minWidth:0,boxSizing:"border-box",background:"#e5e5e5",
