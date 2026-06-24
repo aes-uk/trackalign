@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { supabase } from "./supabase";
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap";
 
@@ -3522,7 +3523,150 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
   );
 }
 
+function LoginScreen() {
+  const [mode, setMode] = useState("login"); // "login" | "register"
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErr(""); setMsg(""); setBusy(true);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        setMsg("Account created. Check your email to confirm, then log in.");
+      }
+    } catch (e2) {
+      setErr(e2.message || "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    setErr(""); setMsg("");
+    if (!email) { setErr("Enter your email above first"); return; }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      setMsg("Password reset email sent.");
+    } catch (e2) {
+      setErr(e2.message || "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const inputStyle = {
+    background: "#111", border: "1px solid rgba(255,255,255,0.14)", borderRadius: "0.3rem",
+    outline: "none", padding: "12px 14px", color: "#fff", fontFamily: FM, fontSize: 15,
+    width: "100%",
+  };
+
+  return (
+    <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",
+      alignItems:"center",justifyContent:"center",padding:"24px 20px"}}>
+      <div style={{width:"100%",maxWidth:360}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:22,fontWeight:700,fontFamily:FD,color:"#fff",letterSpacing:"0.02em"}}>
+            Track<span style={{color:T.accent}}>Align</span>
+          </div>
+          <div style={{fontSize:12,fontFamily:FB,color:"rgba(255,255,255,0.4)",marginTop:6}}>
+            {mode === "login" ? "Sign in to continue" : "Create your account"}
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            <label style={{fontSize:10,fontFamily:FB,textTransform:"uppercase",letterSpacing:"0.06em",color:"rgba(255,255,255,0.4)"}}>Email</label>
+            <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+              placeholder="you@workshop.com" required style={inputStyle}/>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            <label style={{fontSize:10,fontFamily:FB,textTransform:"uppercase",letterSpacing:"0.06em",color:"rgba(255,255,255,0.4)"}}>Password</label>
+            <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+              placeholder="••••••••" required minLength={6} style={inputStyle}/>
+          </div>
+
+          {err && <div style={{fontSize:12,fontFamily:FB,color:T.accent}}>{err}</div>}
+          {msg && <div style={{fontSize:12,fontFamily:FB,color:"#16a34a"}}>{msg}</div>}
+
+          <button type="submit" disabled={busy} style={{
+            marginTop:8,background:T.accent,border:"none",borderRadius:"0.3rem",
+            padding:"12px",color:"#fff",fontFamily:FD,fontWeight:700,fontSize:14,
+            cursor:busy?"default":"pointer",opacity:busy?0.6:1,
+          }}>
+            {busy ? "Please wait…" : mode === "login" ? "Login" : "Register"}
+          </button>
+
+          <button type="button" onClick={()=>{ setMode(mode==="login"?"register":"login"); setErr(""); setMsg(""); }}
+            disabled={busy} style={{
+            background:"none",border:"1px solid rgba(255,255,255,0.14)",borderRadius:"0.3rem",
+            padding:"12px",color:"#fff",fontFamily:FD,fontWeight:600,fontSize:14,
+            cursor:busy?"default":"pointer",
+          }}>
+            {mode === "login" ? "Register" : "Back to Login"}
+          </button>
+
+          {mode === "login" && (
+            <button type="button" onClick={handleForgotPassword} disabled={busy} style={{
+              background:"none",border:"none",color:"rgba(255,255,255,0.5)",
+              fontFamily:FB,fontSize:12,cursor:"pointer",textAlign:"center",
+              textDecoration:"underline",marginTop:4,
+            }}>
+              Forgot password?
+            </button>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const [session, setSession] = useState(undefined); // undefined=loading, null=signed out, object=signed in
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setSession(sess);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("company_settings")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      if (!error && !data) {
+        await supabase.from("company_settings").insert({ user_id: session.user.id });
+      }
+    })();
+  }, [session?.user?.id]);
+
+  if (session === undefined) {
+    return <div style={{minHeight:"100vh",background:T.bg}}/>;
+  }
+  if (!session) {
+    return <LoginScreen/>;
+  }
+
+  return <AuthenticatedApp session={session}/>;
+}
+
+function AuthenticatedApp({ session }) {
   const [jobs,setJobs]=useState(()=>loadJobs()||DEMO);
   const [configs,setConfigs]=useState(()=>loadConfigs());
   const [company,setCompany]=useState(()=>loadCompany());
@@ -3704,6 +3848,19 @@ export default function App() {
                   <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                 </svg>
                 Settings
+              </button>
+              <button onClick={()=>supabase.auth.signOut()} style={{
+                background:"none",border:"none",cursor:"pointer",
+                display:"flex",alignItems:"center",gap:6,
+                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Sign Out
               </button>
             </div>
           </>
