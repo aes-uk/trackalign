@@ -58,25 +58,26 @@ const TL_BG    = { green:"rgba(22,163,74,0.08)", amber:"rgba(217,119,6,0.08)", r
 const TL_BORDER= { green:"rgba(22,163,74,0.25)", amber:"rgba(217,119,6,0.25)", red:"rgba(220,38,38,0.25)", none:"rgba(5,5,5,0.10)" };
 
 /* ── Degrees/minutes helpers (internal storage stays decimal degrees) ── */
+// Returns {sign:1|-1, deg, min} with deg/min always non-negative, since iOS numeric
+// keypads have no minus key — sign is toggled via a separate +/- button in the UI.
 function decToDM(v) {
-  if (v===""||v===null||v===undefined||isNaN(parseFloat(v))) return { deg:"", min:"" };
+  if (v===""||v===null||v===undefined||isNaN(parseFloat(v))) return { sign:1, deg:"", min:"" };
   const num = parseFloat(v);
   const sign = num<0 ? -1 : 1;
   const abs = Math.abs(num);
   let deg = Math.floor(abs+1e-9);
   let min = Math.round((abs-deg)*60);
   if (min===60) { min=0; deg+=1; }
-  return { deg: sign<0 ? -deg : deg, min };
+  return { sign, deg, min };
 }
-function dmToDec(deg, min) {
+function dmToDec(sign, deg, min) {
   const dEmpty = deg===""||deg===undefined||deg===null;
   const mEmpty = min===""||min===undefined||min===null;
   if (dEmpty && mEmpty) return "";
   const d = dEmpty ? 0 : parseFloat(deg);
   const m = mEmpty ? 0 : parseFloat(min);
   if (isNaN(d) && isNaN(m)) return "";
-  const sign = (!isNaN(d) && d<0) ? -1 : 1;
-  const dec = sign * (Math.abs(isNaN(d)?0:d) + (isNaN(m)?0:m)/60);
+  const dec = (sign<0?-1:1) * (Math.abs(isNaN(d)?0:d) + (isNaN(m)?0:m)/60);
   return dec;
 }
 function fDM(v) {
@@ -749,7 +750,7 @@ function ToeBar({ value="", max=15, mirror=false }) {
 
 function TurningDiagram({ left="", right="" }) {
   const la=clamp(toNum(left),0,55), ra=clamp(toNum(right),0,55);
-  const W=200,H=108,cx=W/2,cy=H-8,R=88;
+  const W=232,H=108,cx=W/2,cy=H-8,R=88;
   const rad=d=>d*Math.PI/180;
   const pt=(d,r)=>[cx-Math.sin(rad(d))*r, cy-Math.cos(rad(d))*r];
   const [lx,ly]=pt(la,R),[rx,ry]=pt(ra,R);
@@ -909,19 +910,22 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
   const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
   const dm = decToDM(value);
+  const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
   const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
   useEffect(()=>{
     const d = decToDM(value);
+    setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
     setMStr(d.min===""?"":String(d.min));
   }, [value]);
-  const commit = (newD, newM) => {
-    const dec = dmToDec(newD, newM);
+  const commit = (newSign, newD, newM) => {
+    const dec = dmToDec(newSign, newD, newM);
     onChange(dec===""?"":dec.toFixed(4));
   };
+  const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fieldStyle = {
-    width:38,boxSizing:"border-box",background:"#f7f7f7",
+    width:34,boxSizing:"border-box",background:"#f7f7f7",
     border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
     padding:"6px 4px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
     fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
@@ -931,18 +935,23 @@ function DegMinInput({ label, value, onChange, tol=null }) {
       <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
       <div style={{display:"flex",alignItems:"center",gap:3}}>
-        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="-?[0-9]*"
+        <button type="button" onClick={toggleSign} style={{width:20,height:28,flexShrink:0,
+          background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
+          border:`1px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.15)"}`,borderRadius:"0.3rem",
+          color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:13,fontWeight:"700",
+          cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
+        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={dStr} placeholder="0"
-          onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*$/.test(v)) setDStr(v); }}
-          onBlur={e=>commit(e.target.value, mStr)}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value, mStr); }}
+          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
+          onBlur={e=>commit(sign, e.target.value, mStr)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
           className="no-spin" style={fieldStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={mStr} placeholder="0"
           onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
-          onBlur={e=>commit(dStr, e.target.value)}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(dStr, e.target.value); }}
+          onBlur={e=>commit(sign, dStr, e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
           className="no-spin" style={fieldStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>'</span>
       </div>
@@ -975,38 +984,46 @@ function StatBox({ label, value, unit="", color="", highlight=false, tl="none" }
 const TOE_TOL_OPTS = Array.from({length:101},(_,i)=>((i-50)/10).toFixed(1));
 const TOE_OPTS = Array.from({length:601},(_,i)=>((i-300)/10).toFixed(1)); // -30.0 to +30.0
 
-const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight"];
+const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","turnDiff"];
 
 function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
+  const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
   const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
   useEffect(()=>{
     const d = decToDM(tol[f]);
+    setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
     setMStr(d.min===""?"":String(d.min));
   }, [tol[f]]);
-  const commit = (newD, newM) => {
-    const dec = dmToDec(newD, newM);
+  const commit = (newSign, newD, newM) => {
+    const dec = dmToDec(newSign, newD, newM);
     upd(f, dec===""?"":dec.toFixed(4));
   };
+  const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fStyle = {width:"100%",boxSizing:"border-box",background:"#e5e5e5",
     border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
     padding:"5px 4px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
   return (
     <div style={{display:"flex",alignItems:"center",gap:2}}>
-      <input type="text" inputMode="numeric" pattern="-?[0-9]*" placeholder="—"
+      <button type="button" onClick={toggleSign} style={{width:16,height:24,flexShrink:0,
+        background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
+        border:`1px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.12)"}`,borderRadius:"0.3rem",
+        color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:11,fontWeight:"700",
+        cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
+      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="—"
         value={dStr}
-        onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*$/.test(v)) setDStr(v); }}
-        onBlur={e=>commit(e.target.value, mStr)}
-        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value, mStr); }}
+        onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
+        onBlur={e=>commit(sign, e.target.value, mStr)}
+        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
         className="no-spin" style={fStyle}/>
       <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>°</span>
       <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="0"
         value={mStr}
         onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
-        onBlur={e=>commit(dStr, e.target.value)}
-        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(dStr, e.target.value); }}
+        onBlur={e=>commit(sign, dStr, e.target.value)}
+        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
         className="no-spin" style={fStyle}/>
       <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>'</span>
     </div>
@@ -1033,7 +1050,7 @@ function TolRow({ label, tolKey, tol, onChange }) {
         padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
   );
   return (
-    <div style={{display:"grid",gridTemplateColumns:"1fr 80px 80px",gap:8,alignItems:"center",
+    <div style={{display:"grid",gridTemplateColumns:isAngle?"1fr 104px 104px":"1fr 80px 80px",gap:8,alignItems:"center",
       padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
       <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
       {["min","max"].map(f=>(
@@ -1084,7 +1101,7 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
           {axle.type==="steering"?"S":axle.type==="rear-steer"?"RS":"N"}
         </div>
         <input value={axle.label} onChange={e=>upd("label",e.target.value)}
-          style={{flex:1,background:"transparent",border:"none",outline:"none",
+          style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
             fontFamily:FD,fontSize:14,color:"#050505",fontWeight:"600"}}/>
         {/* Dual/Single toggle — only for non-steer axles */}
         {axle.type==="fixed" && (
@@ -1102,10 +1119,10 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
             ))}
           </div>
         )}
-        <span style={{fontSize:9,fontFamily:FM,padding:"2px 7px",borderRadius:20,
+        <span style={{fontSize:9,fontFamily:FM,padding:"2px 7px",borderRadius:20,flexShrink:0,
           background:"#eb0000",color:"#fff"}}>{axle.type}</span>
         {canRemove&&<button onClick={onRemove}
-          style={{background:"none",border:"none",color:"rgba(5,5,5,0.3)",cursor:"pointer",fontSize:15,lineHeight:1}}
+          style={{background:"none",border:"none",color:"rgba(5,5,5,0.3)",cursor:"pointer",fontSize:15,lineHeight:1,flexShrink:0}}
           onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
           onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.3)"}>✕</button>}
       </div>
@@ -1860,12 +1877,12 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,alignItems:"start"}}>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                <RInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  unit="°" tol={(tols||{}).maxTurnLeft}/>
-                <RInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} unit="°" tol={(tols||{}).maxTurnRight}/>
+                <DegMinInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
+                <DegMinInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                <RInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}  unit="°"/>
-                <RInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)} unit="°"/>
+                <DegMinInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
+                <DegMinInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
               </div>
             </div>
             <div style={{display:"flex",justifyContent:"center"}}>
@@ -1878,9 +1895,9 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
         <div>
           <SectionHead>Calculated</SectionHead>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            {crossCamber!==null&&<StatBox label="Cross Camber" value={fmtV2(crossCamber)} unit="°" tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
-            {crossCaster!==null&&<StatBox label="Cross Caster" value={fmtV2(crossCaster)} unit="°" tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
-            {turnDiff!==null&&<StatBox label="Turn Diff" value={fmtV2(turnDiff)} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
+            {crossCamber!==null&&<StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
+            {crossCaster!==null&&<StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
+            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${fDM(turnDiff)}`} tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
           </div>
         </div>
       )}
@@ -1900,7 +1917,7 @@ function FixedGeoSection({ axle, up, tols=null }) {
         <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
       </div>
       {crossCamber!==null&&(
-        <StatBox label="Cross Camber" value={fmtV2(crossCamber)} unit="°"
+        <StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`}
           tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>
       )}
     </div>
