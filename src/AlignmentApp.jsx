@@ -1913,25 +1913,29 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
               <label style={{fontSize:9,color:"#050505",fontFamily:FB,
                 textTransform:"uppercase",letterSpacing:"0.06em"}}>Target Toe</label>
               <div style={{display:"flex",alignItems:"center",
-                background:"#e5e5e5",border:"1.5px solid rgba(5,5,5,0.15)",
+                background: hasVal(daVal)?"#e5e5e5":"rgba(5,5,5,0.06)",border:"1.5px solid rgba(5,5,5,0.15)",
                 borderRadius:"0.3rem",overflow:"hidden"}}>
-                <select
-                  value={tgt||""}
-                  onChange={e=>setTgt(e.target.value)}
+                <input
+                  type="number"
+                  step="0.1"
+                  key={tgt}
+                  defaultValue={tgt===undefined||tgt===null?"":tgt}
+                  disabled={!hasVal(daVal)}
+                  onBlur={e=>{ const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); }}
+                  onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); } }}
+                  placeholder="0.0"
+                  className="no-spin"
                   style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
-                    padding:"6px 8px",color:"#050505",fontFamily:FM,fontSize:13,fontWeight:"600",
-                    textAlign:"center",textAlignLast:"center",
-                    appearance:"none",WebkitAppearance:"none",cursor:"pointer"}}>
-                  <option value="" disabled>—</option>
-                  {Array.from({length:101},(_,i)=>{
-                    const v=((i-50)/10).toFixed(1);
-                    const label=parseFloat(v)>=0?"+"+v:v;
-                    return <option key={v} value={v}>{label}</option>;
-                  })}
-                </select>
+                    padding:"6px 8px",color: hasVal(daVal)?"#050505":"rgba(5,5,5,0.35)",fontFamily:FM,fontSize:13,fontWeight:"600",
+                    textAlign:"center",cursor:hasVal(daVal)?"text":"not-allowed"}}/>
                 <span style={{padding:"0 8px",fontFamily:FM,fontSize:11,color:"rgba(5,5,5,0.45)",
                   borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0,background:"#e5e5e5"}}>mm</span>
               </div>
+              {!hasVal(daVal)&&(
+                <div style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.4)"}}>
+                  Enter axle distance to far scale first
+                </div>
+              )}
             </div>
             {res?.newFar!==null&&res?.newFar!==undefined&&(
               <div style={{background:"rgba(22,163,74,0.08)",border:"1px solid rgba(22,163,74,0.25)",
