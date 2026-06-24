@@ -963,20 +963,20 @@ function DecDegInput({ label, value, onChange, tol=null }) {
   const tl = tol ? trafficLight(value, tol) : "none";
   const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
   const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
-  const [str, setStr] = useState(value===undefined||value===null||value===""?"":String(value));
+  const [str, setStr] = useState(value===undefined||value===null||value===""?"":String(Math.round(parseFloat(value))));
   useEffect(()=>{
-    setStr(value===undefined||value===null||value===""?"":String(value));
+    setStr(value===undefined||value===null||value===""?"":String(Math.round(parseFloat(value))));
   }, [value]);
-  const commit = v => onChange(v===""?"":parseFloat(v).toFixed(1));
+  const commit = v => onChange(v===""?"":String(Math.round(parseFloat(v))));
   return (
     <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
       <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
       <div style={{position:"relative",width:72}}>
         <input
-          type="text" inputMode="decimal" enterKeyHint="next"
-          value={str} placeholder="0.0"
-          onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
+          type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="next"
+          value={str} placeholder="0"
+          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setStr(v); }}
           onBlur={e=>commit(e.target.value)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
           className="no-spin"
@@ -1017,6 +1017,7 @@ const TOE_TOL_OPTS = Array.from({length:101},(_,i)=>((i-50)/10).toFixed(1));
 const TOE_OPTS = Array.from({length:601},(_,i)=>((i-300)/10).toFixed(1)); // -30.0 to +30.0
 
 const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight"];
+const INT_DEG_TOL_KEYS = ["maxTurnLeft","maxTurnRight","turnDiff"];
 
 function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
@@ -1073,7 +1074,7 @@ function NumTolInput({ tol, f, upd }) {
   return (
     <input
       type="text"
-      inputMode="decimal"
+      inputMode="text"
       enterKeyHint="next"
       value={str}
       onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
@@ -1087,19 +1088,48 @@ function NumTolInput({ tol, f, upd }) {
   );
 }
 
+function IntDegTolInput({ tol, f, upd }) {
+  const init = tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(Math.round(parseFloat(tol[f])));
+  const [str, setStr] = useState(init);
+  useEffect(()=>{
+    setStr(tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(Math.round(parseFloat(tol[f]))));
+  }, [tol[f]]);
+  const commit = v => upd(f, v===""?"":String(Math.round(parseFloat(v))));
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      enterKeyHint="next"
+      value={str}
+      onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setStr(v); }}
+      onBlur={e=>commit(e.target.value)}
+      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+      placeholder="—"
+      className="no-spin"
+      style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+        border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
+        padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
+  );
+}
+
 function TolRow({ label, tolKey, tol, onChange }) {
   const upd = (field, v) => onChange({ ...tol, [field]: v });
   const isAngle = ANGLE_TOL_KEYS.includes(tolKey);
+  const isIntDeg = INT_DEG_TOL_KEYS.includes(tolKey);
   if (isAngle) {
     return (
       <div style={{display:"flex",flexDirection:"column",gap:4,
         padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
         <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
           {["min","max"].map(f=>(
-            <div key={f} style={{display:"flex",flexDirection:"column",gap:2}}>
-              <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase"}}>{f}</label>
-              <AngleTolField tol={tol} f={f} upd={upd}/>
+            <div key={f} style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
+              <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,
+                textTransform:"uppercase",width:26,flexShrink:0}}>{f}</label>
+              <div style={{flex:1,minWidth:0}}>
+                <AngleTolField tol={tol} f={f} upd={upd}/>
+              </div>
             </div>
           ))}
         </div>
@@ -1113,7 +1143,7 @@ function TolRow({ label, tolKey, tol, onChange }) {
       {["min","max"].map(f=>(
         <div key={f} style={{display:"flex",flexDirection:"column",gap:2}}>
           <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase"}}>{f}</label>
-          <NumTolInput tol={tol} f={f} upd={upd}/>
+          {isIntDeg ? <IntDegTolInput tol={tol} f={f} upd={upd}/> : <NumTolInput tol={tol} f={f} upd={upd}/>}
         </div>
       ))}
     </div>
@@ -1207,7 +1237,7 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
               onChange={tol=>updTol(key,tol)}/>
           ))}
           {geoFields.length>0 && (
-            <div style={{marginTop:8,border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            <div style={{marginTop:8,border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem"}}>
               <button onClick={()=>setGeoOpen(o=>!o)} style={{
                 width:"100%",background:"#efefef",border:"none",
                 padding:"7px 10px",display:"flex",justifyContent:"space-between",alignItems:"center",
@@ -1982,7 +2012,7 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
             {crossCamber!==null&&<StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
             {crossCaster!==null&&<StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
-            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${turnDiff.toFixed(1)}`} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
+            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${Math.round(turnDiff)}`} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
           </div>
         </div>
       )}
@@ -2947,7 +2977,7 @@ function ReportScreen({ job, company, onClose }) {
                       fontWeight:"bold",color:"#666",textAlign:"center",
                       border:"0.4pt solid #ddd",fontSize:"5pt"}}>{row.lbl}</td>
                     {row.vals.map((val,ci)=>(
-                      <td key={ci} style={tdS}>{ci<3 ? fDeg(val) : (val===null?"—":`${f1(val)}°`)}</td>
+                      <td key={ci} style={tdS}>{ci<3 ? fDeg(val) : (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)}</td>
                     ))}
                   </tr>
                 ))}
