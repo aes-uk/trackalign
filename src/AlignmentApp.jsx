@@ -221,7 +221,7 @@ function getAxlesForReg(jobs, reg, excludeId) {
       casterLeft:"", casterRight:"",
       kpiLeft:"",    kpiRight:"",
       maxTurnLeft:"", maxTurnRight:"",
-      tootLeft:"",    tootRight:"",
+      tootLeft:"",    tootRight:"",   tootLeft2:"", tootRight2:"",
       // Josam fields blank
       axleDistance:"",
       frontScaleLeft:"", rearScaleLeft:"",
@@ -292,7 +292,7 @@ function makeSteeringAxle(label="Front Steer") {
   return { id:uid(), label, type:"steering", driveSide:"RHD", suspType:"solid",
     toeLeft:"", toeRight:"", camberLeft:"", camberRight:"",
     casterLeft:"", casterRight:"", kpiLeft:"", kpiRight:"",
-    maxTurnLeft:"", maxTurnRight:"", tootLeft:"", tootRight:"",
+    maxTurnLeft:"", maxTurnRight:"", tootLeft:"", tootRight:"", tootLeft2:"", tootRight2:"",
     axleDistance:"",
     frontScaleLeft:"", rearScaleLeft:"", frontScaleRight:"", rearScaleRight:"",
     targetToeLeft:"", targetToeRight:"",
@@ -302,7 +302,7 @@ function makeRearSteerAxle(label="Rear Steer") {
   return { id:uid(), label, type:"rear-steer",
     toeLeft:"", toeRight:"", camberLeft:"", camberRight:"",
     casterLeft:"", casterRight:"", kpiLeft:"", kpiRight:"",
-    maxTurnLeft:"", maxTurnRight:"", tootLeft:"", tootRight:"",
+    maxTurnLeft:"", maxTurnRight:"", tootLeft:"", tootRight:"", tootLeft2:"", tootRight2:"",
     axleDistance:"",
     frontScaleLeft:"", rearScaleLeft:"", frontScaleRight:"", rearScaleRight:"",
     targetToeLeft:"", targetToeRight:"",
@@ -1039,7 +1039,7 @@ function AngleTolField({ tol, f, upd }) {
     upd(f, newSign<0 ? `-${s}` : s);
   };
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
-  const fStyle = {flex:1,minWidth:0,boxSizing:"border-box",background:"#e5e5e5",
+  const fStyle = {width:56,flexShrink:0,boxSizing:"border-box",background:"#e5e5e5",
     border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
     padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
   return (
@@ -1124,12 +1124,10 @@ function TolRow({ label, tolKey, tol, onChange }) {
         <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {["min","max"].map(f=>(
-            <div key={f} style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
+            <div key={f} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,minWidth:0}}>
               <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,
-                textTransform:"uppercase",width:26,flexShrink:0}}>{f}</label>
-              <div style={{flex:1,minWidth:0}}>
-                <AngleTolField tol={tol} f={f} upd={upd}/>
-              </div>
+                textTransform:"uppercase",flexShrink:0}}>{f}</label>
+              <AngleTolField tol={tol} f={f} upd={upd}/>
             </div>
           ))}
         </div>
@@ -1321,6 +1319,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
 /* Config library screen */
 function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
   const [q,setQ]=useState("");
+  useEffect(()=>{ window.scrollTo(0,0); }, []);
   const filtered=configs.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
@@ -1962,6 +1961,19 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
   );
 }
 
+function TootBox({ primaryLabel, primaryValue, onPrimary, secondaryLabel, secondaryValue, onSecondary }) {
+  const diff = hasVal(primaryValue)&&hasVal(secondaryValue)
+    ? toNum(primaryValue)-toNum(secondaryValue) : null;
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:10,
+      border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:10}}>
+      <DecDegInput label={primaryLabel} value={primaryValue} onChange={onPrimary}/>
+      <DecDegInput label={secondaryLabel} value={secondaryValue} onChange={onSecondary}/>
+      {diff!==null&&<StatBox label="Diff" value={`${diff>=0?"+":""}${diff.toFixed(1)}`} unit="°"/>}
+    </div>
+  );
+}
+
 function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
   const crossCamber=hasVal(axle.camberLeft)&&hasVal(axle.camberRight)
     ?toNum(axle.camberLeft)-toNum(axle.camberRight):null;
@@ -1991,29 +2003,38 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
       </div>
       {showTurning&&(
         <div>
-          <SectionHead>Max Turn · TOOT</SectionHead>
+          <SectionHead>Max Turn</SectionHead>
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
               <DecDegInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
               <DecDegInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-              <DecDegInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
-              <DecDegInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
-            </div>
             <div style={{display:"flex",justifyContent:"center"}}>
               <TurningDiagram left={axle.maxTurnLeft} right={axle.maxTurnRight}/>
             </div>
+            {turnDiff!==null&&(
+              <StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${Math.round(turnDiff)}`} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>
+            )}
           </div>
         </div>
       )}
-      {(crossCamber!==null||crossCaster!==null||turnDiff!==null)&&(
+      {showTurning&&(
+        <div>
+          <SectionHead>TOOT</SectionHead>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+            <TootBox primaryLabel="Left Wheel" primaryValue={axle.tootLeft} onPrimary={v=>up("tootLeft",v)}
+              secondaryLabel="Right Wheel" secondaryValue={axle.tootRight} onSecondary={v=>up("tootRight",v)}/>
+            <TootBox primaryLabel="Right Wheel" primaryValue={axle.tootRight2} onPrimary={v=>up("tootRight2",v)}
+              secondaryLabel="Left Wheel" secondaryValue={axle.tootLeft2} onSecondary={v=>up("tootLeft2",v)}/>
+          </div>
+        </div>
+      )}
+      {(crossCamber!==null||crossCaster!==null)&&(
         <div>
           <SectionHead>Calculated</SectionHead>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
             {crossCamber!==null&&<StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
             {crossCaster!==null&&<StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
-            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${Math.round(turnDiff)}`} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
           </div>
         </div>
       )}
@@ -2062,7 +2083,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   const sm = bothSides ? calcSteeringMiddle(axleForSM) : null;
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight].filter(hasVal).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -2117,7 +2138,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight].filter(hasVal).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       {isJosam
@@ -2447,7 +2468,7 @@ function cloneAxlesEmpty(axles) {
     casterLeft:"", casterRight:"",
     kpiLeft:"",    kpiRight:"",
     maxTurnLeft:"", maxTurnRight:"",
-    tootLeft:"",    tootRight:"",
+    tootLeft:"",    tootRight:"",   tootLeft2:"", tootRight2:"",
     frontScaleLeft:"", rearScaleLeft:"",
     frontScaleRight:"", rearScaleRight:"",
     targetToeLeft:"", targetToeRight:"",
@@ -2753,6 +2774,7 @@ function ReportScreen({ job, company, onClose }) {
       kpiL:g("kpiLeft"), kpiR:g("kpiRight"),
       maxTL:g("maxTurnLeft"), maxTR:g("maxTurnRight"),
       tootL:g("tootLeft"), tootR:g("tootRight"),
+      tootL2:g("tootLeft2"), tootR2:g("tootRight2"),
     };
   }
 
