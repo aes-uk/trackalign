@@ -3844,18 +3844,31 @@ function AuthenticatedApp({ session }) {
     if (!userId || !navigator.onLine) return;
     let cancelled = false;
     (async () => {
-      const [{ data: jobRows }, { data: configRows }, { data: companyRow }] = await Promise.all([
+      const [jobsRes, configsRes, companyRes] = await Promise.all([
         supabase.from("jobs").select("*").eq("user_id", userId),
         supabase.from("configs").select("*").eq("user_id", userId),
         supabase.from("company_settings").select("*").eq("user_id", userId).maybeSingle(),
       ]);
       if (cancelled) return;
-      if (jobRows) setJobs(prev => mergeByUpdatedAt(prev, jobRows.map(jobFromRow)));
-      if (configRows) setConfigs(prev => mergeByUpdatedAt(prev, configRows.map(configFromRow)));
-      if (!companyRow) {
+
+      if (jobsRes.error) {
+        console.error("Job sync pull failed:", jobsRes.error);
+      } else if (jobsRes.data) {
+        setJobs(prev => mergeByUpdatedAt(prev, jobsRes.data.map(jobFromRow)));
+      }
+
+      if (configsRes.error) {
+        console.error("Config sync pull failed:", configsRes.error);
+      } else if (configsRes.data) {
+        setConfigs(prev => mergeByUpdatedAt(prev, configsRes.data.map(configFromRow)));
+      }
+
+      if (companyRes.error) {
+        console.error("Company sync pull failed:", companyRes.error);
+      } else if (!companyRes.data) {
         await supabase.from("company_settings").insert({ user_id: userId, updated_at: new Date().toISOString() });
       } else {
-        const remote = companyFromRow(companyRow);
+        const remote = companyFromRow(companyRes.data);
         setCompany(prev => (!prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt)) ? remote : prev);
       }
     })();
