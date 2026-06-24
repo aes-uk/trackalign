@@ -3070,7 +3070,7 @@ function ReportScreen({ job, company, onClose }) {
     setExporting(true);
     try {
       const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      const img = canvas.toDataURL("image/png");
+      const img = canvas.toDataURL("image/jpeg", 0.92);
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
@@ -3078,7 +3078,7 @@ function ReportScreen({ job, company, onClose }) {
       const drawW = canvas.width * ratio;
       const drawH = canvas.height * ratio;
       const x = (pageW - drawW) / 2;
-      pdf.addImage(img, "PNG", x, 0, drawW, drawH);
+      pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
       const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"") || "report";
       pdf.save(`${reg}-alignment-report.pdf`);
     } catch (e) {
