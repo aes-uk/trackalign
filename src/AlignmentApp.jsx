@@ -3539,7 +3539,7 @@ function LoginScreen() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: "https://trackalign.vercel.app" } });
         if (error) throw error;
         setMsg("Account created. Check your email to confirm, then log in.");
       }
@@ -3555,7 +3555,7 @@ function LoginScreen() {
     if (!email) { setErr("Enter your email above first"); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://trackalign.vercel.app" });
       if (error) throw error;
       setMsg("Password reset email sent.");
     } catch (e2) {
