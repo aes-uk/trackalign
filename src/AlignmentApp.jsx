@@ -31,7 +31,7 @@ const LS_CONFIGS_KEY = "trackalign_configs_v1";
 const LS_COMPANY_KEY = "trackalign_company_v1";
 
 function loadCompany() {
-  try { const r=localStorage.getItem(LS_COMPANY_KEY); return r?JSON.parse(r):{name:"",address:"",phone:"",email:"",website:"",logo:""}; } catch(e){ return {name:"",address:"",phone:"",email:"",website:"",logo:""}; }
+  try { const r=localStorage.getItem(LS_COMPANY_KEY); return r?JSON.parse(r):{name:"",address:"",address2:"",phone:"",email:"",website:"",logo:""}; } catch(e){ return {name:"",address:"",address2:"",phone:"",email:"",website:"",logo:""}; }
 }
 function saveCompany(c) {
   try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(c)); } catch(e){}
@@ -3136,25 +3136,26 @@ function ReportScreen({ job, company, onClose }) {
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
-              <div style={{display:"flex",gap:"16pt"}}>
-                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                  {company.name&&<div style={{fontSize:"7pt",fontWeight:"bold",color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
-                  {company.phone&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
-                  {company.email&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                  {company.address&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)",
-                    display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",
-                    overflow:"hidden",maxWidth:"110pt"}}>{company.address}</div>}
-                  {company.website&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
+              <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
+                <div style={{display:"flex",gap:"16pt"}}>
+                  <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                    {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
+                    {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                    {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
+                    {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
+                    {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
+                  </div>
                 </div>
               </div>
             </div>
             <div style={{textAlign:"right"}}>
-              <div style={{fontSize:"12pt",fontWeight:"bold",color:"#eb0000",letterSpacing:"0.05em"}}>
+              <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#eb0000",letterSpacing:"0.05em"}}>
                 WHEEL ALIGNMENT REPORT
               </div>
-              <div style={{fontSize:"6pt",color:"rgba(255,255,255,0.6)",marginTop:4}}>
+              <div style={{fontSize:"6pt",fontFamily:FD,color:"rgba(255,255,255,0.6)",marginTop:4}}>
                 {fmtDate(job.createdAt)}
                 {job.configName&&` · ${job.configName}`}
               </div>
@@ -3485,7 +3486,8 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
             </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {[["Company Name","name","AES Workshop"],["Address","address","123 High Street"],
+            {[["Company Name","name","AES Workshop"],["Address Line 1","address","123 High Street"],
+              ["Address Line 2","address2","Unit 2 Cropton Court"],
               ["Phone","phone","+44 1234 567890"],["Email","email","info@workshop.com"],
               ["Website","website","www.workshop.com"]].map(([label,field,ph])=>(
               <div key={field} style={{display:"flex",flexDirection:"column",gap:3}}>
