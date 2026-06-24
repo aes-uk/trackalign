@@ -3132,7 +3132,7 @@ function ReportScreen({ job, company, onClose }) {
         }}>
 
           {/* ── HEADER ── */}
-          <div style={{background:"#111",padding:"6pt 10pt",marginBottom:"6pt",
+          <div style={{background:"#111",padding:"10pt",marginBottom:"6pt",
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
