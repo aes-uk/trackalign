@@ -32,10 +32,105 @@ const LS_CONFIGS_KEY = "trackalign_configs_v1";
 const LS_COMPANY_KEY = "trackalign_company_v1";
 
 function loadCompany() {
-  try { const r=localStorage.getItem(LS_COMPANY_KEY); return r?JSON.parse(r):{name:"",address:"",address2:"",phone:"",email:"",website:"",logo:""}; } catch(e){ return {name:"",address:"",address2:"",phone:"",email:"",website:"",logo:""}; }
+  try {
+    const r=localStorage.getItem(LS_COMPANY_KEY);
+    const def={name:"",address:"",address2:"",phone:"",email:"",website:"",logo:"",updatedAt:null,syncStatus:"local"};
+    return r?{...def,...JSON.parse(r)}:def;
+  } catch(e){ return {name:"",address:"",address2:"",phone:"",email:"",website:"",logo:"",updatedAt:null,syncStatus:"local"}; }
 }
 function saveCompany(c) {
   try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(c)); } catch(e){}
+}
+
+/* ── Supabase sync helpers ───────────────────────────────────── */
+function mergeByUpdatedAt(localList, remoteList) {
+  const map = new Map(localList.map(item => [item.id, item]));
+  for (const remote of remoteList) {
+    const local = map.get(remote.id);
+    if (!local || !local.updatedAt || new Date(remote.updatedAt) > new Date(local.updatedAt)) {
+      map.set(remote.id, { ...remote, syncStatus: "synced" });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function jobToRow(job, userId) {
+  return {
+    id: job.id, user_id: userId,
+    customer: job.customer, vehicle: job.vehicle, axles: job.axles,
+    after_axles: job.afterAxles, full_distance: job.fullDistance, notes: job.notes,
+    config_id: job.configId, config_name: job.configName, measure_method: job.measureMethod,
+    updated_at: job.updatedAt || job.createdAt || new Date().toISOString(),
+  };
+}
+function jobFromRow(row) {
+  return {
+    id: row.id, createdAt: row.created_at || row.updated_at, updatedAt: row.updated_at,
+    syncStatus: "synced",
+    customer: row.customer || {company:"",name:"",phone:"",email:""},
+    vehicle: row.vehicle || {reg:"",make:"",model:"",year:"",mileage:""},
+    axles: row.axles || [], afterAxles: row.after_axles || null,
+    fullDistance: row.full_distance || "", notes: row.notes || "",
+    configId: row.config_id || null, configName: row.config_name || null,
+    measureMethod: row.measure_method || "direct",
+  };
+}
+async function upsertJobRemote(job, userId) {
+  if (!userId || !navigator.onLine) return false;
+  try {
+    const { error } = await supabase.from("jobs").upsert(jobToRow(job, userId));
+    if (error) throw error;
+    return true;
+  } catch(e) { console.error("Job sync failed", e); return false; }
+}
+
+function configToRow(config, userId) {
+  return {
+    id: config.id, user_id: userId, name: config.name, axles: config.axles,
+    updated_at: config.updatedAt || config.createdAt || new Date().toISOString(),
+  };
+}
+function configFromRow(row) {
+  return {
+    id: row.id, name: row.name, axles: row.axles || [],
+    createdAt: row.created_at || row.updated_at, updatedAt: row.updated_at, syncStatus: "synced",
+  };
+}
+async function upsertConfigRemote(config, userId) {
+  if (!userId || !navigator.onLine) return false;
+  try {
+    const { error } = await supabase.from("configs").upsert(configToRow(config, userId));
+    if (error) throw error;
+    return true;
+  } catch(e) { console.error("Config sync failed", e); return false; }
+}
+async function deleteConfigRemote(id, userId) {
+  if (!userId || !navigator.onLine) return;
+  try { await supabase.from("configs").delete().eq("id", id).eq("user_id", userId); }
+  catch(e) { console.error("Config delete sync failed", e); }
+}
+
+function companyToRow(company, userId) {
+  return {
+    user_id: userId, name: company.name, address: company.address, address2: company.address2,
+    phone: company.phone, email: company.email, website: company.website, logo: company.logo,
+    updated_at: company.updatedAt || new Date().toISOString(),
+  };
+}
+function companyFromRow(row) {
+  return {
+    name: row.name||"", address: row.address||"", address2: row.address2||"",
+    phone: row.phone||"", email: row.email||"", website: row.website||"", logo: row.logo||"",
+    updatedAt: row.updated_at, syncStatus: "synced",
+  };
+}
+async function upsertCompanyRemote(company, userId) {
+  if (!userId || !navigator.onLine) return false;
+  try {
+    const { error } = await supabase.from("company_settings").upsert(companyToRow(company, userId), { onConflict: "user_id" });
+    if (error) throw error;
+    return true;
+  } catch(e) { console.error("Company sync failed", e); return false; }
 }
 
 const DEFAULT_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70">
@@ -48,7 +143,11 @@ const DEFAULT_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(DEFAULT_LOGO_
 
 
 function loadConfigs() {
-  try { const r=localStorage.getItem(LS_CONFIGS_KEY); return r?JSON.parse(r):[]; } catch(e){ return []; }
+  try {
+    const r=localStorage.getItem(LS_CONFIGS_KEY);
+    const list = r?JSON.parse(r):[];
+    return list.map(c=>({ ...c, updatedAt: c.updatedAt||c.createdAt, syncStatus: c.syncStatus||"local" }));
+  } catch(e){ return []; }
 }
 function saveConfigs(configs) {
   try { localStorage.setItem(LS_CONFIGS_KEY, JSON.stringify(configs)); } catch(e){}
@@ -129,7 +228,7 @@ function makeConfigAxle(type, label) {
 }
 function makeConfig(name="New Configuration") {
   return {
-    id:uid(), name, createdAt:new Date().toISOString(),
+    id:uid(), name, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     axles:[makeConfigAxle("steering","Front Steer"), makeConfigAxle("fixed","Non Steer")],
   };
 }
@@ -152,6 +251,8 @@ function loadJobs() {
         axles: Array.isArray(j.axles) ? j.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
         afterAxles: j.afterAxles ? (Array.isArray(j.afterAxles) ? j.afterAxles : null) : null,
         measureMethod: j.measureMethod || "direct",
+        updatedAt: j.updatedAt || j.createdAt,
+        syncStatus: j.syncStatus || "local",
       }));
     }
   } catch(e) {}
@@ -327,7 +428,7 @@ function makeFixedAxle(label="Non Steer") {
     tolerances: emptyAxleTolerance("fixed") };
 }
 function makeJob() {
-  return { id:uid(), createdAt:new Date().toISOString(), syncStatus:"local",
+  return { id:uid(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     customer:{ company:"", name:"", phone:"", email:"" },
     vehicle:{ reg:"", make:"", model:"", year:"", mileage:"" },
     axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
@@ -2450,7 +2551,27 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   );
 }
 
-function Dashboard({ jobs, onNew, onOpen, onDelete }) {
+function CloudSyncIndicator({ pendingCount }) {
+  const synced = pendingCount===0;
+  return (
+    <div style={{position:"relative",display:"inline-flex",alignItems:"center",marginLeft:8}} title={synced?"All synced":`${pendingCount} pending sync`}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke={synced?"rgba(255,255,255,0.35)":"#eb0000"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17.5 19H9a5.5 5.5 0 0 1-1-10.9 6 6 0 0 1 11.4 2.4A4 4 0 0 1 17.5 19Z"/>
+      </svg>
+      {pendingCount>0&&(
+        <span style={{position:"absolute",top:-6,right:-8,background:"#eb0000",color:"#fff",
+          fontSize:9,fontFamily:FM,fontWeight:"bold",borderRadius:"50%",
+          minWidth:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",
+          padding:"0 2px",lineHeight:1}}>
+          {pendingCount}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0 }) {
   const [q,setQ]=useState("");
   const filtered=jobs.filter(j=>
     [j.customer.company,j.customer.name,j.vehicle.reg,j.vehicle.make,j.vehicle.model]
@@ -2461,9 +2582,10 @@ function Dashboard({ jobs, onNew, onOpen, onDelete }) {
       <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",gap:12,flexWrap:"wrap",paddingTop:4}}>
         <div>
           <div style={{width:160,flexShrink:0}} dangerouslySetInnerHTML={{__html:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 354 70"><defs><style>.wc1{fill:#eb0000}.wc2{fill:#ffffff}</style></defs><g><g><rect class="wc1" x="2" y="33" width="64" height="4"/><path class="wc2" d="M0,1v68h68V1H0ZM61.17,5L4,62.17V5h57.17ZM6.83,65L64,7.83v57.17H6.83Z"/></g><g><polygon class="wc2" points="134.26 .99 111.74 69.01 120.53 69.01 142.87 1.38 165.2 69.01 174 69.01 151.47 .99 134.26 .99"/><path class="wc2" d="M334.95,30.66l-8.99-2.17c-11.02-2.66-14.12-5.52-14.12-10.65,0-6.9,5.99-10.75,14.7-10.75,10.25,0,16.24,6.01,17.02,14.1h8.61c-1.16-11.73-9.47-21.2-26.01-21.2-12.57,0-23.3,7.1-23.3,18.24,0,9.46,6.57,15.48,20.5,18.83l8.99,2.17c8.6,2.07,12.57,5.72,12.57,12.03,0,7.2-6.86,11.63-16.73,11.63s-17.79-8.08-18.37-17.84h-8.6c.87,12.92,9.86,24.94,27.36,24.94,15.86,0,25.43-8.38,25.43-18.63,0-11.83-6.67-17.75-19.05-20.7Z"/><polygon class="wc2" points="218.1 69 257 68.99 257 61.9 226.41 61.9 226.41 37.65 257 37.65 257 30.55 226.41 30.55 226.41 8.07 257 8.07 257 .97 218.1 .97 218.1 69"/></g></g></svg>`}}/>
-          <div style={{fontFamily:FB,fontSize:12,color:"#ffffff",marginTop:6}}>
+          <div style={{fontFamily:FB,fontSize:12,color:"#ffffff",marginTop:6,display:"flex",alignItems:"center"}}>
             {jobs.length} job{jobs.length!==1?"s":""}&nbsp;·&nbsp;
             <span style={{color:"#eb0000",fontWeight:"600"}}>{jobs.filter(j=>j.syncStatus==="local").length} unsynced</span>
+            <CloudSyncIndicator pendingCount={pendingCount}/>
           </div>
         </div>
         <Btn onClick={onNew}>+ New Job</Btn>
@@ -3445,7 +3567,7 @@ function OnboardingScreen({ onSelect }) {
 }
 
 function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany }) {
-  const upC = (f,v) => setCompany(p=>({...p,[f]:v}));
+  const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   return (
     <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column"}}>
       <div style={{background:"#050505",borderBottom:"1px solid rgba(255,255,255,0.08)",
@@ -3642,20 +3764,6 @@ export default function App() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!session?.user) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from("company_settings")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      if (!error && !data) {
-        await supabase.from("company_settings").insert({ user_id: session.user.id });
-      }
-    })();
-  }, [session?.user?.id]);
-
   if (session === undefined) {
     return <div style={{minHeight:"100vh",background:T.bg}}/>;
   }
@@ -3681,6 +3789,70 @@ function AuthenticatedApp({ session }) {
   useEffect(()=>{ saveConfigs(configs); },[configs]);
   useEffect(()=>{ saveCompany(company); },[company]);
 
+  const userId = session?.user?.id;
+
+  // On login: pull latest data from Supabase and merge into localStorage (remote wins if newer)
+  useEffect(()=>{
+    if (!userId || !navigator.onLine) return;
+    let cancelled = false;
+    (async () => {
+      const [{ data: jobRows }, { data: configRows }, { data: companyRow }] = await Promise.all([
+        supabase.from("jobs").select("*").eq("user_id", userId),
+        supabase.from("configs").select("*").eq("user_id", userId),
+        supabase.from("company_settings").select("*").eq("user_id", userId).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      if (jobRows) setJobs(prev => mergeByUpdatedAt(prev, jobRows.map(jobFromRow)));
+      if (configRows) setConfigs(prev => mergeByUpdatedAt(prev, configRows.map(configFromRow)));
+      if (!companyRow) {
+        await supabase.from("company_settings").insert({ user_id: userId, updated_at: new Date().toISOString() });
+      } else {
+        const remote = companyFromRow(companyRow);
+        setCompany(prev => (!prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt)) ? remote : prev);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  // Background write-through: push any locally-changed jobs to Supabase without blocking the UI
+  useEffect(()=>{
+    if (!userId || !navigator.onLine) return;
+    const pending = jobs.filter(j=>j.syncStatus!=="synced");
+    if (pending.length===0) return;
+    let cancelled = false;
+    (async () => {
+      for (const job of pending) {
+        const ok = await upsertJobRemote(job, userId);
+        if (ok && !cancelled) setJobs(prev=>prev.map(j=>j.id===job.id?{...j,syncStatus:"synced"}:j));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [jobs, userId]);
+
+  useEffect(()=>{
+    if (!userId || !navigator.onLine) return;
+    const pending = configs.filter(c=>c.syncStatus!=="synced");
+    if (pending.length===0) return;
+    let cancelled = false;
+    (async () => {
+      for (const cfg of pending) {
+        const ok = await upsertConfigRemote(cfg, userId);
+        if (ok && !cancelled) setConfigs(prev=>prev.map(c=>c.id===cfg.id?{...c,syncStatus:"synced"}:c));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [configs, userId]);
+
+  useEffect(()=>{
+    if (!userId || !navigator.onLine || company.syncStatus==="synced") return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const ok = await upsertCompanyRemote(company, userId);
+      if (ok && !cancelled) setCompany(prev=>({...prev,syncStatus:"synced"}));
+    }, 600);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [company, userId]);
+
   // Browser back-button support: each forward navigation pushes a history
   // entry; popping it (via hardware/browser back) replays the same logic
   // as the in-app back buttons, which also just call history.back().
@@ -3704,18 +3876,23 @@ function AuthenticatedApp({ session }) {
   }, [screen, configScreen, activeId]);
 
   const openJob =id =>{ setActiveId(id); setScreen("job"); setOpenTab("before"); };
-  const deleteJob = id => setJobs(p => p.filter(j => j.id !== id));
+  const deleteJob = id => {
+    setJobs(p => p.filter(j => j.id !== id));
+    if (userId && navigator.onLine) supabase.from("jobs").delete().eq("id", id).eq("user_id", userId).then(()=>{}, ()=>{});
+  };
 
   const [pendingSetJ, setPendingSetJ] = useState(null);
   function openConfigLibrary(setJFn) { setPendingSetJ(()=>setJFn); setConfigScreen("library"); }
   function newConfig() { setEditingConfig(makeConfig()); setConfigScreen("editor"); }
   function editConfig(c) { setEditingConfig(c); setConfigScreen("editor"); }
   function saveConfig(c) {
-    setConfigs(p => p.find(x=>x.id===c.id) ? p.map(x=>x.id===c.id?c:x) : [c,...p]);
+    const stamped = {...c, updatedAt:new Date().toISOString(), syncStatus:"local"};
+    setConfigs(p => p.find(x=>x.id===stamped.id) ? p.map(x=>x.id===stamped.id?stamped:x) : [stamped,...p]);
     setConfigScreen("library");
   }
   function deleteConfig(id) {
     setConfigs(p=>p.filter(c=>c.id!==id));
+    deleteConfigRemote(id, userId);
     setConfigScreen("library");
   }
   function applyConfig(c, jobId, localApply) {
@@ -3726,15 +3903,16 @@ function AuthenticatedApp({ session }) {
       driveSide: ca.driveSide||"RHD",
       suspType:  ca.suspType||"solid",
     }));
+    const stamp = { updatedAt:new Date().toISOString(), syncStatus:"local" };
     if (localApply) {
-      localApply(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}));
+      localApply(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}));
       // Also persist to jobs store
       setJobs(prev=>prev.map(j=>j.id===jobId
-        ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}
+        ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
         : j));
     } else {
       setJobs(prev=>prev.map(j=>j.id===jobId
-        ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}
+        ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
         : j));
     }
     setConfigScreen(null);
@@ -3749,7 +3927,7 @@ function AuthenticatedApp({ session }) {
     const j={...makeJob(), fullDistance:"", measureMethod:measureMode};
     setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job");
   };
-  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local"}:x)); setScreen("dashboard"); };
+  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); setScreen("dashboard"); };
 
   function handleOnboardSelect(mode) {
     setMeasureMode(mode);
@@ -3810,7 +3988,8 @@ function AuthenticatedApp({ session }) {
                 onBack={()=>window.history.back()}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
-                  {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}/>}
+                  {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
+                    pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}/>}
                   {screen==="job"&&activeJob&&
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
                       onBack={()=>window.history.back()} initialTab={openTab}
