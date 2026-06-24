@@ -1368,20 +1368,20 @@ function ToeRow({ toeLeft, toeRight, onLeft, onRight, dual=false, tols=null, axl
   const hasData=hasVal(toeLeft)&&hasVal(toeRight);
   const total=toNum(toeLeft)+toNum(toeRight);
   return (
-    <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:8,alignItems:"center",overflow:"hidden"}}>
-      <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
-        <RInput label="Left Toe" value={toeLeft} onChange={onLeft} unit="mm" tol={tols?.toeLeft}/>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:4,alignItems:"center",overflow:"hidden"}}>
+      <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center",minWidth:0,width:"100%"}}>
+        <RInput label="Left Toe" value={toeLeft} onChange={onLeft} unit="mm" width={64} tol={tols?.toeLeft}/>
         <ToeBar value={toeLeft}/>
       </div>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
-        <WheelPair toeLeft={toeLeft} toeRight={toeRight} size={220} dual={dual} axleType={axleType} driveSide={driveSide} steerIndex={steerIndex}/>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,paddingTop:0}}>
+        <WheelPair toeLeft={toeLeft} toeRight={toeRight} size={150} dual={dual} axleType={axleType} driveSide={driveSide} steerIndex={steerIndex}/>
         {(()=>{
           const bothEntered = hasVal(toeLeft) && hasVal(toeRight);
           const tlTotal = (bothEntered && tols?.totalToe) ? trafficLight(String(total), tols.totalToe) : "none";
           const col = tlTotal!=="none" ? TL_COLOR[tlTotal] : "#050505";
           return (
             <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
-              padding:"4px 12px",textAlign:"center",minWidth:90}}>
+              padding:"4px 8px",textAlign:"center",minWidth:76}}>
               <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,textTransform:"uppercase",letterSpacing:"0.06em"}}>Total Toe</div>
               <div style={{fontFamily:FM,fontSize:15,color:col,fontWeight:"600"}}>
                 {hasData?fmtV1(total):"—"}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:3}}>mm</span>
@@ -1390,8 +1390,8 @@ function ToeRow({ toeLeft, toeRight, onLeft, onRight, dual=false, tols=null, axl
           );
         })()}
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center"}}>
-        <RInput label="Right Toe" value={toeRight} onChange={onRight} unit="mm" tol={tols?.toeRight}/>
+      <div style={{display:"flex",flexDirection:"column",gap:6,alignItems:"center",minWidth:0,width:"100%"}}>
+        <RInput label="Right Toe" value={toeRight} onChange={onRight} unit="mm" width={64} tol={tols?.toeRight}/>
         <ToeBar value={toeRight} mirror={true}/>
       </div>
     </div>
@@ -2736,9 +2736,20 @@ function ReportScreen({ job, company, onClose }) {
   const printReport = () => {
     const el = document.getElementById("aes-report");
     if (!el) return;
-    const w = window.open("","_blank");
-    if (!w) { alert("Please allow popups for this site to print reports."); return; }
-    w.document.write(`<!DOCTYPE html><html><head><title>Alignment Report</title>
+    let iframe = document.getElementById("aes-print-frame");
+    if (iframe) iframe.remove();
+    iframe = document.createElement("iframe");
+    iframe.id = "aes-print-frame";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`<!DOCTYPE html><html><head><title>Alignment Report</title>
       <style>
         @page{size:A4 landscape;margin:8mm}
         body{margin:0;padding:0;font-family:Arial,sans-serif;
@@ -2747,9 +2758,14 @@ function ReportScreen({ job, company, onClose }) {
         svg{overflow:visible}
         .axle-row{page-break-inside:avoid}
       </style></head><body>${el.innerHTML}</body></html>`);
-    w.document.close();
-    w.focus();
-    setTimeout(()=>{ w.print(); }, 500);
+    doc.close();
+    const cleanup = () => { if (iframe && iframe.parentNode) iframe.remove(); };
+    iframe.contentWindow.onafterprint = cleanup;
+    setTimeout(()=>{
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      setTimeout(cleanup, 60000);
+    }, 500);
   };
 
   const exportPdf = async () => {
@@ -2766,8 +2782,7 @@ function ReportScreen({ job, company, onClose }) {
       const drawW = canvas.width * ratio;
       const drawH = canvas.height * ratio;
       const x = (pageW - drawW) / 2;
-      const y = (pageH - drawH) / 2;
-      pdf.addImage(img, "PNG", x, y, drawW, drawH);
+      pdf.addImage(img, "PNG", x, 0, drawW, drawH);
       const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"") || "report";
       pdf.save(`${reg}-alignment-report.pdf`);
     } catch (e) {
@@ -3296,7 +3311,7 @@ export default function App() {
             {/* Footer */}
             <div style={{
               background:"#050505",borderTop:"1px solid rgba(255,255,255,0.08)",
-              padding:"10px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"10px 20px calc(10px + env(safe-area-inset-bottom))",display:"flex",justifyContent:"space-between",alignItems:"center",
               position:"sticky",bottom:0,zIndex:10,
             }}>
               <button onClick={()=>{ setConfigScreen("library"); }} style={{
