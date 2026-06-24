@@ -2047,6 +2047,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   }
   function confirmDelete(e) { e.stopPropagation(); onDelete(j.id); }
   function cancelDelete(e)  { e.stopPropagation(); setSwipeX(0); setDeleting(false); }
+  function requestDelete(e) { e.stopPropagation(); setDeleting(true); }
 
   const fmtDate=iso=>new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
   const syncCol=s=>s==="synced"?T.greenBright:s==="local"?"#eb0000":T.redBright;
@@ -2122,6 +2123,10 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
             <div style={{width:7,height:7,borderRadius:"50%",background:syncCol(j.syncStatus)}}/>
             <span style={{fontSize:10,color:"#050505",fontFamily:FM,fontWeight:"500"}}>{j.syncStatus}</span>
           </div>
+          <span onClick={requestDelete} title="Delete job" style={{flexShrink:0,cursor:"pointer",
+            color:"rgba(5,5,5,0.35)",fontSize:16,lineHeight:1,padding:"0 2px"}}
+            onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
+            onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.35)"}>×</span>
         </div>
         <div style={{marginTop:8,display:"flex",gap:5,flexWrap:"wrap"}}>
           {j.axles.map(a=>{
