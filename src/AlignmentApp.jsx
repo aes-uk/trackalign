@@ -4098,7 +4098,7 @@ function AuthenticatedApp({ session }) {
                 </svg>
                 Settings
               </button>
-              <button onClick={()=>supabase.auth.signOut()} style={{
+              <button onClick={()=>supabase.auth.signOut({scope:"local"}).catch(e=>console.error("Sign out failed:",e))} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
                 color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
