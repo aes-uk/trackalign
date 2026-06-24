@@ -3455,9 +3455,9 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
         <span style={{fontFamily:FD,fontSize:16,color:"#ffffff",fontWeight:"600",
           letterSpacing:"0.04em"}}>Settings</span>
       </div>
-      <div style={{padding:"20px 16px",display:"flex",flexDirection:"column",gap:20}}>
+      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
 
-        <div style={{background:"#f7f7f7",borderRadius:"0.3rem",padding:"16px"}}>
+        <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"16px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Report Header</div>
           <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:12}}>Shown at the top of every PDF report.</div>
           <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:14}}>
@@ -3498,7 +3498,7 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
           </div>
         </div>
 
-        <div style={{background:"#f7f7f7",borderRadius:"0.3rem",padding:"16px"}}>
+        <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"16px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Measurement Method</div>
           <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:12}}>
             Applied to all new jobs. Existing jobs always display in the method they were created with.
@@ -3635,7 +3635,7 @@ export default function App() {
         {screen!=="onboarding"&&(
           <>
             <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"18px 16px":"0"}}>
-              {screen==="settings"&&<SettingsScreen measureMode={measureMode}
+              {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
                 setMeasureMode={setMeasureMode} onBack={()=>window.history.back()}
                 company={company} setCompany={setCompany}/>}
               {configScreen==="library"&&<ConfigLibraryScreen
@@ -3693,7 +3693,7 @@ export default function App() {
                 </svg>
                 Configurations
               </button>
-              <button onClick={()=>setScreen("settings")} style={{
+              <button onClick={()=>{ setConfigScreen(null); setScreen("settings"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
                 color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
