@@ -1064,27 +1064,60 @@ function AngleTolField({ tol, f, upd }) {
   );
 }
 
+function NumKeypad({ onKey, onDone }) {
+  const keys = ["1","2","3","4","5","6","7","8","9","-","0",".","⌫"];
+  return (
+    <div onMouseDown={e=>e.preventDefault()} style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,
+      marginTop:4,background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.15)",borderRadius:"0.4rem",
+      padding:6,position:"absolute",left:0,right:0,top:"100%",zIndex:30}}>
+      {keys.map(k=>(
+        <button key={k} type="button" onClick={()=>onKey(k)}
+          style={{padding:"10px 0",background:"#fff",border:"1px solid rgba(5,5,5,0.12)",
+            borderRadius:"0.3rem",fontFamily:FM,fontSize:15,fontWeight:"600",color:"#050505",cursor:"pointer"}}>
+          {k}
+        </button>
+      ))}
+      <button type="button" onClick={onDone}
+        style={{gridColumn:"1 / -1",padding:"8px 0",background:"#eb0000",border:"none",
+          borderRadius:"0.3rem",fontFamily:FB,fontSize:12,fontWeight:"700",color:"#fff",cursor:"pointer"}}>
+        Done
+      </button>
+    </div>
+  );
+}
+
 function NumTolInput({ tol, f, upd }) {
   const init = tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]);
   const [str, setStr] = useState(init);
+  const [focused, setFocused] = useState(false);
   useEffect(()=>{
     setStr(tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]));
   }, [tol[f]]);
   const commit = v => upd(f, v===""?"":parseFloat(v).toFixed(1));
+  const onKey = k => setStr(prev=>{
+    const v = prev||"";
+    if (k==="⌫") return v.slice(0,-1);
+    const next = v+k;
+    return /^-?[0-9]*\.?[0-9]*$/.test(next) ? next : v;
+  });
+  const onDone = () => { commit(str); setFocused(false); };
   return (
-    <input
-      type="text"
-      inputMode="text"
-      enterKeyHint="next"
-      value={str}
-      onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
-      onBlur={e=>commit(e.target.value)}
-      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
-      placeholder="—"
-      className="no-spin"
-      style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
-        border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
-        padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
+    <div style={{position:"relative"}}>
+      <input
+        type="text"
+        inputMode="none"
+        readOnly
+        enterKeyHint="next"
+        value={str}
+        onFocus={()=>setFocused(true)}
+        onBlur={e=>{ commit(e.target.value); setFocused(false); }}
+        placeholder="—"
+        className="no-spin"
+        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+          border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
+          padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
+      {focused && <NumKeypad onKey={onKey} onDone={onDone}/>}
+    </div>
   );
 }
 
