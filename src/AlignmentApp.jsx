@@ -1065,19 +1065,15 @@ function AngleTolField({ tol, f, upd }) {
 }
 
 function NumTolInput({ tol, f, upd }) {
-  const init = tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]);
-  const [str, setStr] = useState(init);
-  useEffect(()=>{
-    setStr(tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]));
-  }, [tol[f]]);
+  const value = tol[f]===undefined||tol[f]===null||tol[f]===""?"":tol[f];
   const commit = v => upd(f, v===""?"":parseFloat(v).toFixed(1));
   return (
     <input
-      type="text"
-      inputMode="decimal"
+      type="number"
+      step="0.1"
       enterKeyHint="next"
-      value={str}
-      onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
+      key={value}
+      defaultValue={value}
       onBlur={e=>commit(e.target.value)}
       onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
       placeholder="—"
@@ -1119,8 +1115,8 @@ function TolRow({ label, tolKey, tol, onChange }) {
   const isIntDeg = INT_DEG_TOL_KEYS.includes(tolKey);
   if (isAngle) {
     return (
-      <div style={{display:"flex",flexDirection:"column",gap:4,
-        padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
+      <div style={{display:"flex",flexDirection:"column",gap:8,
+        padding:"10px 0 8px",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
         <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {["min","max"].map(f=>(
@@ -1178,8 +1174,9 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
   ];
   const baseFields = (axle.type==="fixed") ? FIXED_FIELDS : STEER_FIELDS;
   const fields = (axle.type==="steering"&&isFirstSteer) ? baseFields.filter(([,k])=>k!=="twinsteer") : baseFields;
-  const nonGeoFields = fields.filter(([,k])=>!ANGLE_TOL_KEYS.includes(k));
-  const geoFields = fields.filter(([,k])=>ANGLE_TOL_KEYS.includes(k));
+  const isGeoKey = k => ANGLE_TOL_KEYS.includes(k) || INT_DEG_TOL_KEYS.includes(k);
+  const nonGeoFields = fields.filter(([,k])=>!isGeoKey(k));
+  const geoFields = fields.filter(([,k])=>isGeoKey(k));
   const filledCount = fields.filter(([,k])=>hasVal(t[k]?.min)||hasVal(t[k]?.max)).length;
   const geoFilledCount = geoFields.filter(([,k])=>hasVal(t[k]?.min)||hasVal(t[k]?.max)).length;
 
