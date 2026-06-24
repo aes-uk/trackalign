@@ -978,7 +978,7 @@ function DecDegInput({ label, value, onChange, tol=null, disabled=false }) {
         <input
           type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="next"
           value={str} placeholder="0" disabled={disabled} readOnly={disabled}
-          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setStr(v); }}
+          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)){ setStr(v); onChange(v===""?"":v); } }}
           onBlur={e=>commit(e.target.value)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
           className="no-spin"
