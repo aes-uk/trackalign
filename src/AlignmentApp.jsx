@@ -3133,15 +3133,21 @@ function ReportScreen({ job, company, onClose }) {
 
           {/* ── HEADER ── */}
           <div style={{background:"#111",padding:"6pt 10pt",marginBottom:"6pt",
-            display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-            <div style={{display:"flex",alignItems:"flex-start",gap:"14pt"}}>
+            display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
-              <div style={{textAlign:"left"}}>
-                {company.name&&<div style={{fontWeight:"bold",fontSize:"11pt",color:"#fff"}}>{company.name}</div>}
-                {company.address&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>{company.address}</div>}
-                {company.phone&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>T: {company.phone}</div>}
-                {company.email&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>E: {company.email}</div>}
-                {company.website&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>W: {company.website}</div>}
+              <div style={{display:"flex",gap:"16pt"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                  {company.name&&<div style={{fontSize:"7pt",fontWeight:"bold",color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
+                  {company.phone&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
+                  {company.email&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                  {company.address&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)",
+                    display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",
+                    overflow:"hidden",maxWidth:"110pt"}}>{company.address}</div>}
+                  {company.website&&<div style={{fontSize:"7pt",color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
+                </div>
               </div>
             </div>
             <div style={{textAlign:"right"}}>
