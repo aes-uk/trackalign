@@ -3955,7 +3955,7 @@ function AuthenticatedApp({ session }) {
     const j={...makeJob(), fullDistance:"", measureMethod:measureMode};
     setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job");
   };
-  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); setScreen("dashboard"); };
+  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
 
   function handleOnboardSelect(mode) {
     setMeasureMode(mode);
