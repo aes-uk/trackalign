@@ -31,11 +31,20 @@ const LS_CONFIGS_KEY = "trackalign_configs_v1";
 const LS_COMPANY_KEY = "trackalign_company_v1";
 
 function loadCompany() {
-  try { const r=localStorage.getItem(LS_COMPANY_KEY); return r?JSON.parse(r):{name:"",address:"",phone:"",email:"",website:""}; } catch(e){ return {name:"",address:"",phone:"",email:"",website:""}; }
+  try { const r=localStorage.getItem(LS_COMPANY_KEY); return r?JSON.parse(r):{name:"",address:"",phone:"",email:"",website:"",logo:""}; } catch(e){ return {name:"",address:"",phone:"",email:"",website:"",logo:""}; }
 }
 function saveCompany(c) {
   try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(c)); } catch(e){}
 }
+
+const DEFAULT_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70">
+  <rect x="3" y="5" width="60" height="60" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <line x1="3" y1="5" x2="63" y2="65" stroke="#ffffff" stroke-width="3"/>
+  <line x1="16" y1="46" x2="46" y2="24" stroke="#eb0000" stroke-width="4"/>
+  <text x="78" y="55" font-family="Arial, sans-serif" font-weight="bold" font-size="50" fill="#ffffff" letter-spacing="14">AES</text>
+</svg>`;
+const DEFAULT_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(DEFAULT_LOGO_SVG)}`;
+
 
 function loadConfigs() {
   try { const r=localStorage.getItem(LS_CONFIGS_KEY); return r?JSON.parse(r):[]; } catch(e){ return []; }
@@ -3125,13 +3134,15 @@ function ReportScreen({ job, company, onClose }) {
           {/* ── HEADER ── */}
           <div style={{background:"#111",padding:"6pt 10pt",marginBottom:"6pt",
             display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-            <div>
-              {company.logo && <img src={company.logo} alt="logo" style={{height:36,marginBottom:4,display:"block"}}/>}
-              {company.name&&<div style={{fontWeight:"bold",fontSize:"11pt",color:"#fff"}}>{company.name}</div>}
-              {company.address&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>{company.address}</div>}
-              {company.phone&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>T: {company.phone}</div>}
-              {company.email&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>E: {company.email}</div>}
-              {company.website&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>W: {company.website}</div>}
+            <div style={{display:"flex",alignItems:"flex-start",gap:"14pt"}}>
+              <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
+              <div style={{textAlign:"left"}}>
+                {company.name&&<div style={{fontWeight:"bold",fontSize:"11pt",color:"#fff"}}>{company.name}</div>}
+                {company.address&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>{company.address}</div>}
+                {company.phone&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>T: {company.phone}</div>}
+                {company.email&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>E: {company.email}</div>}
+                {company.website&&<div style={{fontSize:"6pt",color:"rgba(255,255,255,0.65)"}}>W: {company.website}</div>}
+              </div>
             </div>
             <div style={{textAlign:"right"}}>
               <div style={{fontSize:"12pt",fontWeight:"bold",color:"#eb0000",letterSpacing:"0.05em"}}>
@@ -3443,6 +3454,30 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
         <div style={{background:"#f7f7f7",borderRadius:"0.3rem",padding:"16px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Report Header</div>
           <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:12}}>Shown at the top of every PDF report.</div>
+          <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:14}}>
+            <label style={{fontSize:10,fontFamily:FB,textTransform:"uppercase",letterSpacing:"0.06em",color:"rgba(5,5,5,0.5)"}}>Logo</label>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{background:"#111",borderRadius:"0.3rem",padding:"6px 10px",
+                display:"flex",alignItems:"center",height:40}}>
+                <img src={company.logo||DEFAULT_LOGO} alt="logo preview" style={{height:28,display:"block"}}/>
+              </div>
+              <label style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
+                padding:"8px 12px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
+                Upload
+                <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => upC("logo", reader.result);
+                  reader.readAsDataURL(file);
+                }}/>
+              </label>
+              {company.logo && (
+                <button onClick={()=>upC("logo","")} style={{background:"none",border:"none",
+                  color:"#eb0000",fontFamily:FB,fontSize:12,fontWeight:"600",cursor:"pointer"}}>Remove</button>
+              )}
+            </div>
+          </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {[["Company Name","name","AES Workshop"],["Address","address","123 High Street"],
               ["Phone","phone","+44 1234 567890"],["Email","email","info@workshop.com"],
