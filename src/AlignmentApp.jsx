@@ -961,7 +961,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   );
 }
 
-function DecDegInput({ label, value, onChange, tol=null }) {
+function DecDegInput({ label, value, onChange, tol=null, disabled=false }) {
   const tl = tol ? trafficLight(value, tol) : "none";
   const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
   const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
@@ -977,15 +977,16 @@ function DecDegInput({ label, value, onChange, tol=null }) {
       <div style={{position:"relative",width:72}}>
         <input
           type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="next"
-          value={str} placeholder="0"
+          value={str} placeholder="0" disabled={disabled} readOnly={disabled}
           onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setStr(v); }}
           onBlur={e=>commit(e.target.value)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
           className="no-spin"
-          style={{width:"100%",boxSizing:"border-box",background:"#f7f7f7",
+          style={{width:"100%",boxSizing:"border-box",background:disabled?"#ececec":"#f7f7f7",
             border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
-            padding:"6px 8px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
-            fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center"}}/>
+            padding:"6px 8px",color:disabled?"rgba(5,5,5,0.55)":(hasVal(value)?textCol:"rgba(5,5,5,0.35)"),
+            fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
+            cursor:disabled?"not-allowed":"text"}}/>
         <span style={{position:"absolute",right:5,top:"50%",transform:"translateY(-50%)",
           fontSize:9,color:"rgba(5,5,5,0.45)",fontFamily:FM,pointerEvents:"none"}}>°</span>
       </div>
@@ -1961,13 +1962,16 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
   );
 }
 
-function TootBox({ primaryLabel, primaryValue, onPrimary, secondaryLabel, secondaryValue, onSecondary }) {
+function TootBox({ primaryLabel, primaryValue, onPrimary, secondaryLabel, secondaryValue, onSecondary, primaryFixed=false }) {
+  useEffect(()=>{
+    if (primaryFixed && primaryValue!=="20") onPrimary("20");
+  }, [primaryFixed, primaryValue]);
   const diff = hasVal(primaryValue)&&hasVal(secondaryValue)
     ? toNum(primaryValue)-toNum(secondaryValue) : null;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:10,
       border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:10}}>
-      <DecDegInput label={primaryLabel} value={primaryValue} onChange={onPrimary}/>
+      <DecDegInput label={primaryLabel} value={primaryFixed?"20":primaryValue} onChange={onPrimary} disabled={primaryFixed}/>
       <DecDegInput label={secondaryLabel} value={secondaryValue} onChange={onSecondary}/>
       {diff!==null&&<StatBox label="Diff" value={`${diff>=0?"+":""}${diff.toFixed(1)}`} unit="°"/>}
     </div>
@@ -2022,7 +2026,7 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
         <div>
           <SectionHead>TOOT</SectionHead>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-            <TootBox primaryLabel="Left Wheel" primaryValue={axle.tootLeft} onPrimary={v=>up("tootLeft",v)}
+            <TootBox primaryFixed primaryLabel="Left Wheel" primaryValue={axle.tootLeft} onPrimary={v=>up("tootLeft",v)}
               secondaryLabel="Right Wheel" secondaryValue={axle.tootRight} onSecondary={v=>up("tootRight",v)}/>
             <TootBox primaryLabel="Right Wheel" primaryValue={axle.tootRight2} onPrimary={v=>up("tootRight2",v)}
               secondaryLabel="Left Wheel" secondaryValue={axle.tootLeft2} onSecondary={v=>up("tootLeft2",v)}/>
