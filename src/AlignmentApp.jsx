@@ -912,12 +912,12 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   const dm = decToDM(value);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
   useEffect(()=>{
     const d = decToDM(value);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(d.min===""?"":String(d.min));
+    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
   }, [value]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
@@ -925,7 +925,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   };
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fieldStyle = {
-    width:34,boxSizing:"border-box",background:"#f7f7f7",
+    width:40,boxSizing:"border-box",background:"#f7f7f7",
     border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
     padding:"6px 4px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
     fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
@@ -934,11 +934,11 @@ function DegMinInput({ label, value, onChange, tol=null }) {
     <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
       <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
-      <div style={{display:"flex",alignItems:"center",gap:3}}>
-        <button type="button" onClick={toggleSign} style={{width:20,height:28,flexShrink:0,
+      <div style={{display:"flex",alignItems:"center",gap:4}}>
+        <button type="button" onClick={toggleSign} style={{width:28,height:32,flexShrink:0,
           background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
-          border:`1px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.15)"}`,borderRadius:"0.3rem",
-          color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:13,fontWeight:"700",
+          border:`1.5px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.18)"}`,borderRadius:"0.3rem",
+          color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:15,fontWeight:"700",
           cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={dStr} placeholder="0"
@@ -948,7 +948,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
           className="no-spin" style={fieldStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
-          value={mStr} placeholder="0"
+          value={mStr} placeholder="00"
           onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
           onBlur={e=>commit(sign, dStr, e.target.value)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
@@ -990,42 +990,42 @@ function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
   useEffect(()=>{
     const d = decToDM(tol[f]);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(d.min===""?"":String(d.min));
+    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
   }, [tol[f]]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
     upd(f, dec===""?"":dec.toFixed(4));
   };
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
-  const fStyle = {width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+  const fStyle = {flex:1,minWidth:0,boxSizing:"border-box",background:"#e5e5e5",
     border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
-    padding:"5px 4px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
+    padding:"5px 2px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
   return (
     <div style={{display:"flex",alignItems:"center",gap:2}}>
-      <button type="button" onClick={toggleSign} style={{width:16,height:24,flexShrink:0,
+      <button type="button" onClick={toggleSign} style={{width:24,height:26,flexShrink:0,
         background: sign<0 ? "rgba(235,0,0,0.12)" : "#e5e5e5",
-        border:`1px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.12)"}`,borderRadius:"0.3rem",
-        color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:11,fontWeight:"700",
+        border:`1.5px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.15)"}`,borderRadius:"0.3rem",
+        color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:13,fontWeight:"700",
         cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
-      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="—"
+      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="0"
         value={dStr}
         onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
         onBlur={e=>commit(sign, e.target.value, mStr)}
         onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
         className="no-spin" style={fStyle}/>
-      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>°</span>
-      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="0"
+      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)",flexShrink:0}}>°</span>
+      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="00"
         value={mStr}
         onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
         onBlur={e=>commit(sign, dStr, e.target.value)}
         onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
         className="no-spin" style={fStyle}/>
-      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>'</span>
+      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)",flexShrink:0}}>'</span>
     </div>
   );
 }
@@ -1050,7 +1050,7 @@ function TolRow({ label, tolKey, tol, onChange }) {
         padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
   );
   return (
-    <div style={{display:"grid",gridTemplateColumns:isAngle?"1fr 104px 104px":"1fr 80px 80px",gap:8,alignItems:"center",
+    <div style={{display:"grid",gridTemplateColumns:isAngle?"1fr 128px 128px":"1fr 80px 80px",gap:8,alignItems:"center",
       padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
       <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
       {["min","max"].map(f=>(
@@ -1862,28 +1862,32 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div>
         <SectionHead>Camber · Caster · KPI</SectionHead>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-          <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
-          <DegMinInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  tol={(tols||{}).casterLeft}/>
-          <DegMinInput label="KPI L"    value={axle.kpiLeft}     onChange={v=>up("kpiLeft",v)}      tol={(tols||{}).kpiLeft}/>
-          <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
-          <DegMinInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} tol={(tols||{}).casterRight}/>
-          <DegMinInput label="KPI R"    value={axle.kpiRight}    onChange={v=>up("kpiRight",v)}     tol={(tols||{}).kpiRight}/>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
+            <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <DegMinInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  tol={(tols||{}).casterLeft}/>
+            <DegMinInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} tol={(tols||{}).casterRight}/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <DegMinInput label="KPI L" value={axle.kpiLeft}  onChange={v=>up("kpiLeft",v)}  tol={(tols||{}).kpiLeft}/>
+            <DegMinInput label="KPI R" value={axle.kpiRight} onChange={v=>up("kpiRight",v)} tol={(tols||{}).kpiRight}/>
+          </div>
         </div>
       </div>
       {showTurning&&(
         <div>
           <SectionHead>Max Turn · TOOT</SectionHead>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,alignItems:"start"}}>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                <DegMinInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
-                <DegMinInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                <DegMinInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
-                <DegMinInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
-              </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <DegMinInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
+              <DegMinInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              <DegMinInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
+              <DegMinInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
             </div>
             <div style={{display:"flex",justifyContent:"center"}}>
               <TurningDiagram left={axle.maxTurnLeft} right={axle.maxTurnRight}/>
