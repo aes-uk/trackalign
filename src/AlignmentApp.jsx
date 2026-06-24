@@ -959,6 +959,38 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   );
 }
 
+function DecDegInput({ label, value, onChange, tol=null }) {
+  const tl = tol ? trafficLight(value, tol) : "none";
+  const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
+  const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
+  const [str, setStr] = useState(value===undefined||value===null||value===""?"":String(value));
+  useEffect(()=>{
+    setStr(value===undefined||value===null||value===""?"":String(value));
+  }, [value]);
+  const commit = v => onChange(v===""?"":parseFloat(v).toFixed(1));
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+      <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
+        textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
+      <div style={{position:"relative",width:72}}>
+        <input
+          type="text" inputMode="decimal" enterKeyHint="next"
+          value={str} placeholder="0.0"
+          onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
+          onBlur={e=>commit(e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+          className="no-spin"
+          style={{width:"100%",boxSizing:"border-box",background:"#f7f7f7",
+            border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
+            padding:"6px 8px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
+            fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center"}}/>
+        <span style={{position:"absolute",right:5,top:"50%",transform:"translateY(-50%)",
+          fontSize:9,color:"rgba(5,5,5,0.45)",fontFamily:FM,pointerEvents:"none"}}>°</span>
+      </div>
+    </div>
+  );
+}
+
 function StatBox({ label, value, unit="", color="", highlight=false, tl="none" }) {
   const col = tl!=="none" ? TL_COLOR[tl] : color||"#050505";
   const bg  = highlight ? "rgba(235,0,0,0.07)" : "#f7f7f7";
@@ -984,7 +1016,7 @@ function StatBox({ label, value, unit="", color="", highlight=false, tl="none" }
 const TOE_TOL_OPTS = Array.from({length:101},(_,i)=>((i-50)/10).toFixed(1));
 const TOE_OPTS = Array.from({length:601},(_,i)=>((i-300)/10).toFixed(1)); // -30.0 to +30.0
 
-const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","turnDiff"];
+const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight"];
 
 function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
@@ -1931,12 +1963,12 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
           <SectionHead>Max Turn · TOOT</SectionHead>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <DegMinInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
-              <DegMinInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
+              <DecDegInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
+              <DecDegInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-              <DegMinInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
-              <DegMinInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
+              <DecDegInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
+              <DecDegInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
             </div>
             <div style={{display:"flex",justifyContent:"center"}}>
               <TurningDiagram left={axle.maxTurnLeft} right={axle.maxTurnRight}/>
@@ -1950,7 +1982,7 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
             {crossCamber!==null&&<StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
             {crossCaster!==null&&<StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
-            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${fDM(turnDiff)}`} tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
+            {turnDiff!==null&&<StatBox label="Turn Diff" value={`${turnDiff>=0?"+":""}${turnDiff.toFixed(1)}`} unit="°" tl={trafficLight(turnDiff,(tols||{}).turnDiff)}/>}
           </div>
         </div>
       )}
@@ -2915,7 +2947,7 @@ function ReportScreen({ job, company, onClose }) {
                       fontWeight:"bold",color:"#666",textAlign:"center",
                       border:"0.4pt solid #ddd",fontSize:"5pt"}}>{row.lbl}</td>
                     {row.vals.map((val,ci)=>(
-                      <td key={ci} style={tdS}>{fDeg(val)}</td>
+                      <td key={ci} style={tdS}>{ci<3 ? fDeg(val) : (val===null?"—":`${f1(val)}°`)}</td>
                     ))}
                   </tr>
                 ))}
