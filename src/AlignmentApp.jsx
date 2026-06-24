@@ -3136,18 +3136,16 @@ function ReportScreen({ job, company, onClose }) {
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
-              <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"90pt"}}>{company.name}</div>}
-                <div style={{display:"flex",gap:"16pt"}}>
-                  <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                    {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
-                    {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
-                  </div>
-                  <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                    {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
-                    {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
-                    {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
-                  </div>
+              <div style={{display:"flex",gap:"16pt"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                  {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
+                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
+                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
+                  {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
+                  {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
+                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
                 </div>
               </div>
             </div>
