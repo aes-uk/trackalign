@@ -2584,7 +2584,7 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0 }) {
           <div style={{width:160,flexShrink:0}} dangerouslySetInnerHTML={{__html:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 354 70"><defs><style>.wc1{fill:#eb0000}.wc2{fill:#ffffff}</style></defs><g><g><rect class="wc1" x="2" y="33" width="64" height="4"/><path class="wc2" d="M0,1v68h68V1H0ZM61.17,5L4,62.17V5h57.17ZM6.83,65L64,7.83v57.17H6.83Z"/></g><g><polygon class="wc2" points="134.26 .99 111.74 69.01 120.53 69.01 142.87 1.38 165.2 69.01 174 69.01 151.47 .99 134.26 .99"/><path class="wc2" d="M334.95,30.66l-8.99-2.17c-11.02-2.66-14.12-5.52-14.12-10.65,0-6.9,5.99-10.75,14.7-10.75,10.25,0,16.24,6.01,17.02,14.1h8.61c-1.16-11.73-9.47-21.2-26.01-21.2-12.57,0-23.3,7.1-23.3,18.24,0,9.46,6.57,15.48,20.5,18.83l8.99,2.17c8.6,2.07,12.57,5.72,12.57,12.03,0,7.2-6.86,11.63-16.73,11.63s-17.79-8.08-18.37-17.84h-8.6c.87,12.92,9.86,24.94,27.36,24.94,15.86,0,25.43-8.38,25.43-18.63,0-11.83-6.67-17.75-19.05-20.7Z"/><polygon class="wc2" points="218.1 69 257 68.99 257 61.9 226.41 61.9 226.41 37.65 257 37.65 257 30.55 226.41 30.55 226.41 8.07 257 8.07 257 .97 218.1 .97 218.1 69"/></g></g></svg>`}}/>
           <div style={{fontFamily:FB,fontSize:12,color:"#ffffff",marginTop:6,display:"flex",alignItems:"center"}}>
             {jobs.length} job{jobs.length!==1?"s":""}&nbsp;·&nbsp;
-            <span style={{color:"#eb0000",fontWeight:"600"}}>{jobs.filter(j=>j.syncStatus==="local").length} unsynced</span>
+            <span style={{color:"#eb0000",fontWeight:"600"}}>{pendingCount} unsynced</span>
             <CloudSyncIndicator pendingCount={pendingCount}/>
           </div>
         </div>
@@ -3395,6 +3395,14 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     afterAxles: job.afterAxles && Array.isArray(job.afterAxles) ? job.afterAxles : null,
     measureMethod: job.measureMethod || "direct",
   }));
+  const [saveState,setSaveState]=useState("idle"); // idle|saving|saved
+  function handleSave() {
+    setSaveState("saving");
+    setTimeout(()=>{
+      setSaveState("saved");
+      setTimeout(()=>onSave(j), 650);
+    }, 500);
+  }
   const [tab,setTab]=useState(initialTab);
   useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
   const isJosam = j.measureMethod==="josam";
@@ -3443,7 +3451,27 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           </div>
           <div style={{fontSize:10,color:"rgba(255,255,255,0.5)",fontFamily:FM}}>{j.customer.name||"No contact"}</div>
         </div>
-        <Btn small onClick={()=>onSave(j)}>Save</Btn>
+        <button onClick={handleSave} disabled={saveState!=="idle"} style={{
+          background: saveState==="saved" ? "#16a34a" : "#eb0000",
+          color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
+          cursor:saveState!=="idle"?"default":"pointer",fontFamily:FB,fontWeight:"600",
+          fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
+          minWidth:64,justifyContent:"center",transition:"background 0.2s",
+        }}>
+          {saveState==="saving"&&(
+            <svg width="12" height="12" viewBox="0 0 24 24" style={{animation:"trkSpin 0.7s linear infinite"}}>
+              <circle cx="12" cy="12" r="9" fill="none" stroke="#ffffff" strokeWidth="3" strokeOpacity="0.3"/>
+              <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/>
+            </svg>
+          )}
+          {saveState==="saved"&&(
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          )}
+          {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
+        </button>
+        <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
       </div>
 
       <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto"}}>
