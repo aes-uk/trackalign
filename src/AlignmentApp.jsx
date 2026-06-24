@@ -1994,20 +1994,34 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
       <div>
-        <SectionHead>Camber · Caster · KPI</SectionHead>
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        <SectionHead>Camber</SectionHead>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
             <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
           </div>
+          {crossCamber!==null&&(
+            <StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>
+          )}
+        </div>
+      </div>
+      <div>
+        <SectionHead>Caster</SectionHead>
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <DegMinInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  tol={(tols||{}).casterLeft}/>
             <DegMinInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} tol={(tols||{}).casterRight}/>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-            <DegMinInput label="KPI L" value={axle.kpiLeft}  onChange={v=>up("kpiLeft",v)}  tol={(tols||{}).kpiLeft}/>
-            <DegMinInput label="KPI R" value={axle.kpiRight} onChange={v=>up("kpiRight",v)} tol={(tols||{}).kpiRight}/>
-          </div>
+          {crossCaster!==null&&(
+            <StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>
+          )}
+        </div>
+      </div>
+      <div>
+        <SectionHead>KPI</SectionHead>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          <DegMinInput label="KPI L" value={axle.kpiLeft}  onChange={v=>up("kpiLeft",v)}  tol={(tols||{}).kpiLeft}/>
+          <DegMinInput label="KPI R" value={axle.kpiRight} onChange={v=>up("kpiRight",v)} tol={(tols||{}).kpiRight}/>
         </div>
       </div>
       {showTurning&&(
@@ -2040,15 +2054,6 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
             {tootDiff!==null&&(
               <StatBox label="TOOT Diff" value={`${tootDiff>=0?"+":""}${tootDiff.toFixed(1)}`} unit="°"/>
             )}
-          </div>
-        </div>
-      )}
-      {(crossCamber!==null||crossCaster!==null)&&(
-        <div>
-          <SectionHead>Calculated</SectionHead>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            {crossCamber!==null&&<StatBox label="Cross Camber" value={`${crossCamber>=0?"+":""}${fDM(crossCamber)}`} tl={trafficLight(crossCamber,(tols||{}).crossCamber)}/>}
-            {crossCaster!==null&&<StatBox label="Cross Caster" value={`${crossCaster>=0?"+":""}${fDM(crossCaster)}`} tl={trafficLight(crossCaster,(tols||{}).crossCaster)}/>}
           </div>
         </div>
       )}
