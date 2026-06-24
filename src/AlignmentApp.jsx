@@ -553,9 +553,14 @@ function AxleDiagramNew({ axleType="fixed", dual=false, toeLeft=0, toeRight=0,
   //   Positive toe = toe-IN
   //   Left wheel toe-in: top leans RIGHT = positive SVG rotate
   //   Right wheel toe-in: top leans LEFT = negative SVG rotate
-  const toeScale = 2.0;
-  const rotL =  toeLeft  * toeScale;  // positive toe = lean in (right)
-  const rotR = -toeRight * toeScale;  // positive toe = lean in (left)
+  const toeRot = v => {
+    const ab = Math.min(Math.abs(v), 15); // cap at 15mm
+    if (ab<=1) return 0;
+    const deg = (ab-1)*2; // up to 28° at 15mm
+    return v<0 ? -deg : deg;
+  };
+  const rotL =  toeRot(toeLeft);  // positive toe = lean in (right)
+  const rotR = -toeRot(toeRight); // positive toe = lean in (left)
 
   // ── Padding so OOS tilt doesn't clip — define BEFORE anything uses CY ──
   const PAD = Math.round(th * 0.18);
