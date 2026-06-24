@@ -1985,6 +1985,11 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
     ?toNum(axle.casterLeft)-toNum(axle.casterRight):null;
   const turnDiff=hasVal(axle.maxTurnLeft)&&hasVal(axle.maxTurnRight)
     ?toNum(axle.maxTurnLeft)-toNum(axle.maxTurnRight):null;
+  const tootDiffA=hasVal(axle.tootLeft)&&hasVal(axle.tootRight)
+    ?toNum(axle.tootLeft)-toNum(axle.tootRight):null;
+  const tootDiffB=hasVal(axle.tootRight2)&&hasVal(axle.tootLeft2)
+    ?toNum(axle.tootRight2)-toNum(axle.tootLeft2):null;
+  const tootDiff=(tootDiffA!==null&&tootDiffB!==null)?tootDiffA-tootDiffB:null;
   const qCol=(_v,_lo,_hi)=>"#050505";
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
@@ -2025,11 +2030,16 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
       {showTurning&&(
         <div>
           <SectionHead>TOOT</SectionHead>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-            <TootBox primaryFixed primaryLabel="Left Wheel" primaryValue={axle.tootLeft} onPrimary={v=>up("tootLeft",v)}
-              secondaryLabel="Right Wheel" secondaryValue={axle.tootRight} onSecondary={v=>up("tootRight",v)}/>
-            <TootBox primaryLabel="Right Wheel" primaryValue={axle.tootRight2} onPrimary={v=>up("tootRight2",v)}
-              secondaryLabel="Left Wheel" secondaryValue={axle.tootLeft2} onSecondary={v=>up("tootLeft2",v)}/>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <TootBox primaryFixed primaryLabel="Left Wheel" primaryValue={axle.tootLeft} onPrimary={v=>up("tootLeft",v)}
+                secondaryLabel="Right Wheel" secondaryValue={axle.tootRight} onSecondary={v=>up("tootRight",v)}/>
+              <TootBox primaryFixed primaryLabel="Right Wheel" primaryValue={axle.tootRight2} onPrimary={v=>up("tootRight2",v)}
+                secondaryLabel="Left Wheel" secondaryValue={axle.tootLeft2} onSecondary={v=>up("tootLeft2",v)}/>
+            </div>
+            {tootDiff!==null&&(
+              <StatBox label="TOOT Diff" value={`${tootDiff>=0?"+":""}${tootDiff.toFixed(1)}`} unit="°"/>
+            )}
           </div>
         </div>
       )}
