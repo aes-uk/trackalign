@@ -912,12 +912,12 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   const dm = decToDM(value);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
+  const [mStr, setMStr] = useState(!dm.min?"":String(dm.min).padStart(2,"0"));
   useEffect(()=>{
     const d = decToDM(value);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
+    setMStr(!d.min?"":String(d.min).padStart(2,"0"));
   }, [value]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
@@ -1023,12 +1023,12 @@ function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
+  const [mStr, setMStr] = useState(!dm.min?"":String(dm.min).padStart(2,"0"));
   useEffect(()=>{
     const d = decToDM(tol[f]);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
+    setMStr(!d.min?"":String(d.min).padStart(2,"0"));
   }, [tol[f]]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
@@ -1037,7 +1037,7 @@ function AngleTolField({ tol, f, upd }) {
   const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
   const fStyle = {flex:1,minWidth:0,boxSizing:"border-box",background:"#e5e5e5",
     border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
-    padding:"5px 2px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
+    padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
   return (
     <div style={{display:"flex",alignItems:"center",gap:2}}>
       <button type="button" onClick={toggleSign} onMouseDown={e=>e.preventDefault()}
@@ -1064,60 +1064,27 @@ function AngleTolField({ tol, f, upd }) {
   );
 }
 
-function NumKeypad({ onKey, onDone }) {
-  const keys = ["1","2","3","4","5","6","7","8","9","-","0",".","⌫"];
-  return (
-    <div onMouseDown={e=>e.preventDefault()} style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,
-      marginTop:4,background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.15)",borderRadius:"0.4rem",
-      padding:6,position:"absolute",left:0,right:0,top:"100%",zIndex:30}}>
-      {keys.map(k=>(
-        <button key={k} type="button" onClick={()=>onKey(k)}
-          style={{padding:"10px 0",background:"#fff",border:"1px solid rgba(5,5,5,0.12)",
-            borderRadius:"0.3rem",fontFamily:FM,fontSize:15,fontWeight:"600",color:"#050505",cursor:"pointer"}}>
-          {k}
-        </button>
-      ))}
-      <button type="button" onClick={onDone}
-        style={{gridColumn:"1 / -1",padding:"8px 0",background:"#eb0000",border:"none",
-          borderRadius:"0.3rem",fontFamily:FB,fontSize:12,fontWeight:"700",color:"#fff",cursor:"pointer"}}>
-        Done
-      </button>
-    </div>
-  );
-}
-
 function NumTolInput({ tol, f, upd }) {
   const init = tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]);
   const [str, setStr] = useState(init);
-  const [focused, setFocused] = useState(false);
   useEffect(()=>{
     setStr(tol[f]===undefined||tol[f]===null||tol[f]===""?"":String(tol[f]));
   }, [tol[f]]);
   const commit = v => upd(f, v===""?"":parseFloat(v).toFixed(1));
-  const onKey = k => setStr(prev=>{
-    const v = prev||"";
-    if (k==="⌫") return v.slice(0,-1);
-    const next = v+k;
-    return /^-?[0-9]*\.?[0-9]*$/.test(next) ? next : v;
-  });
-  const onDone = () => { commit(str); setFocused(false); };
   return (
-    <div style={{position:"relative"}}>
-      <input
-        type="text"
-        inputMode="none"
-        readOnly
-        enterKeyHint="next"
-        value={str}
-        onFocus={()=>setFocused(true)}
-        onBlur={e=>{ commit(e.target.value); setFocused(false); }}
-        placeholder="—"
-        className="no-spin"
-        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
-          border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
-          padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
-      {focused && <NumKeypad onKey={onKey} onDone={onDone}/>}
-    </div>
+    <input
+      type="text"
+      inputMode="decimal"
+      enterKeyHint="next"
+      value={str}
+      onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*\.?[0-9]*$/.test(v)) setStr(v); }}
+      onBlur={e=>commit(e.target.value)}
+      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+      placeholder="—"
+      className="no-spin"
+      style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+        border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
+        padding:"5px 6px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"}}/>
   );
 }
 
@@ -1155,7 +1122,7 @@ function TolRow({ label, tolKey, tol, onChange }) {
       <div style={{display:"flex",flexDirection:"column",gap:4,
         padding:"6px 0",borderBottom:"1px solid rgba(5,5,5,0.06)"}}>
         <span style={{fontFamily:FB,fontSize:11,color:"#050505"}}>{label}</span>
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {["min","max"].map(f=>(
             <div key={f} style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
               <label style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,
@@ -2003,19 +1970,19 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
     ?toNum(axle.maxTurnLeft)-toNum(axle.maxTurnRight):null;
   const qCol=(_v,_lo,_hi)=>"#050505";
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:20}}>
       <div>
         <SectionHead>Camber · Caster · KPI</SectionHead>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
             <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <DegMinInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  tol={(tols||{}).casterLeft}/>
             <DegMinInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} tol={(tols||{}).casterRight}/>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
             <DegMinInput label="KPI L" value={axle.kpiLeft}  onChange={v=>up("kpiLeft",v)}  tol={(tols||{}).kpiLeft}/>
             <DegMinInput label="KPI R" value={axle.kpiRight} onChange={v=>up("kpiRight",v)} tol={(tols||{}).kpiRight}/>
           </div>
@@ -2024,12 +1991,12 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
       {showTurning&&(
         <div>
           <SectionHead>Max Turn · TOOT</SectionHead>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
               <DecDegInput label="Max Turn L" value={axle.maxTurnLeft}  onChange={v=>up("maxTurnLeft",v)}  tol={(tols||{}).maxTurnLeft}/>
               <DecDegInput label="Max Turn R" value={axle.maxTurnRight} onChange={v=>up("maxTurnRight",v)} tol={(tols||{}).maxTurnRight}/>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
               <DecDegInput label="TOOT L" value={axle.tootLeft}  onChange={v=>up("tootLeft",v)}/>
               <DecDegInput label="TOOT R" value={axle.tootRight} onChange={v=>up("tootRight",v)}/>
             </div>
@@ -2060,7 +2027,7 @@ function FixedGeoSection({ axle, up, tols=null }) {
   const qCol=(_v,_lo,_hi)=>"#050505";
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,justifyItems:"center"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,justifyItems:"center"}}>
         <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
         <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
       </div>
