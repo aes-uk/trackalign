@@ -3887,26 +3887,33 @@ function AuthenticatedApp({ session }) {
     return () => { cancelled = true; clearTimeout(t); };
   }, [company, userId]);
 
-  // Browser back-button support: each forward navigation pushes a history
-  // entry; popping it (via hardware/browser back) replays the same logic
-  // as the in-app back buttons, which also just call history.back().
+  // Browser back/forward support: every navigation pushes a history entry
+  // carrying a snapshot of {screen, configScreen, activeId}. On popstate
+  // (fired for both back and forward) we restore the snapshot the browser
+  // hands us instead of blindly replaying a single "go back" step, so
+  // forward navigation actually re-applies the state we left.
   const isPoppingRef = useRef(false);
   const navInitRef = useRef(false);
-  const goBack = useCallback(() => {
-    if (configScreen === "editor") { setConfigScreen("library"); return; }
-    if (configScreen === "library") { setConfigScreen(null); setScreen(activeId?"job":"dashboard"); return; }
-    if (screen === "settings") { setScreen("dashboard"); return; }
-    if (screen === "job") { setScreen("dashboard"); return; }
-  }, [screen, configScreen, activeId]);
   useEffect(()=>{
-    const onPopState = () => { isPoppingRef.current = true; goBack(); };
+    const onPopState = (e) => {
+      isPoppingRef.current = true;
+      const s = e.state;
+      if (s) {
+        setScreen(s.screen);
+        setConfigScreen(s.configScreen);
+        setActiveId(s.activeId);
+      } else {
+        setScreen("dashboard"); setConfigScreen(null); setActiveId(null);
+      }
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [goBack]);
+  }, []);
   useEffect(()=>{
-    if (!navInitRef.current) { navInitRef.current = true; return; }
+    const snapshot = { screen, configScreen, activeId };
+    if (!navInitRef.current) { navInitRef.current = true; window.history.replaceState(snapshot, ""); return; }
     if (isPoppingRef.current) { isPoppingRef.current = false; return; }
-    window.history.pushState(null, "");
+    window.history.pushState(snapshot, "");
   }, [screen, configScreen, activeId]);
 
   const openJob =id =>{ setActiveId(id); setScreen("job"); setOpenTab("before"); };
