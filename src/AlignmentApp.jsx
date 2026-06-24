@@ -126,11 +126,17 @@ function companyFromRow(row) {
 }
 async function upsertCompanyRemote(company, userId) {
   if (!userId || !navigator.onLine) return false;
+  const row = companyToRow(company, userId);
   try {
-    const { error } = await supabase.from("company_settings").upsert(companyToRow(company, userId), { onConflict: "user_id" });
-    if (error) throw error;
+    const { data, error: updateError } = await supabase
+      .from("company_settings").update(row).eq("user_id", userId).select("user_id");
+    if (updateError) throw updateError;
+    if (!data || data.length===0) {
+      const { error: insertError } = await supabase.from("company_settings").insert(row);
+      if (insertError) throw insertError;
+    }
     return true;
-  } catch(e) { console.error("Company sync failed", e); return false; }
+  } catch(e) { console.error("Company sync failed:", e.message||e); return false; }
 }
 
 const DEFAULT_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70">
