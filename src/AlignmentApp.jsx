@@ -2901,14 +2901,20 @@ function ReportScreen({ job, company, onClose }) {
         </div>
 
         {/* Row 2: Left toe | diagram | Right toe — all fixed px widths, centred */}
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",
+        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",
           gap:0,marginBottom:3}}>
-          <div style={{width:TOE_W,flexShrink:0,display:"flex",
-            justifyContent:"flex-end",paddingRight:8}}>
+          <div style={{width:TOE_W,flexShrink:0,display:"flex",flexDirection:"column",
+            alignItems:"flex-end",gap:3,paddingRight:8}}>
             {v.tL!==null&&(
               <div style={BOX}>
                 <div style={SML}>LEFT TOE</div>
                 <div style={VAL(tlC(v.tL,t.toeLeft))}>{f1(v.tL)}mm</div>
+              </div>
+            )}
+            {isFixed && v.camberL!==null&&(
+              <div style={BOX}>
+                <div style={SML}>LEFT CAMBER</div>
+                <div style={VAL()}>{fDeg(v.camberL)}</div>
               </div>
             )}
           </div>
@@ -2920,12 +2926,18 @@ function ReportScreen({ job, company, onClose }) {
               oosTilt={oosTilt} width={DIAG_W}
               noRoll={v.tL===null&&v.tR===null}/>
           </div>
-          <div style={{width:TOE_W,flexShrink:0,display:"flex",
-            justifyContent:"flex-start",paddingLeft:8}}>
+          <div style={{width:TOE_W,flexShrink:0,display:"flex",flexDirection:"column",
+            alignItems:"flex-start",gap:3,paddingLeft:8}}>
             {v.tR!==null&&(
               <div style={BOX}>
                 <div style={SML}>RIGHT TOE</div>
                 <div style={VAL(tlC(v.tR,t.toeRight))}>{f1(v.tR)}mm</div>
+              </div>
+            )}
+            {isFixed && v.camberR!==null&&(
+              <div style={BOX}>
+                <div style={SML}>RIGHT CAMBER</div>
+                <div style={VAL()}>{fDeg(v.camberR)}</div>
               </div>
             )}
           </div>
@@ -2947,47 +2959,26 @@ function ReportScreen({ job, company, onClose }) {
           </div>
         )}
 
-        {/* Row 3 fixed: Left Camber | [OOS  Parallelism side by side] | Right Camber */}
-        {isFixed && (
-          <div style={{display:"flex",alignItems:"flex-start",gap:6,
+        {/* Row 3 fixed: OOS + Parallelism, centred */}
+        {isFixed && (v.oosObj||v.para) && (
+          <div style={{display:"flex",alignItems:"flex-start",gap:4,
             justifyContent:"center",marginBottom:3}}>
-            {/* Left camber — only if entered */}
-            <div style={{width:58,textAlign:"center"}}>
-              {v.camberL!==null&&(
-                <div style={BOX}>
-                  <div style={SML}>LEFT CAMBER</div>
-                  <div style={VAL()}>{fDeg(v.camberL)}</div>
+            {v.oosObj&&(
+              <div style={BOX}>
+                <div style={SML}>OUT OF SQUARE</div>
+                <div style={VAL(tlC(v.oosObj.outOfSquare,t.outOfSquare))}>
+                  {f1(v.oosObj.outOfSquare)}mm
                 </div>
-              )}
-            </div>
-            {/* OOS + Parallelism — same fixed width, side by side */}
-            <div style={{display:"flex",gap:4}}>
-              {v.oosObj&&(
-                <div style={BOX}>
-                  <div style={SML}>OUT OF SQUARE</div>
-                  <div style={VAL(tlC(v.oosObj.outOfSquare,t.outOfSquare))}>
-                    {f1(v.oosObj.outOfSquare)}mm
-                  </div>
+              </div>
+            )}
+            {v.para&&(
+              <div style={BOX}>
+                <div style={SML}>PARALLELISM</div>
+                <div style={VAL(tlC(v.para.value,t.parallelism))}>
+                  {f1(v.para.value)}mm
                 </div>
-              )}
-              {v.para&&(
-                <div style={BOX}>
-                  <div style={SML}>PARALLELISM</div>
-                  <div style={VAL(tlC(v.para.value,t.parallelism))}>
-                    {f1(v.para.value)}mm
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Right camber — only if entered */}
-            <div style={{width:58,textAlign:"center"}}>
-              {v.camberR!==null&&(
-                <div style={BOX}>
-                  <div style={SML}>RIGHT CAMBER</div>
-                  <div style={VAL()}>{fDeg(v.camberR)}</div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
