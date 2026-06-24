@@ -3930,6 +3930,8 @@ function AuthenticatedApp({ session }) {
     window.history.pushState(snapshot, "");
   }, [screen, configScreen, activeId]);
 
+  const goHome = useCallback(() => { setScreen("dashboard"); setConfigScreen(null); setActiveId(null); }, []);
+
   const openJob =id =>{ setActiveId(id); setScreen("job"); setOpenTab("before"); };
   const deleteJob = id => {
     setJobs(p => p.filter(j => j.id !== id));
@@ -4013,7 +4015,7 @@ function AuthenticatedApp({ session }) {
           <>
             <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"18px 16px":"0"}}>
               {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
-                setMeasureMode={setMeasureMode} onBack={()=>window.history.back()}
+                setMeasureMode={setMeasureMode} onBack={goHome}
                 company={company} setCompany={setCompany}/>}
               {configScreen==="library"&&<ConfigLibraryScreen
                 configs={configs}
@@ -4035,19 +4037,19 @@ function AuthenticatedApp({ session }) {
                 }}
                 onNew={newConfig}
                 onEdit={editConfig}
-                onBack={()=>window.history.back()}/>}
+                onBack={goHome}/>}
               {configScreen==="editor"&&editingConfig&&<ConfigEditorScreen
                 config={editingConfig}
                 onSave={saveConfig}
                 onDelete={deleteConfig}
-                onBack={()=>window.history.back()}/>}
+                onBack={goHome}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
                   {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
                     pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}/>}
                   {screen==="job"&&activeJob&&
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
-                      onBack={()=>window.history.back()} initialTab={openTab}
+                      onBack={goHome} initialTab={openTab}
                       onOpenConfigs={openConfigLibrary} forceTab={forceTab}
                       company={company}/>}
                 </>
