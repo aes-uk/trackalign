@@ -136,7 +136,12 @@ async function upsertCompanyRemote(company, userId) {
       if (insertError) throw insertError;
     }
     return true;
-  } catch(e) { console.error("Company sync failed:", e.message||e); return false; }
+  } catch(e) {
+    console.error("Company sync failed:", {
+      message: e?.message, code: e?.code, details: e?.details, hint: e?.hint, raw: e,
+    });
+    return false;
+  }
 }
 
 const DEFAULT_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70">
