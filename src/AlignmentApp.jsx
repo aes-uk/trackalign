@@ -3311,7 +3311,7 @@ export default function App() {
             {/* Footer */}
             <div style={{
               background:"#050505",borderTop:"1px solid rgba(255,255,255,0.08)",
-              padding:"10px 20px calc(10px + env(safe-area-inset-bottom))",display:"flex",justifyContent:"space-between",alignItems:"center",
+              padding:"16px 20px calc(16px + env(safe-area-inset-bottom))",display:"flex",justifyContent:"space-between",alignItems:"center",
               position:"sticky",bottom:0,zIndex:10,
             }}>
               <button onClick={()=>{ setConfigScreen("library"); }} style={{
