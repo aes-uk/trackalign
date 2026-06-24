@@ -430,7 +430,7 @@ function makeFixedAxle(label="Non Steer") {
     toeLeft:"", toeRight:"", camberLeft:"", camberRight:"", dualWheel:false,
     axleDistance:"",
     frontScaleLeft:"", rearScaleLeft:"", frontScaleRight:"", rearScaleRight:"",
-    targetToeLeft:"", targetToeRight:"",
+    targetToeLeft:"", targetToeRight:"", targetOOS:"",
     tolerances: emptyAxleTolerance("fixed") };
 }
 function makeJob() {
@@ -1827,12 +1827,15 @@ function ToeCalcBoxes({ axle, fullDistance="", tols=null, allAxles=null }) {
 
 /* ── Full geo section (steering axles) ───────────────────────── */
 /* ── Josam Adjustment sub-section (inside Geometry on After tab) ─ */
-function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
+function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange }) {
   const D  = parseFloat(fullDistance) || 0;
-  const [daVal, setDaVal] = useState(afterAxle?.axleDistance||beforeAxle?.axleDistance||"");
+  const daVal = afterAxle?.axleDistance || beforeAxle?.axleDistance || "";
+  const setDaVal = v => onChange({...afterAxle, axleDistance:v});
   const Da = parseFloat(daVal) || 0;
-  const [tgtL, setTgtL] = useState("");
-  const [tgtR, setTgtR] = useState("");
+  const tgtL = afterAxle?.targetToeLeft || "";
+  const tgtR = afterAxle?.targetToeRight || "";
+  const setTgtL = v => onChange({...afterAxle, targetToeLeft:v});
+  const setTgtR = v => onChange({...afterAxle, targetToeRight:v});
 
   function getBeforeToe(side) {
     if (!beforeAxle) return null;
@@ -1963,11 +1966,13 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
 }
 
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
-function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance }) {
+function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange }) {
   const D  = parseFloat(fullDistance) || 0;
-  const [daVal, setDaVal] = useState(afterAxle?.axleDistance||beforeAxle?.axleDistance||"");
+  const daVal = afterAxle?.axleDistance || beforeAxle?.axleDistance || "";
+  const setDaVal = v => onChange({...afterAxle, axleDistance:v});
   const Da = parseFloat(daVal) || 0;
-  const [tgtOOS, setTgtOOS] = useState("");
+  const tgtOOS = afterAxle?.targetOOS || "";
+  const setTgtOOS = v => onChange({...afterAxle, targetOOS:v});
 
   function getBeforeToe(side) {
     if (!beforeAxle) return null;
@@ -2272,7 +2277,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
       </CollapseSection>
       {isJosam&&isAfter&&(
         <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
     </div>
@@ -2298,7 +2303,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
       </CollapseSection>
       {isJosam&&isAfter&&(
         <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
     </div>
@@ -2329,7 +2334,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
       </CollapseSection>
       {isJosam&&isAfter&&(
         <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
-          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance}/>
+          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
     </div>
