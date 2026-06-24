@@ -1164,7 +1164,6 @@ function ConfigAxleEditor({ axle, onChange, onRemove, canRemove, isFirstSteer=fa
     ["Caster Left (°)",    "casterLeft"], ["Caster Right (°)", "casterRight"],
     ["Cross Caster (°)",   "crossCaster"],["KPI Left (°)",     "kpiLeft"],
     ["KPI Right (°)",      "kpiRight"],  ["Steering Middle (mm)","steeringMiddle"],["Twinsteer (mm)","twinsteer"],
-    ["Max Turn Left (°)",  "maxTurnLeft"],["Max Turn Right (°)","maxTurnRight"],
     ["Turn Diff (°)",      "turnDiff"],
     ["Parallelism (mm)",   "parallelism"],
   ];
