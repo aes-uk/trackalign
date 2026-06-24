@@ -893,6 +893,7 @@ function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
           onBlur={e=>{ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); }}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
           placeholder="0.0"
+          className="no-spin"
           style={{width:"100%",boxSizing:"border-box",
             background: unit==="mm"?"#f7f7f7":"#e5e5e5",
             border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
