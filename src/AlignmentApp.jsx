@@ -1303,7 +1303,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
             cursor:"pointer",fontFamily:FB,fontSize:12}}>Delete</button>}
         <Btn small onClick={()=>onSave(c)}>Save</Btn>
       </div>
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100vh"}}>
+      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
         {/* Config name */}
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
           <label style={{fontSize:10,letterSpacing:"0.08em",color:"#050505",fontFamily:FB,textTransform:"uppercase"}}>Configuration Name</label>
@@ -1348,7 +1348,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
         </span>
         <Btn small onClick={onNew}>+ New</Btn>
       </div>
-      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100vh"}}>
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
         <div style={{position:"relative"}}>
           <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"rgba(5,5,5,0.4)",fontSize:14}}>⌕</span>
           <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search configurations…"
@@ -3632,44 +3632,48 @@ export default function App() {
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100vh",background:T.bg,
         display:"flex",flexDirection:"column"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
-        {screen==="settings"&&<SettingsScreen measureMode={measureMode}
-          setMeasureMode={setMeasureMode} onBack={()=>window.history.back()}
-          company={company} setCompany={setCompany}/>}
-        {configScreen==="library"&&<ConfigLibraryScreen
-          configs={configs}
-          onSelect={c=>{
-            const newAxles = c.axles.map(ca=>({
-              ...makeAxleForType(ca.type, ca.label),
-              tolerances: JSON.parse(JSON.stringify(ca.tolerances||{})),
-              dualWheel: ca.dualWheel||false,
-              driveSide: ca.driveSide||"RHD",
-              suspType:  ca.suspType||"solid",
-            }));
-            const j = {...makeJob(), axles:newAxles, configId:c.id, configName:c.name};
-            setJobs(p=>[j,...p]);
-            setActiveId(j.id);
-            setScreen("job");
-            setOpenTab("before");
-            setForceTab("before");
-            setConfigScreen(null);
-          }}
-          onNew={newConfig}
-          onEdit={editConfig}
-          onBack={()=>window.history.back()}/>}
-        {configScreen==="editor"&&editingConfig&&<ConfigEditorScreen
-          config={editingConfig}
-          onSave={saveConfig}
-          onDelete={deleteConfig}
-          onBack={()=>window.history.back()}/>}
-        {(screen==="dashboard"||screen==="job")&&!configScreen&&(
+        {screen!=="onboarding"&&(
           <>
-            <div style={{flex:1,padding:screen==="dashboard"?"18px 16px":"0"}}>
-              {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}/>}
-              {screen==="job"&&activeJob&&
-                <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
-                  onBack={()=>window.history.back()} initialTab={openTab}
-                  onOpenConfigs={openConfigLibrary} forceTab={forceTab}
-                  company={company}/>}
+            <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"18px 16px":"0"}}>
+              {screen==="settings"&&<SettingsScreen measureMode={measureMode}
+                setMeasureMode={setMeasureMode} onBack={()=>window.history.back()}
+                company={company} setCompany={setCompany}/>}
+              {configScreen==="library"&&<ConfigLibraryScreen
+                configs={configs}
+                onSelect={c=>{
+                  const newAxles = c.axles.map(ca=>({
+                    ...makeAxleForType(ca.type, ca.label),
+                    tolerances: JSON.parse(JSON.stringify(ca.tolerances||{})),
+                    dualWheel: ca.dualWheel||false,
+                    driveSide: ca.driveSide||"RHD",
+                    suspType:  ca.suspType||"solid",
+                  }));
+                  const j = {...makeJob(), axles:newAxles, configId:c.id, configName:c.name};
+                  setJobs(p=>[j,...p]);
+                  setActiveId(j.id);
+                  setScreen("job");
+                  setOpenTab("before");
+                  setForceTab("before");
+                  setConfigScreen(null);
+                }}
+                onNew={newConfig}
+                onEdit={editConfig}
+                onBack={()=>window.history.back()}/>}
+              {configScreen==="editor"&&editingConfig&&<ConfigEditorScreen
+                config={editingConfig}
+                onSave={saveConfig}
+                onDelete={deleteConfig}
+                onBack={()=>window.history.back()}/>}
+              {(screen==="dashboard"||screen==="job")&&!configScreen&&(
+                <>
+                  {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}/>}
+                  {screen==="job"&&activeJob&&
+                    <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
+                      onBack={()=>window.history.back()} initialTab={openTab}
+                      onOpenConfigs={openConfigLibrary} forceTab={forceTab}
+                      company={company}/>}
+                </>
+              )}
             </div>
             {/* Footer */}
             <div style={{
