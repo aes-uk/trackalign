@@ -57,6 +57,40 @@ const TL_COLOR = { green:"#16a34a", amber:"#d97706", red:"#dc2626", none:"#05050
 const TL_BG    = { green:"rgba(22,163,74,0.08)", amber:"rgba(217,119,6,0.08)", red:"rgba(220,38,38,0.08)", none:"#f7f7f7" };
 const TL_BORDER= { green:"rgba(22,163,74,0.25)", amber:"rgba(217,119,6,0.25)", red:"rgba(220,38,38,0.25)", none:"rgba(5,5,5,0.10)" };
 
+/* ── Degrees/minutes helpers (internal storage stays decimal degrees) ── */
+function decToDM(v) {
+  if (v===""||v===null||v===undefined||isNaN(parseFloat(v))) return { deg:"", min:"" };
+  const num = parseFloat(v);
+  const sign = num<0 ? -1 : 1;
+  const abs = Math.abs(num);
+  let deg = Math.floor(abs+1e-9);
+  let min = Math.round((abs-deg)*60);
+  if (min===60) { min=0; deg+=1; }
+  return { deg: sign<0 ? -deg : deg, min };
+}
+function dmToDec(deg, min) {
+  const dEmpty = deg===""||deg===undefined||deg===null;
+  const mEmpty = min===""||min===undefined||min===null;
+  if (dEmpty && mEmpty) return "";
+  const d = dEmpty ? 0 : parseFloat(deg);
+  const m = mEmpty ? 0 : parseFloat(min);
+  if (isNaN(d) && isNaN(m)) return "";
+  const sign = (!isNaN(d) && d<0) ? -1 : 1;
+  const dec = sign * (Math.abs(isNaN(d)?0:d) + (isNaN(m)?0:m)/60);
+  return dec;
+}
+function fDM(v) {
+  if (v===null||v===undefined||v==="") return "—";
+  const num = parseFloat(v);
+  if (isNaN(num)) return "—";
+  const sign = num<0 ? -1 : 1;
+  const abs = Math.abs(num);
+  let deg = Math.floor(abs+1e-9);
+  let min = Math.round((abs-deg)*60);
+  if (min===60) { min=0; deg+=1; }
+  return `${sign<0?"-":""}${deg}°${String(min).padStart(2,"0")}'`;
+}
+
 /* ── Empty tolerance set ─────────────────────────────────────── */
 function emptyTolerance() {
   return { min:"", max:"" };
@@ -870,6 +904,52 @@ function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
   );
 }
 
+function DegMinInput({ label, value, onChange, tol=null }) {
+  const tl = tol ? trafficLight(value, tol) : "none";
+  const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
+  const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
+  const dm = decToDM(value);
+  const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
+  useEffect(()=>{
+    const d = decToDM(value);
+    setDStr(d.deg===""?"":String(d.deg));
+    setMStr(d.min===""?"":String(d.min));
+  }, [value]);
+  const commit = (newD, newM) => {
+    const dec = dmToDec(newD, newM);
+    onChange(dec===""?"":dec.toFixed(4));
+  };
+  const fieldStyle = {
+    width:38,boxSizing:"border-box",background:"#f7f7f7",
+    border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
+    padding:"6px 4px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
+    fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
+  };
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
+      <label style={{fontSize:9,letterSpacing:"0.06em",color:"#050505",fontFamily:FB,
+        textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
+      <div style={{display:"flex",alignItems:"center",gap:3}}>
+        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="-?[0-9]*"
+          value={dStr} placeholder="0"
+          onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*$/.test(v)) setDStr(v); }}
+          onBlur={e=>commit(e.target.value, mStr)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value, mStr); }}
+          className="no-spin" style={fieldStyle}/>
+        <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
+        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
+          value={mStr} placeholder="0"
+          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
+          onBlur={e=>commit(dStr, e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(dStr, e.target.value); }}
+          className="no-spin" style={fieldStyle}/>
+        <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>'</span>
+      </div>
+    </div>
+  );
+}
+
 function StatBox({ label, value, unit="", color="", highlight=false, tl="none" }) {
   const col = tl!=="none" ? TL_COLOR[tl] : color||"#050505";
   const bg  = highlight ? "rgba(235,0,0,0.07)" : "#f7f7f7";
@@ -895,10 +975,51 @@ function StatBox({ label, value, unit="", color="", highlight=false, tl="none" }
 const TOE_TOL_OPTS = Array.from({length:101},(_,i)=>((i-50)/10).toFixed(1));
 const TOE_OPTS = Array.from({length:601},(_,i)=>((i-300)/10).toFixed(1)); // -30.0 to +30.0
 
+const ANGLE_TOL_KEYS = ["camberLeft","camberRight","crossCamber","casterLeft","casterRight","crossCaster","kpiLeft","kpiRight"];
+
+function AngleTolField({ tol, f, upd }) {
+  const dm = decToDM(tol[f]);
+  const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min));
+  useEffect(()=>{
+    const d = decToDM(tol[f]);
+    setDStr(d.deg===""?"":String(d.deg));
+    setMStr(d.min===""?"":String(d.min));
+  }, [tol[f]]);
+  const commit = (newD, newM) => {
+    const dec = dmToDec(newD, newM);
+    upd(f, dec===""?"":dec.toFixed(4));
+  };
+  const fStyle = {width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+    border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",outline:"none",
+    padding:"5px 4px",color:"#050505",fontFamily:FM,fontSize:12,textAlign:"center"};
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:2}}>
+      <input type="text" inputMode="numeric" pattern="-?[0-9]*" placeholder="—"
+        value={dStr}
+        onChange={e=>{ const v=e.target.value; if(/^-?[0-9]*$/.test(v)) setDStr(v); }}
+        onBlur={e=>commit(e.target.value, mStr)}
+        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value, mStr); }}
+        className="no-spin" style={fStyle}/>
+      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>°</span>
+      <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="0"
+        value={mStr}
+        onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
+        onBlur={e=>commit(dStr, e.target.value)}
+        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(dStr, e.target.value); }}
+        className="no-spin" style={fStyle}/>
+      <span style={{fontSize:10,color:"rgba(5,5,5,0.45)"}}>'</span>
+    </div>
+  );
+}
+
 function TolRow({ label, tolKey, tol, onChange }) {
   const upd = (field, v) => onChange({ ...tol, [field]: v });
   const isToe = ["toeLeft","toeRight","totalToe","steeringMiddle","outOfSquare","parallelism","twinsteer"].includes(tolKey);
-  const InputField = ({f}) => (
+  const isAngle = ANGLE_TOL_KEYS.includes(tolKey);
+  const InputField = ({f}) => isAngle ? (
+    <AngleTolField tol={tol} f={f} upd={upd}/>
+  ) : (
     <input
       type="number"
       step="0.1"
@@ -1725,12 +1846,12 @@ function SteeringGeoSection({ axle, up, showTurning=true, tols=null }) {
       <div>
         <SectionHead>Camber · Caster · KPI</SectionHead>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-          <RInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  unit="°" tol={(tols||{}).camberLeft}/>
-          <RInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  unit="°" tol={(tols||{}).casterLeft}/>
-          <RInput label="KPI L"    value={axle.kpiLeft}     onChange={v=>up("kpiLeft",v)}      unit="°" tol={(tols||{}).kpiLeft}/>
-          <RInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} unit="°" tol={(tols||{}).camberRight}/>
-          <RInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} unit="°" tol={(tols||{}).casterRight}/>
-          <RInput label="KPI R"    value={axle.kpiRight}    onChange={v=>up("kpiRight",v)}     unit="°" tol={(tols||{}).kpiRight}/>
+          <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
+          <DegMinInput label="Caster L" value={axle.casterLeft}  onChange={v=>up("casterLeft",v)}  tol={(tols||{}).casterLeft}/>
+          <DegMinInput label="KPI L"    value={axle.kpiLeft}     onChange={v=>up("kpiLeft",v)}      tol={(tols||{}).kpiLeft}/>
+          <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
+          <DegMinInput label="Caster R" value={axle.casterRight} onChange={v=>up("casterRight",v)} tol={(tols||{}).casterRight}/>
+          <DegMinInput label="KPI R"    value={axle.kpiRight}    onChange={v=>up("kpiRight",v)}     tol={(tols||{}).kpiRight}/>
         </div>
       </div>
       {showTurning&&(
@@ -1775,8 +1896,8 @@ function FixedGeoSection({ axle, up, tols=null }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,justifyItems:"center"}}>
-        <RInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  unit="°" tol={(tols||{}).camberLeft}/>
-        <RInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} unit="°" tol={(tols||{}).camberRight}/>
+        <DegMinInput label="Camber L" value={axle.camberLeft}  onChange={v=>up("camberLeft",v)}  tol={(tols||{}).camberLeft}/>
+        <DegMinInput label="Camber R" value={axle.camberRight} onChange={v=>up("camberRight",v)} tol={(tols||{}).camberRight}/>
       </div>
       {crossCamber!==null&&(
         <StatBox label="Cross Camber" value={fmtV2(crossCamber)} unit="°"
@@ -2470,7 +2591,7 @@ function ReportScreen({ job, company, onClose }) {
   const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
   const f1 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(1)}`;
   const f2 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(2)}`;
-  const fDeg = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(1)}°`;
+  const fDeg = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${fDM(v)}`;
 
   function effToe(axle, side) {
     const direct = side==="left" ? axle.toeLeft : axle.toeRight;
