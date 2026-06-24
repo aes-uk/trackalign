@@ -3079,8 +3079,12 @@ function ReportScreen({ job, company, onClose }) {
       const drawH = canvas.height * ratio;
       const x = (pageW - drawW) / 2;
       pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
-      const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"") || "report";
-      pdf.save(`${reg}-alignment-report.pdf`);
+      const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+      const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
+      const now = new Date();
+      const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
+      const fname = [dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report";
+      pdf.save(`${fname}.pdf`);
     } catch (e) {
       alert("Could not export PDF. Please try Print / Save PDF instead.");
     } finally {
