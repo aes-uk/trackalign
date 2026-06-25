@@ -2603,7 +2603,32 @@ function CloudSyncIndicator({ pendingCount }) {
   );
 }
 
-function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0 }) {
+function RefreshButton({ onRefresh }) {
+  const [spinning,setSpinning]=useState(false);
+  const handleClick = async () => {
+    if (spinning) return;
+    setSpinning(true);
+    const start = Date.now();
+    await onRefresh();
+    const elapsed = Date.now()-start;
+    setTimeout(()=>setSpinning(false), Math.max(0, 500-elapsed));
+  };
+  return (
+    <button onClick={handleClick} disabled={spinning} title="Sync now"
+      style={{display:"inline-flex",alignItems:"center",justifyContent:"center",
+        width:18,height:18,marginLeft:6,padding:0,background:"none",border:"none",
+        cursor:spinning?"default":"pointer",color:"rgba(255,255,255,0.4)"}}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        style={{animation: spinning ? "trkSpin 0.6s linear infinite" : "none"}}>
+        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/>
+        <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+      </svg>
+    </button>
+  );
+}
+
+function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh }) {
   const [q,setQ]=useState("");
   const filtered=jobs.filter(j=>
     [j.customer.company,j.customer.name,j.vehicle.reg,j.vehicle.make,j.vehicle.model]
@@ -2618,6 +2643,7 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0 }) {
             {jobs.length} job{jobs.length!==1?"s":""}&nbsp;·&nbsp;
             <span style={{color:"#eb0000",fontWeight:"600"}}>{pendingCount} unsynced</span>
             <CloudSyncIndicator pendingCount={pendingCount}/>
+            {onRefresh&&<RefreshButton onRefresh={onRefresh}/>}
           </div>
         </div>
         <Btn onClick={onNew}>+ New Job</Btn>
@@ -3851,45 +3877,50 @@ function AuthenticatedApp({ session }) {
 
   const userId = session?.user?.id;
 
-  // On login: pull latest data from Supabase and merge into localStorage (remote wins if newer)
-  useEffect(()=>{
+  // Pull latest jobs/configs/company from Supabase and merge into localStorage
+  // (remote wins if newer; locally-synced items removed elsewhere are dropped).
+  // Used both on login and from the manual refresh button.
+  const pullFromSupabase = useCallback(async () => {
     if (!userId || !navigator.onLine) return;
-    let cancelled = false;
-    (async () => {
-      const [jobsRes, configsRes, companyRes] = await Promise.all([
-        supabase.from("jobs").select("*").eq("user_id", userId),
-        supabase.from("configs").select("*").eq("user_id", userId),
-        supabase.from("company_settings").select("*").eq("user_id", userId).maybeSingle(),
-      ]);
-      if (cancelled) return;
+    const [jobsRes, configsRes, companyRes] = await Promise.all([
+      supabase.from("jobs").select("*").eq("user_id", userId),
+      supabase.from("configs").select("*").eq("user_id", userId),
+      supabase.from("company_settings").select("*").eq("user_id", userId).maybeSingle(),
+    ]);
 
-      if (jobsRes.error) {
-        console.error("Job sync pull failed:", jobsRes.error);
-      } else if (jobsRes.data) {
-        const remoteIds = new Set(jobsRes.data.map(r=>r.id));
-        setJobs(prev => mergeByUpdatedAt(prev, jobsRes.data.map(jobFromRow))
-          .filter(j => j.syncStatus!=="synced" || remoteIds.has(j.id)));
-      }
+    if (jobsRes.error) {
+      console.error("Job sync pull failed:", jobsRes.error);
+    } else if (jobsRes.data) {
+      const remoteIds = new Set(jobsRes.data.map(r=>r.id));
+      setJobs(prev => mergeByUpdatedAt(prev, jobsRes.data.map(jobFromRow))
+        .filter(j => j.syncStatus!=="synced" || remoteIds.has(j.id)));
+    }
 
-      if (configsRes.error) {
-        console.error("Config sync pull failed:", configsRes.error);
-      } else if (configsRes.data) {
-        const remoteIds = new Set(configsRes.data.map(r=>r.id));
-        setConfigs(prev => mergeByUpdatedAt(prev, configsRes.data.map(configFromRow))
-          .filter(c => c.syncStatus!=="synced" || remoteIds.has(c.id)));
-      }
+    if (configsRes.error) {
+      console.error("Config sync pull failed:", configsRes.error);
+    } else if (configsRes.data) {
+      const remoteIds = new Set(configsRes.data.map(r=>r.id));
+      setConfigs(prev => mergeByUpdatedAt(prev, configsRes.data.map(configFromRow))
+        .filter(c => c.syncStatus!=="synced" || remoteIds.has(c.id)));
+    }
 
-      if (companyRes.error) {
-        console.error("Company sync pull failed:", companyRes.error);
-      } else if (!companyRes.data) {
-        await supabase.from("company_settings").insert({ user_id: userId, updated_at: new Date().toISOString() });
-      } else {
-        const remote = companyFromRow(companyRes.data);
-        setCompany(prev => (!prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt)) ? remote : prev);
-      }
-    })();
-    return () => { cancelled = true; };
+    if (companyRes.error) {
+      console.error("Company sync pull failed:", companyRes.error);
+    } else if (!companyRes.data) {
+      await supabase.from("company_settings").insert({ user_id: userId, updated_at: new Date().toISOString() });
+    } else {
+      const remote = companyFromRow(companyRes.data);
+      setCompany(prev => (!prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt)) ? remote : prev);
+    }
   }, [userId]);
+
+  // On login: pull latest data from Supabase and merge into localStorage
+  useEffect(()=>{
+    let cancelled = false;
+    (async () => { if (!cancelled) await pullFromSupabase(); })();
+    return () => { cancelled = true; };
+  }, [pullFromSupabase]);
+
 
   // Background write-through: push any locally-changed jobs to Supabase without blocking the UI
   useEffect(()=>{
@@ -4036,6 +4067,7 @@ function AuthenticatedApp({ session }) {
         input,textarea,button{font-family:inherit}
         input,textarea,select{font-size:16px!important}
         textarea{color:${T.text}}
+        @keyframes trkSpin{to{transform:rotate(360deg)}}
       `}</style>
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100vh",background:T.bg,
         display:"flex",flexDirection:"column"}}>
@@ -4075,7 +4107,8 @@ function AuthenticatedApp({ session }) {
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
                   {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
-                    pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}/>}
+                    pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}
+                    onRefresh={pullFromSupabase}/>}
                   {screen==="job"&&activeJob&&
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
                       onBack={goHome} initialTab={openTab}
