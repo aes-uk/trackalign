@@ -2630,7 +2630,9 @@ function RefreshButton({ onRefresh }) {
 
 function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh }) {
   const [q,setQ]=useState("");
-  const filtered=jobs.filter(j=>
+  const sorted=[...jobs].sort((a,b)=>
+    new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0));
+  const filtered=sorted.filter(j=>
     [j.customer.company,j.customer.name,j.vehicle.reg,j.vehicle.make,j.vehicle.model]
       .join(" ").toLowerCase().includes(q.toLowerCase()));
 
