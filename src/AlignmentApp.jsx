@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Fragment } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, Fragment } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { supabase } from "./supabase";
@@ -2955,6 +2955,9 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
 
 function ReportScreen({ job, company, onClose }) {
   const [exporting, setExporting] = useState(false);
+  const axlesOuterRef = useRef(null);
+  const axlesInnerRef = useRef(null);
+  const [axleScale, setAxleScale] = useState(1);
   const D = parseFloat(job.fullDistance)||0;
   const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
   const f1 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(1)}`;
@@ -3010,6 +3013,19 @@ function ReportScreen({ job, company, onClose }) {
   const beforeAxles = Array.isArray(job.axles) ? job.axles : [];
   const afterAxles  = Array.isArray(job.afterAxles) ? job.afterAxles : [];
   const hasAfter    = afterAxles.length > 0;
+
+  // Header / job details / BEFORE-AFTER band / footer stay full size; only the
+  // axle rows block is shrunk (via transform scale, never enlarged) to fit
+  // whatever vertical space is left on the single A4 landscape page.
+  useLayoutEffect(() => {
+    const outer = axlesOuterRef.current, inner = axlesInnerRef.current;
+    if (!outer || !inner) return;
+    const availableH = outer.offsetHeight;
+    const naturalH = inner.offsetHeight; // offsetHeight is layout-only, unaffected by transform:scale
+    if (availableH<=0 || naturalH<=0) return;
+    const next = Math.min(1, availableH / naturalH);
+    if (Math.abs(next - axleScale) > 0.002) setAxleScale(next);
+  }, [beforeAxles.length, afterAxles.length, JSON.stringify(job.axles), JSON.stringify(job.afterAxles), job.notes, axleScale]);
 
   // SVG panel constants — simple wheel rects
   const WH = 42;    // wheel height
@@ -3335,14 +3351,15 @@ function ReportScreen({ job, company, onClose }) {
       {/* A4 preview */}
       <div style={{padding:16,overflowX:"auto"}}>
         <div id="aes-report" style={{
-          background:"#fff",width:"277mm",minWidth:"277mm",margin:"0 auto",
+          background:"#fff",width:"281mm",minWidth:"281mm",height:"210mm",margin:"0 auto",
           padding:"8mm 8mm",boxSizing:"border-box",
           boxShadow:"0 2px 16px rgba(0,0,0,0.18)",
           fontFamily:"Arial,sans-serif",fontSize:"8pt",color:"#000",
+          display:"flex",flexDirection:"column",overflow:"hidden",
         }}>
 
-          {/* ── HEADER ── */}
-          <div style={{background:"#111",padding:"10pt",marginBottom:"6pt",
+          {/* ── HEADER — fixed size, never shrinks ── */}
+          <div style={{background:"#111",padding:"10pt",marginBottom:"6pt",flexShrink:0,
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
@@ -3370,9 +3387,9 @@ function ReportScreen({ job, company, onClose }) {
             </div>
           </div>
 
-          {/* ── JOB DETAILS ── */}
+          {/* ── JOB DETAILS — fixed size, never shrinks ── */}
           <div style={{display:"flex",gap:0,marginBottom:"6pt",border:"0.5pt solid #e0e0e0",
-            background:"#f8f8f8"}}>
+            background:"#f8f8f8",flexShrink:0}}>
             {[
               ["Customer", job.customer.company||job.customer.name||"—"],
               ["Contact",  job.customer.name&&job.customer.company?job.customer.name:"—"],
@@ -3388,15 +3405,20 @@ function ReportScreen({ job, company, onClose }) {
             ))}
           </div>
 
-          {/* ── BEFORE / AFTER SECTION HEADERS ── */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,marginBottom:"4pt"}}>
+          {/* ── BEFORE / AFTER SECTION HEADERS — fixed size, never shrinks ── */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,marginBottom:"4pt",flexShrink:0}}>
             <div style={{background:"#eb0000",color:"#fff",textAlign:"center",fontSize:"7pt",
               fontWeight:"bold",padding:"3pt",letterSpacing:"0.08em"}}>BEFORE</div>
             <div style={{background:"#222",color:"#fff",textAlign:"center",fontSize:"7pt",
               fontWeight:"bold",padding:"3pt",letterSpacing:"0.08em"}}>AFTER</div>
           </div>
 
-          {/* ── AXLES ── */}
+          {/* ── AXLES — fill remaining space; scaled down (never enlarged) to fit ── */}
+          <div ref={axlesOuterRef} style={{flex:"1 1 auto",minHeight:0,overflow:"hidden"}}>
+          <div ref={axlesInnerRef} style={{
+            transform:`scale(${axleScale})`,transformOrigin:"top left",
+            width:`${100/axleScale}%`,
+          }}>
           {beforeAxles.map((bAxle, i) => {
             const aAxle = hasAfter ? (afterAxles.find(a=>a.label===bAxle.label)||null) : null;
             const isSteer = bAxle.type==="steering"||bAxle.type==="rear-steer";
@@ -3460,9 +3482,11 @@ function ReportScreen({ job, company, onClose }) {
               {job.notes}
             </div>
           )}
+          </div>
+          </div>
 
-          {/* ── FOOTER ── */}
-          <div style={{marginTop:"6pt",borderTop:"0.5pt solid #e0e0e0",paddingTop:"3pt",
+          {/* ── FOOTER — fixed size, never shrinks ── */}
+          <div style={{marginTop:"6pt",borderTop:"0.5pt solid #e0e0e0",paddingTop:"3pt",flexShrink:0,
             display:"flex",justifyContent:"space-between",fontSize:"5.5pt",color:"#bbb"}}>
             <span>Generated by AES TrackAlign</span>
             <span>{fmtDate(new Date().toISOString())}</span>
