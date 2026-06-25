@@ -77,11 +77,17 @@ function jobFromRow(row) {
 }
 async function upsertJobRemote(job, userId) {
   if (!userId || !navigator.onLine) return false;
+  const row = jobToRow(job, userId);
   try {
-    const { error } = await supabase.from("jobs").upsert(jobToRow(job, userId));
-    if (error) throw error;
+    const { data, error: updateError } = await supabase
+      .from("jobs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
+    if (updateError) throw updateError;
+    if (!data || data.length===0) {
+      const { error: insertError } = await supabase.from("jobs").insert(row);
+      if (insertError) throw insertError;
+    }
     return true;
-  } catch(e) { console.error("Job sync failed", e); return false; }
+  } catch(e) { console.error("Job sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
 }
 
 function configToRow(config, userId) {
@@ -98,11 +104,17 @@ function configFromRow(row) {
 }
 async function upsertConfigRemote(config, userId) {
   if (!userId || !navigator.onLine) return false;
+  const row = configToRow(config, userId);
   try {
-    const { error } = await supabase.from("configs").upsert(configToRow(config, userId));
-    if (error) throw error;
+    const { data, error: updateError } = await supabase
+      .from("configs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
+    if (updateError) throw updateError;
+    if (!data || data.length===0) {
+      const { error: insertError } = await supabase.from("configs").insert(row);
+      if (insertError) throw insertError;
+    }
     return true;
-  } catch(e) { console.error("Config sync failed", e); return false; }
+  } catch(e) { console.error("Config sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
 }
 async function deleteConfigRemote(id, userId) {
   if (!userId || !navigator.onLine) return;
