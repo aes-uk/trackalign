@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Fragment } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { supabase } from "./supabase";
@@ -3198,43 +3198,48 @@ function ReportScreen({ job, company, onClose }) {
             {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiff]},
             {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiff]},
           ];
-          const tdS = {textAlign:"center",fontWeight:"bold",color:"#111",
-            padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt"};
+          const cellS = {textAlign:"center",fontWeight:"bold",color:"#111",
+            padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt",
+            display:"flex",alignItems:"center",justifyContent:"center"};
           const thS = {textAlign:"center",color:"#888",fontWeight:"normal",
-            padding:"1.5pt 0",border:"0.4pt solid #ddd",fontSize:"5.5pt"};
+            padding:"1.5pt 0",border:"0.4pt solid #ddd",fontSize:"5.5pt",
+            display:"flex",alignItems:"center",justifyContent:"center"};
           const fmtVal = (val,intFmt) => intFmt
             ? (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
+          // CSS grid instead of a native <table> with rowSpan — html2canvas
+          // (used for PDF export) doesn't render rowSpan/colSpan correctly.
+          const nCols = COLS.length + 1; // +1 for label column
           return (
-            <table style={{width:"100%",borderCollapse:"collapse",marginTop:2,
-              tableLayout:"fixed",fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
-              <thead>
-                <tr style={{background:"#f0f0f0"}}>
-                  <th style={{width:32,background:"#e8e8e8",border:"0.4pt solid #ddd"}}></th>
-                  {COLS.map(c=><th key={c.label} style={thS}>{c.label}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row,ri)=>(
-                  <tr key={ri} style={{background:ri===0?"white":"#fafafa"}}>
-                    <td style={{background:ri===0?"#f5f5f5":"#efefef",padding:"2pt 2pt",
-                      fontWeight:"bold",color:"#666",textAlign:"center",
-                      border:"0.4pt solid #ddd",fontSize:"5pt"}}>{row.lbl}</td>
-                    {COLS.map((col,ci)=>{
-                      if (col.span) {
-                        if (ri!==0) return null;
-                        return (
-                          <td key={ci} rowSpan={2} style={{...tdS,background:"#f0f4f8"}}>
-                            {fmtVal(col.value,col.intFmt)}
-                          </td>
-                        );
-                      }
-                      return <td key={ci} style={tdS}>{fmtVal(row.vals[ci],col.intFmt)}</td>;
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div style={{display:"grid",
+              gridTemplateColumns:`32px repeat(${COLS.length}, 1fr)`,
+              gridTemplateRows:"repeat(3, auto)",
+              marginTop:2,fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
+              <div style={{...thS,background:"#e8e8e8"}}/>
+              {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
+
+              {rows.map((row,ri)=>(
+                <Fragment key={ri}>
+                  <div style={{...cellS,background:ri===0?"#f5f5f5":"#efefef",
+                    fontWeight:"bold",color:"#666",fontSize:"5pt"}}>{row.lbl}</div>
+                  {COLS.map((col,ci)=>{
+                    if (col.span) {
+                      if (ri!==0) return null;
+                      return (
+                        <div key={ci} style={{...cellS,background:"#f0f4f8",gridRow:"span 2"}}>
+                          {fmtVal(col.value,col.intFmt)}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={ci} style={{...cellS,background:ri===0?"white":"#fafafa"}}>
+                        {fmtVal(row.vals[ci],col.intFmt)}
+                      </div>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </div>
           );
         })()}
       </div>
