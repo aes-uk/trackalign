@@ -3065,6 +3065,10 @@ function ReportScreen({ job, company, onClose }) {
     const geoR = [v.camberR, v.casterR, v.kpiR, v.maxTR, v.tootR];
     const hasGeoSteer = isSteer && geoL.concat(geoR).some(x=>x!==null);
 
+    const tootDiff = (v.tootL!==null && v.tootR!==null) ? v.tootL - v.tootR : null;
+    const crossCamber = (v.camberL!==null && v.camberR!==null) ? v.camberL - v.camberR : null;
+    const crossCaster = (v.casterL!==null && v.casterR!==null) ? v.casterL - v.casterR : null;
+
     const BW = 72; // all boxes same fixed width
     const BOX = {
       border:"0.4pt solid #ddd", borderRadius:"2pt", padding:"3pt 4pt",
@@ -3180,22 +3184,34 @@ function ReportScreen({ job, company, onClose }) {
 
         {/* Geo table — steer only, hidden if no values entered */}
         {hasGeoSteer && (()=>{
-          const GEO_COLS = ["Camber","Caster","KPI","Max Turn","TOOT"];
+          // Columns: per-row metrics interleaved with blended (left+right) spanning columns
+          const COLS = [
+            {label:"Camber",       span:false, intFmt:false},
+            {label:"Cross Camber", span:true,  value:crossCamber},
+            {label:"Caster",       span:false, intFmt:false},
+            {label:"Cross Caster", span:true,  value:crossCaster},
+            {label:"KPI",          span:false, intFmt:false},
+            {label:"Max Turn",     span:false, intFmt:true},
+            {label:"TOOT",         span:false, intFmt:true},
+          ];
           const rows = [
-            {lbl:"Left Wheel",  vals:[v.camberL,v.casterL,v.kpiL,v.maxTL,v.tootL]},
-            {lbl:"Right Wheel", vals:[v.camberR,v.casterR,v.kpiR,v.maxTR,v.tootR]},
+            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiff]},
+            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiff]},
           ];
           const tdS = {textAlign:"center",fontWeight:"bold",color:"#111",
             padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt"};
           const thS = {textAlign:"center",color:"#888",fontWeight:"normal",
             padding:"1.5pt 0",border:"0.4pt solid #ddd",fontSize:"5.5pt"};
+          const fmtVal = (val,intFmt) => intFmt
+            ? (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)
+            : fDeg(val);
           return (
             <table style={{width:"100%",borderCollapse:"collapse",marginTop:2,
               tableLayout:"fixed",fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
               <thead>
                 <tr style={{background:"#f0f0f0"}}>
                   <th style={{width:32,background:"#e8e8e8",border:"0.4pt solid #ddd"}}></th>
-                  {GEO_COLS.map(c=><th key={c} style={thS}>{c}</th>)}
+                  {COLS.map(c=><th key={c.label} style={thS}>{c.label}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -3204,9 +3220,17 @@ function ReportScreen({ job, company, onClose }) {
                     <td style={{background:ri===0?"#f5f5f5":"#efefef",padding:"2pt 2pt",
                       fontWeight:"bold",color:"#666",textAlign:"center",
                       border:"0.4pt solid #ddd",fontSize:"5pt"}}>{row.lbl}</td>
-                    {row.vals.map((val,ci)=>(
-                      <td key={ci} style={tdS}>{ci<3 ? fDeg(val) : (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)}</td>
-                    ))}
+                    {COLS.map((col,ci)=>{
+                      if (col.span) {
+                        if (ri!==0) return null;
+                        return (
+                          <td key={ci} rowSpan={2} style={{...tdS,background:"#f0f4f8"}}>
+                            {fmtVal(col.value,col.intFmt)}
+                          </td>
+                        );
+                      }
+                      return <td key={ci} style={tdS}>{fmtVal(row.vals[ci],col.intFmt)}</td>;
+                    })}
                   </tr>
                 ))}
               </tbody>
