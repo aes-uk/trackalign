@@ -3866,13 +3866,17 @@ function AuthenticatedApp({ session }) {
       if (jobsRes.error) {
         console.error("Job sync pull failed:", jobsRes.error);
       } else if (jobsRes.data) {
-        setJobs(prev => mergeByUpdatedAt(prev, jobsRes.data.map(jobFromRow)));
+        const remoteIds = new Set(jobsRes.data.map(r=>r.id));
+        setJobs(prev => mergeByUpdatedAt(prev, jobsRes.data.map(jobFromRow))
+          .filter(j => j.syncStatus!=="synced" || remoteIds.has(j.id)));
       }
 
       if (configsRes.error) {
         console.error("Config sync pull failed:", configsRes.error);
       } else if (configsRes.data) {
-        setConfigs(prev => mergeByUpdatedAt(prev, configsRes.data.map(configFromRow)));
+        const remoteIds = new Set(configsRes.data.map(r=>r.id));
+        setConfigs(prev => mergeByUpdatedAt(prev, configsRes.data.map(configFromRow))
+          .filter(c => c.syncStatus!=="synced" || remoteIds.has(c.id)));
       }
 
       if (companyRes.error) {
