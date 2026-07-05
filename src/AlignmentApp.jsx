@@ -2549,7 +2549,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
             <div style={{fontFamily:FD,fontSize:16,color:"#050505",letterSpacing:"0.04em",fontWeight:"600",
               whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
               {j.vehicle.reg
-                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700",fontSize:18}}>{j.vehicle.reg}</span>
+                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700",fontSize:20}}>{j.vehicle.reg}</span>
                 : <span style={{color:"rgba(5,5,5,0.3)"}}>No reg</span>}
               {j.vehicle.mileage&&<span style={{fontFamily:FM,fontSize:12,color:"#050505",marginLeft:10,fontWeight:"500"}}>Mileage: {parseInt(j.vehicle.mileage).toLocaleString()}</span>}
             </div>
