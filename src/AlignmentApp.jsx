@@ -2465,7 +2465,7 @@ function JobDetailsTab({ j, setJ, allJobs }) {
           placeholder="Job notes…" rows={3}
           style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
             border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"9px 10px",
-            color:"#050505",fontFamily:FB,fontSize:13,outline:"none",resize:"vertical"}}/>
+            color:"#050505",fontFamily:FM,fontSize:13,fontWeight:"normal",outline:"none",resize:"vertical"}}/>
       </div>
     </div>
   );
