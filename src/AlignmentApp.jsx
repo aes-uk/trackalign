@@ -1416,7 +1416,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
 
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
-      <div style={{position:"sticky",top:0,zIndex:20,background:"#050505",
+      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
@@ -1464,7 +1464,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
   const filtered=configs.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
-      <div style={{position:"sticky",top:0,zIndex:20,background:"#050505",
+      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
@@ -3333,7 +3333,7 @@ function ReportScreen({ job, company, onClose }) {
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",background:"#e8e8e8"}}>
       {/* Top bar */}
-      <div style={{position:"sticky",top:0,zIndex:20,background:"#050505",
+      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onClose} style={{background:"none",border:"none",color:"#eb0000",
@@ -3552,7 +3552,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
       {/* Top bar */}
-      <div style={{position:"sticky",top:0,zIndex:20,background:"#050505",
+      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
