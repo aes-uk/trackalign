@@ -3285,19 +3285,62 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
   const PANEL_W = 380;
 
-  const printReport = () => {
+  // iOS Safari/Chrome: iframe.print() and Web Share (after await) don't work reliably.
+  // On iOS we generate the PDF and open it in a new tab — the native PDF viewer
+  // provides working Share/Print buttons. On desktop we keep the direct approaches.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  async function buildPdfBlob() {
+    const el = document.getElementById("aes-report");
+    if (!el) throw new Error("no element");
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const img = canvas.toDataURL("image/jpeg", 0.92);
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+    const drawW = canvas.width * ratio;
+    const drawH = canvas.height * ratio;
+    const x = (pageW - drawW) / 2;
+    pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
+    const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+    const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
+    const now = new Date();
+    const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
+    const fname = ([dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report") + ".pdf";
+    return { blob: pdf.output("blob"), fname };
+  }
+
+  function openBlobInNewTab(blob) {
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  const printReport = async () => {
+    if (isIOS) {
+      // iOS: generate PDF and open in new tab — user gets native Share/Print from PDF viewer
+      if (exporting) return;
+      setExporting(true);
+      try {
+        const { blob } = await buildPdfBlob();
+        openBlobInNewTab(blob);
+      } catch(e) {
+        alert("Could not generate PDF. Please try again.");
+      } finally {
+        setExporting(false);
+      }
+      return;
+    }
+    // Desktop: print via hidden iframe
     const el = document.getElementById("aes-report");
     if (!el) return;
     let iframe = document.getElementById("aes-print-frame");
     if (iframe) iframe.remove();
     iframe = document.createElement("iframe");
     iframe.id = "aes-print-frame";
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "none";
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:none";
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow.document;
     doc.open();
@@ -3313,47 +3356,25 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     doc.close();
     const cleanup = () => { if (iframe && iframe.parentNode) iframe.remove(); };
     iframe.contentWindow.onafterprint = cleanup;
-    setTimeout(()=>{
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(cleanup, 60000);
-    }, 500);
+    setTimeout(()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print(); setTimeout(cleanup, 60000); }, 500);
   };
 
   const exportPdf = async () => {
-    const el = document.getElementById("aes-report");
-    if (!el || exporting) return;
+    if (exporting) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      const img = canvas.toDataURL("image/jpeg", 0.92);
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const drawW = canvas.width * ratio;
-      const drawH = canvas.height * ratio;
-      const x = (pageW - drawW) / 2;
-      pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
-      const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
-      const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
-      const now = new Date();
-      const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
-      const fname = ([dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report") + ".pdf";
-      const blob = pdf.output("blob");
-      const file = new File([blob], fname, { type: "application/pdf" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: fname });
+      const { blob, fname } = await buildPdfBlob();
+      if (isIOS) {
+        // iOS: open in new tab — user can save/share from PDF viewer toolbar
+        openBlobInNewTab(blob);
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url; a.download = fname; a.click();
         setTimeout(() => URL.revokeObjectURL(url), 10000);
       }
-    } catch (e) {
-      if (e?.name !== "AbortError") {
-        alert("Could not export PDF. Please try Print / Save PDF instead.");
-      }
+    } catch(e) {
+      alert("Could not export PDF. Please try again.");
     } finally {
       setExporting(false);
     }
