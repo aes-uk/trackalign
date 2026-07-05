@@ -4126,7 +4126,7 @@ function AuthenticatedApp({ session }) {
         @keyframes trkSpin{to{transform:rotate(360deg)}}
       `}</style>
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100vh",background:T.bg,
-        display:"flex",flexDirection:"column"}}>
+        display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top)"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
         {screen!=="onboarding"&&(
           <>
