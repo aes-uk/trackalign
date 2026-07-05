@@ -166,13 +166,7 @@ async function upsertCompanyRemote(company, userId) {
   }
 }
 
-const DEFAULT_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 70">
-  <rect x="3" y="5" width="60" height="60" fill="none" stroke="#ffffff" stroke-width="3"/>
-  <line x1="3" y1="5" x2="63" y2="65" stroke="#ffffff" stroke-width="3"/>
-  <line x1="16" y1="46" x2="46" y2="24" stroke="#eb0000" stroke-width="4"/>
-  <text x="78" y="55" font-family="Arial, sans-serif" font-weight="bold" font-size="50" fill="#ffffff" letter-spacing="14">AES</text>
-</svg>`;
-const DEFAULT_LOGO = `data:image/svg+xml;utf8,${encodeURIComponent(DEFAULT_LOGO_SVG)}`;
+const DEFAULT_LOGO = "/default-logo.png";
 
 
 function loadConfigs() {
@@ -3821,6 +3815,11 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
                     color:"#eb0000",fontFamily:FB,fontSize:12,fontWeight:"600",cursor:"pointer"}}>Remove</button>
                 )}
               </div>
+              {!company.logo&&(
+                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.4)"}}>
+                  Default logo — upload your own above.
+                </div>
+              )}
               {isBase64Logo&&(
                 <div style={{fontFamily:FB,fontSize:11,color:"#d97706",background:"rgba(217,119,6,0.08)",
                   border:"1px solid rgba(217,119,6,0.3)",borderRadius:"0.3rem",padding:"6px 10px"}}>
