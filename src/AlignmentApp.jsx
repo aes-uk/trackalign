@@ -1416,8 +1416,9 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
 
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
-      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
@@ -1429,7 +1430,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
             cursor:"pointer",fontFamily:FB,fontSize:12}}>Delete</button>}
         <Btn small onClick={()=>onSave(c)}>Save</Btn>
       </div>
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {/* Config name */}
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
           <label style={{fontSize:10,letterSpacing:"0.08em",color:"#050505",fontFamily:FB,textTransform:"uppercase"}}>Configuration Name</label>
@@ -1464,8 +1465,9 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
   const filtered=configs.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
-      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
@@ -1474,7 +1476,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
         </span>
         <Btn small onClick={onNew}>+ New</Btn>
       </div>
-      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         <div style={{position:"relative"}}>
           <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"rgba(5,5,5,0.4)",fontSize:14}}>⌕</span>
           <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search configurations…"
@@ -3333,8 +3335,9 @@ function ReportScreen({ job, company, onClose }) {
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",background:"#e8e8e8"}}>
       {/* Top bar */}
-      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onClose} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,lineHeight:1}}>←</button>
@@ -3352,7 +3355,7 @@ function ReportScreen({ job, company, onClose }) {
       </div>
 
       {/* A4 preview */}
-      <div style={{padding:16,overflowX:"auto"}}>
+      <div style={{padding:16,paddingTop:"calc(60px + env(safe-area-inset-top))",overflowX:"auto"}}>
         <div id="aes-report" style={{
           background:"#fff",width:"281mm",minWidth:"281mm",height:"210mm",margin:"0 auto",
           padding:"8mm 8mm",boxSizing:"border-box",
@@ -3552,8 +3555,9 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       {/* Top bar */}
-      <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
         display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
@@ -3588,7 +3592,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
       </div>
 
-      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto"}}>
+      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto",paddingTop:"calc(60px + env(safe-area-inset-top))"}}>
         {TABS.filter(t=>!t.josam||isJosam).map(t=>(
           <button key={t.id}
             onClick={()=>!t.locked&&handleTabChange(t.id)}
@@ -3712,14 +3716,16 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   return (
     <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
-      <div style={{background:"#050505",borderBottom:"1px solid rgba(255,255,255,0.08)",
-        padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+        display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <span style={{fontFamily:FD,fontSize:16,color:"#ffffff",fontWeight:"600",
           letterSpacing:"0.04em"}}>Settings</span>
       </div>
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
 
         <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"16px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Report Header</div>
@@ -4126,11 +4132,11 @@ function AuthenticatedApp({ session }) {
         @keyframes trkSpin{to{transform:rotate(360deg)}}
       `}</style>
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",background:T.bg,
-        display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top)"}}>
+        display:"flex",flexDirection:"column"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
         {screen!=="onboarding"&&(
           <>
-            <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"18px 16px":"0"}}>
+            <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"calc(env(safe-area-inset-top) + 18px) 16px 18px":"0"}}>
               {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
                 setMeasureMode={setMeasureMode} onBack={goHome}
                 company={company} setCompany={setCompany}/>}
