@@ -2544,35 +2544,39 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
         onMouseEnter={e=>{ if(swipeX===0) e.currentTarget.style.background="#e5e5e5"; }}
         onMouseLeave={e=>e.currentTarget.style.background="#f7f7f7"}
       >
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
-          <div style={{minWidth:0,flex:1}}>
-            <div style={{fontFamily:FD,fontSize:16,color:"#050505",letterSpacing:"0.04em",fontWeight:"600",
-              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-              {j.vehicle.reg
-                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700",fontSize:20}}>{j.vehicle.reg}</span>
-                : <span style={{color:"rgba(5,5,5,0.3)"}}>No reg</span>}
-              {j.vehicle.mileage&&<span style={{fontFamily:FM,fontSize:12,color:"#050505",marginLeft:10,fontWeight:"500"}}>Mileage: {parseInt(j.vehicle.mileage).toLocaleString()}</span>}
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {/* Left: REG + stacked details */}
+          <div style={{minWidth:0,flex:1,display:"flex",flexDirection:"column",gap:2}}>
+            <div style={{fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",
+              fontWeight:"700",fontSize:20,color:"#eb0000",whiteSpace:"nowrap",
+              overflow:"hidden",textOverflow:"ellipsis"}}>
+              {j.vehicle.reg||<span style={{color:"rgba(5,5,5,0.3)"}}>No reg</span>}
             </div>
-            <div style={{fontFamily:FB,fontSize:12,color:"#050505",marginTop:4,fontWeight:"500"}}>
-              {j.customer.company||j.customer.name||"No customer"}
-              &nbsp;·&nbsp;{j.vehicle.make} {j.vehicle.model}
-              &nbsp;·&nbsp;{fmtDate(j.createdAt)}
+            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.6)",fontWeight:"500"}}>
+              {fmtDate(j.updatedAt||j.createdAt)}
             </div>
+            {j.customer.company&&(
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.6)",fontWeight:"500"}}>
+                Customer: {j.customer.company}
+              </div>
+            )}
+            {(j.vehicle.make||j.vehicle.model)&&(
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.6)",fontWeight:"500"}}>
+                Make &amp; Model: {[j.vehicle.make,j.vehicle.model].filter(Boolean).join(" ")}
+              </div>
+            )}
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
-            <div style={{width:7,height:7,borderRadius:"50%",background:syncCol(j.syncStatus)}}/>
-            <span style={{fontSize:10,color:"#050505",fontFamily:FM,fontWeight:"500"}}>{j.syncStatus}</span>
+          {/* Right: View button + delete */}
+          <div style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+            <span onClick={requestDelete} title="Delete job" style={{cursor:"pointer",
+              color:"rgba(5,5,5,0.35)",fontSize:16,lineHeight:1,padding:"0 2px"}}
+              onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
+              onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.35)"}>×</span>
+            <span style={{width:60,textAlign:"center",padding:"4px 0",borderRadius:"0.25rem",
+              fontSize:11,fontFamily:FB,fontWeight:"600",color:"rgba(5,5,5,0.5)",
+              background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.12)",
+              pointerEvents:"none",display:"block"}}>View →</span>
           </div>
-          <span onClick={requestDelete} title="Delete job" style={{flexShrink:0,cursor:"pointer",
-            color:"rgba(5,5,5,0.35)",fontSize:16,lineHeight:1,padding:"0 2px"}}
-            onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
-            onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.35)"}>×</span>
-        </div>
-        <div style={{marginTop:8,display:"flex",justifyContent:"flex-end"}}>
-          <span style={{padding:"3px 10px",borderRadius:"0.25rem",fontSize:11,
-            fontFamily:FB,fontWeight:"600",color:"rgba(5,5,5,0.5)",
-            background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.12)",
-            pointerEvents:"none"}}>View →</span>
         </div>
       </button>
     </div>
