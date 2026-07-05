@@ -2644,6 +2644,27 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh })
         <Btn onClick={onNew}>+ New Job</Btn>
       </div>
 
+      {/* Info row: job count left, sync info right */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+        <span style={{fontFamily:FB,fontSize:12,color:"#ffffff",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
+          {filtered.length} JOB{filtered.length!==1?"S":""}
+        </span>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          {pendingCount>0&&(
+            <span style={{fontFamily:FB,fontSize:12,color:"#eb0000",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
+              {pendingCount} UNSYNCED
+            </span>
+          )}
+          {pendingCount===0&&(
+            <span style={{fontFamily:FB,fontSize:12,color:"#ffffff",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
+              0 UNSYNCED
+            </span>
+          )}
+          <CloudSyncIndicator pendingCount={pendingCount}/>
+          {onRefresh&&<RefreshButton onRefresh={onRefresh}/>}
+        </div>
+      </div>
+
       {/* Search box */}
       <div style={{position:"relative"}}>
         <span style={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)",color:T.textDim,fontSize:16,pointerEvents:"none"}}>⌕</span>
@@ -2652,27 +2673,6 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh })
           style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
             border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"9px 12px 9px 34px",
             color:T.text,fontFamily:FB,fontSize:13,outline:"none"}}/>
-      </div>
-
-      {/* Info row: job count left, sync info right */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-        <span style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,0.5)"}}>
-          {filtered.length} job{filtered.length!==1?"s":""}
-        </span>
-        <div style={{display:"flex",alignItems:"center",gap:6}}>
-          {pendingCount>0&&(
-            <span style={{fontFamily:FB,fontSize:12,color:"#eb0000",fontWeight:"600"}}>
-              {pendingCount} unsynced
-            </span>
-          )}
-          {pendingCount===0&&(
-            <span style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,0.3)"}}>
-              all synced
-            </span>
-          )}
-          <CloudSyncIndicator pendingCount={pendingCount}/>
-          {onRefresh&&<RefreshButton onRefresh={onRefresh}/>}
-        </div>
       </div>
 
       <div style={{display:"flex",flexDirection:"column",gap:"1rem"}}>
