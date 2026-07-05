@@ -3339,10 +3339,21 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
       const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
       const now = new Date();
       const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
-      const fname = [dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report";
-      pdf.save(`${fname}.pdf`);
+      const fname = ([dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report") + ".pdf";
+      const blob = pdf.output("blob");
+      const file = new File([blob], fname, { type: "application/pdf" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: fname });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = fname; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }
     } catch (e) {
-      alert("Could not export PDF. Please try Print / Save PDF instead.");
+      if (e?.name !== "AbortError") {
+        alert("Could not export PDF. Please try Print / Save PDF instead.");
+      }
     } finally {
       setExporting(false);
     }
