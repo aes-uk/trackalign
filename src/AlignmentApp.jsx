@@ -3706,6 +3706,11 @@ function OnboardingScreen({ onSelect }) {
 
 function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany }) {
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
+  const [saveState, setSaveState] = useState("idle");
+  function handleSave() {
+    setSaveState("saving");
+    setTimeout(()=>{ setSaveState("saved"); setTimeout(()=>{ onBack(); }, 600); }, 300);
+  }
   return (
     <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
@@ -3715,7 +3720,27 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <span style={{fontFamily:FD,fontSize:16,color:"#ffffff",fontWeight:"600",
-          letterSpacing:"0.04em"}}>Settings</span>
+          letterSpacing:"0.04em",flex:1}}>Settings</span>
+        <button onClick={handleSave} disabled={saveState!=="idle"} style={{
+          background:saveState==="saved"?"#16a34a":"#eb0000",
+          color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
+          cursor:saveState!=="idle"?"default":"pointer",fontFamily:FB,fontWeight:"600",
+          fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
+          minWidth:64,justifyContent:"center",transition:"background 0.2s",
+        }}>
+          {saveState==="saving"&&(
+            <svg width="12" height="12" viewBox="0 0 24 24" style={{animation:"trkSpin 0.7s linear infinite"}}>
+              <circle cx="12" cy="12" r="9" fill="none" stroke="#ffffff" strokeWidth="3" strokeOpacity="0.3"/>
+              <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/>
+            </svg>
+          )}
+          {saveState==="saved"&&(
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          )}
+          {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
+        </button>
       </div>
       <div style={{padding:"18px 16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
 
