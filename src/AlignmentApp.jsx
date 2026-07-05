@@ -3555,12 +3555,11 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:FD,fontSize:15,color:"#ffffff",letterSpacing:"0.04em",fontWeight:"600",
-            whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-            {j.customer.company||j.vehicle.make||"New Job"} {j.vehicle.model}
-            {j.vehicle.reg&&<span style={{color:"#eb0000",fontFamily:FM,fontSize:12,marginLeft:8}}>· {j.vehicle.reg.toUpperCase()}</span>}
+          <div style={{fontFamily:FM,fontSize:16,color:"#ffffff",letterSpacing:"0.08em",fontWeight:"700",
+            textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+            {j.vehicle.reg||"No reg"}
           </div>
-          <div style={{fontSize:10,color:"rgba(255,255,255,0.5)",fontFamily:FM}}>{j.customer.name||"No contact"}</div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
         </div>
         <button onClick={handleSave} disabled={saveState!=="idle"} style={{
           background: saveState==="saved" ? "#16a34a" : "#eb0000",
