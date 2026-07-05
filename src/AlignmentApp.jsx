@@ -450,13 +450,14 @@ function makeFixedAxle(label="Non Steer") {
     targetToeLeft:"", targetToeRight:"", targetOOS:"",
     tolerances: emptyAxleTolerance("fixed") };
 }
-function makeJob() {
+function makeJob(measureMethod="direct") {
   return { id:uid(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     customer:{ company:"", name:"", phone:"", email:"" },
     vehicle:{ reg:"", make:"", model:"", year:"", mileage:"" },
     axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
     afterAxles:null, fullDistance:"",
     configId:null, configName:null,
+    measureMethod,
     notes:"" };
 }
 
@@ -4096,7 +4097,7 @@ function AuthenticatedApp({ session }) {
   const [openTab, setOpenTab]=useState("job");
   const [forceTab, setForceTab]=useState(null);
   const newJob  =()  =>{
-    const j={...makeJob(), fullDistance:"", measureMethod:measureMode};
+    const j={...makeJob(measureMode), fullDistance:""};
     setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job");
   };
   const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
@@ -4143,7 +4144,7 @@ function AuthenticatedApp({ session }) {
                     driveSide: ca.driveSide||"RHD",
                     suspType:  ca.suspType||"solid",
                   }));
-                  const j = {...makeJob(), axles:newAxles, configId:c.id, configName:c.name};
+                  const j = {...makeJob(measureMode), axles:newAxles, configId:c.id, configName:c.name};
                   setJobs(p=>[j,...p]);
                   setActiveId(j.id);
                   setScreen("job");
