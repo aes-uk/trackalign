@@ -4123,13 +4123,15 @@ function AuthenticatedApp({ session }) {
         input,textarea,select{font-size:16px!important}
         textarea{color:${T.text}}
         @keyframes trkSpin{to{transform:rotate(360deg)}}
+        .trk-dash-scroll{padding-bottom:70px}
+        @media(display-mode:standalone){.trk-dash-scroll{padding-bottom:calc(70px + env(safe-area-inset-bottom))}}
       `}</style>
       <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",background:T.bg,
         display:"flex",flexDirection:"column"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
         {screen!=="onboarding"&&(
           <>
-            <div style={{flex:1,padding:screen==="dashboard"&&!configScreen?"calc(env(safe-area-inset-top) + 18px) 16px 18px":"0"}}>
+            <div className={screen==="dashboard"&&!configScreen?"trk-dash-scroll":""} style={{flex:1,...(screen==="dashboard"&&!configScreen?{paddingTop:"calc(env(safe-area-inset-top) + 18px)",paddingLeft:"16px",paddingRight:"16px"}:{padding:"0"})}}>
               {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
                 setMeasureMode={setMeasureMode} onBack={goHome}
                 company={company} setCompany={setCompany}/>}
