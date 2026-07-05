@@ -4143,7 +4143,8 @@ function AuthenticatedApp({ session }) {
   };
 
   const [pendingSetJ, setPendingSetJ] = useState(null);
-  function openConfigLibrary(setJFn) { setPendingSetJ(()=>setJFn); setConfigScreen("library"); }
+  const [configSource, setConfigSource] = useState("footer"); // "footer" | "job"
+  function openConfigLibrary(setJFn) { setPendingSetJ(()=>setJFn); setConfigSource("job"); setConfigScreen("library"); }
   function newConfig() { setEditingConfig(makeConfig()); setConfigScreen("editor"); }
   function editConfig(c) { setEditingConfig(c); setConfigScreen("editor"); }
   function saveConfig(c) {
@@ -4186,7 +4187,7 @@ function AuthenticatedApp({ session }) {
   const [forceTab, setForceTab]=useState(null);
   const newJob  =()  =>{
     const j={...makeJob(measureMode), fullDistance:""};
-    setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job");
+    setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job"); setForceTab(null);
   };
   const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
 
@@ -4234,13 +4235,28 @@ function AuthenticatedApp({ session }) {
                     driveSide: ca.driveSide||"RHD",
                     suspType:  ca.suspType||"solid",
                   }));
-                  const j = {...makeJob(measureMode), axles:newAxles, configId:c.id, configName:c.name};
-                  setJobs(p=>[j,...p]);
-                  setActiveId(j.id);
-                  setScreen("job");
-                  setOpenTab("before");
-                  setForceTab("before");
-                  setConfigScreen(null);
+                  const stamp = {updatedAt:new Date().toISOString(), syncStatus:"local"};
+                  if (configSource==="job" && activeId) {
+                    // Apply config to current job — preserve all job details
+                    setJobs(prev=>prev.map(j=>j.id===activeId
+                      ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
+                      : j));
+                    if (pendingSetJ) pendingSetJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}));
+                    setConfigScreen(null);
+                    setScreen("job");
+                    setOpenTab("before");
+                    setForceTab("before");
+                    setTimeout(()=>setForceTab(null), 100);
+                  } else {
+                    // Create new job from config — open at Job Details tab
+                    const j = {...makeJob(measureMode), axles:newAxles, configId:c.id, configName:c.name};
+                    setJobs(p=>[j,...p]);
+                    setActiveId(j.id);
+                    setScreen("job");
+                    setOpenTab("job");
+                    setForceTab(null);
+                    setConfigScreen(null);
+                  }
                 }}
                 onNew={newConfig}
                 onEdit={editConfig}
@@ -4269,7 +4285,7 @@ function AuthenticatedApp({ session }) {
               padding:"16px 20px calc(16px + env(safe-area-inset-bottom))",display:"flex",justifyContent:"space-between",alignItems:"center",
               position:"sticky",bottom:0,zIndex:10,
             }}>
-              <button onClick={()=>{ setConfigScreen("library"); }} style={{
+              <button onClick={()=>{ setConfigSource("footer"); setConfigScreen("library"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
                 color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
