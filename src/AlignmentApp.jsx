@@ -1417,9 +1417,10 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
-        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-        display:"flex",alignItems:"center",gap:12}}>
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <span style={{flex:1,fontFamily:FD,fontSize:15,color:"#fff",fontWeight:"600",letterSpacing:"0.04em"}}>
@@ -1429,6 +1430,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
           style={{background:"none",border:"none",color:"rgba(255,255,255,0.4)",
             cursor:"pointer",fontFamily:FB,fontSize:12}}>Delete</button>}
         <Btn small onClick={()=>onSave(c)}>Save</Btn>
+        </div>
       </div>
       <div style={{padding:"18px 16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {/* Config name */}
@@ -1466,15 +1468,17 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
-        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-        display:"flex",alignItems:"center",gap:12}}>
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <span style={{flex:1,fontFamily:FD,fontSize:15,color:"#fff",fontWeight:"600",letterSpacing:"0.04em"}}>
           Configurations
         </span>
         <Btn small onClick={onNew}>+ New</Btn>
+        </div>
       </div>
       <div style={{padding:"16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         <div style={{position:"relative"}}>
@@ -3329,9 +3333,10 @@ function ReportScreen({ job, company, onClose }) {
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",background:"#e8e8e8"}}>
       {/* Top bar */}
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
-        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-        display:"flex",alignItems:"center",gap:12}}>
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onClose} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,lineHeight:1}}>←</button>
         <span style={{flex:1,fontFamily:FD,fontSize:15,color:"#fff",fontWeight:"600"}}>Report Preview</span>
@@ -3345,6 +3350,7 @@ function ReportScreen({ job, company, onClose }) {
           padding:"8px 16px",color:"#fff",fontFamily:FB,fontWeight:"600",fontSize:13,cursor:"pointer"}}>
           Print / Save PDF
         </button>
+        </div>
       </div>
 
       {/* A4 preview */}
@@ -3549,9 +3555,10 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       {/* Top bar */}
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
-        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-        display:"flex",alignItems:"center",gap:12}}>
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <div style={{flex:1,minWidth:0}}>
@@ -3582,6 +3589,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
         </button>
         <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
+        </div>
       </div>
 
       <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto",paddingTop:"calc(60px + env(safe-area-inset-top))"}}>
@@ -3714,9 +3722,10 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
   return (
     <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)",
-        paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-        display:"flex",alignItems:"center",gap:12}}>
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
           cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
         <span style={{fontFamily:FD,fontSize:16,color:"#ffffff",fontWeight:"600",
@@ -3741,6 +3750,7 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
           )}
           {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
         </button>
+        </div>
       </div>
       <div style={{padding:"18px 16px",paddingTop:"calc(60px + env(safe-area-inset-top))",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
 
