@@ -3511,14 +3511,27 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     measureMethod: job.measureMethod || "direct",
   }));
   const [saveState,setSaveState]=useState("idle"); // idle|saving|saved
+  const savedTimerRef = useRef(null);
   const reportActionsRef = useRef({});
+  const savedJRef = useRef(null); // snapshot of j at save time
   function handleSave() {
     setSaveState("saving");
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
     setTimeout(()=>{
+      onSave(j);
+      savedJRef.current = j;
       setSaveState("saved");
-      setTimeout(()=>onSave(j), 650);
+      savedTimerRef.current = setTimeout(()=>{ setSaveState("idle"); savedJRef.current = null; }, 2000);
     }, 500);
   }
+  // Revert to idle if user edits anything after saving
+  useEffect(()=>{
+    if (saveState==="saved" && savedJRef.current && j!==savedJRef.current) {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      setSaveState("idle");
+      savedJRef.current = null;
+    }
+  }, [j, saveState]);
   const [tab,setTab]=useState(initialTab);
   useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
   const isJosam = j.measureMethod==="josam";
@@ -3586,10 +3599,10 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
             </button>
           </div>
         ) : (
-        <button onClick={handleSave} disabled={saveState!=="idle"} style={{
+        <button onClick={handleSave} disabled={saveState==="saving"} style={{
           background: saveState==="saved" ? "#16a34a" : "#eb0000",
           color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
-          cursor:saveState!=="idle"?"default":"pointer",fontFamily:FB,fontWeight:"600",
+          cursor:saveState==="saving"?"default":"pointer",fontFamily:FB,fontWeight:"600",
           fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
           minWidth:64,justifyContent:"center",transition:"background 0.2s",
         }}>
