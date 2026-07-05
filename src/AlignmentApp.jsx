@@ -2646,7 +2646,7 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh })
 
       {/* Info row: job count left, sync info right */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-        <span style={{fontFamily:FB,fontSize:12,color:"#ffffff",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
+        <span style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,0.5)",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
           {filtered.length} JOB{filtered.length!==1?"S":""}
         </span>
         <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -2656,7 +2656,7 @@ function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh })
             </span>
           )}
           {pendingCount===0&&(
-            <span style={{fontFamily:FB,fontSize:12,color:"#ffffff",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
+            <span style={{fontFamily:FB,fontSize:12,color:"rgba(255,255,255,0.5)",fontWeight:"600",letterSpacing:"0.06em",textTransform:"uppercase"}}>
               0 UNSYNCED
             </span>
           )}
