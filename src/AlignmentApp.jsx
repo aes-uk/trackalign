@@ -2496,11 +2496,6 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
 
   const fmtDate=iso=>new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
   const syncCol=s=>s==="synced"?T.greenBright:s==="local"?"#eb0000":T.redBright;
-  const typeStyle=t=>t==="steering"
-    ?{bg:T.accentFaint,col:T.accent,border:T.accent+"40"}
-    :t==="rear-steer"
-    ?{bg:"rgba(248,113,113,0.08)",col:"#f87171",border:"rgba(248,113,113,0.3)"}
-    :{bg:T.surfaceTop,col:T.textDim,border:T.border};
 
   if (deleting) {
     return (
@@ -2554,7 +2549,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
             <div style={{fontFamily:FD,fontSize:16,color:"#050505",letterSpacing:"0.04em",fontWeight:"600",
               whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
               {j.vehicle.reg
-                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700"}}>{j.vehicle.reg}</span>
+                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700",fontSize:18}}>{j.vehicle.reg}</span>
                 : <span style={{color:"rgba(5,5,5,0.3)"}}>No reg</span>}
               {j.vehicle.mileage&&<span style={{fontFamily:FM,fontSize:12,color:"#050505",marginLeft:10,fontWeight:"500"}}>Mileage: {parseInt(j.vehicle.mileage).toLocaleString()}</span>}
             </div>
@@ -2573,13 +2568,11 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
             onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
             onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.35)"}>×</span>
         </div>
-        <div style={{marginTop:8,display:"flex",gap:5,flexWrap:"wrap"}}>
-          {j.axles.map(a=>{
-            const {bg,col,border}=typeStyle(a.type);
-            return <span key={a.id} style={{padding:"2px 8px",borderRadius:20,fontSize:10,
-              fontFamily:FM,background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>
-              {a.label} · {a.type}</span>;
-          })}
+        <div style={{marginTop:8,display:"flex",justifyContent:"flex-end"}}>
+          <span style={{padding:"3px 10px",borderRadius:"0.25rem",fontSize:11,
+            fontFamily:FB,fontWeight:"600",color:"rgba(5,5,5,0.5)",
+            background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.12)",
+            pointerEvents:"none"}}>View →</span>
         </div>
       </button>
     </div>
