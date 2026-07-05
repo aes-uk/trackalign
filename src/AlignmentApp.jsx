@@ -3424,7 +3424,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             width:`${100/axleScale}%`,
           }}>
           {beforeAxles.map((bAxle, i) => {
-            const aAxle = hasAfter ? (afterAxles.find(a=>a.label===bAxle.label)||null) : null;
+            const aAxle = hasAfter ? (afterAxles[i] || afterAxles.find(a=>a.label===bAxle.label) || null) : null;
             const isSteer = bAxle.type==="steering"||bAxle.type==="rear-steer";
             const steersBefore = beforeAxles.slice(0,i).filter(a=>a.type==="steering").length;
             const steerIdx = bAxle.type==="steering" ? steersBefore : -1;
