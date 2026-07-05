@@ -1415,7 +1415,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
   };
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
@@ -1429,7 +1429,7 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
             cursor:"pointer",fontFamily:FB,fontSize:12}}>Delete</button>}
         <Btn small onClick={()=>onSave(c)}>Save</Btn>
       </div>
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {/* Config name */}
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
           <label style={{fontSize:10,letterSpacing:"0.08em",color:"#050505",fontFamily:FB,textTransform:"uppercase"}}>Configuration Name</label>
@@ -1463,7 +1463,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
   useEffect(()=>{ window.scrollTo(0,0); }, []);
   const filtered=configs.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
         display:"flex",alignItems:"center",gap:12}}>
@@ -1474,7 +1474,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
         </span>
         <Btn small onClick={onNew}>+ New</Btn>
       </div>
-      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:12,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         <div style={{position:"relative"}}>
           <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"rgba(5,5,5,0.4)",fontSize:14}}>⌕</span>
           <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search configurations…"
@@ -3331,7 +3331,7 @@ function ReportScreen({ job, company, onClose }) {
   };
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",background:"#e8e8e8"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",background:"#e8e8e8"}}>
       {/* Top bar */}
       <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
@@ -3550,7 +3550,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   ];
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
       {/* Top bar */}
       <div style={{position:"sticky",top:"env(safe-area-inset-top)",zIndex:20,background:"#050505",
         borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"10px 16px",
@@ -3607,7 +3607,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       </div>
 
       {/* Content */}
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
@@ -3669,7 +3669,7 @@ function setOnboarded() { try { localStorage.setItem(LS_ONBOARD_KEY,"1"); } catc
 
 function OnboardingScreen({ onSelect }) {
   return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",
       alignItems:"center",justifyContent:"center",padding:"24px 20px"}}>
       <div style={{width:200,marginBottom:32}} dangerouslySetInnerHTML={{__html:`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 354 70"><defs><style>.wc1{fill:#eb0000}.wc2{fill:#ffffff}</style></defs><g><g><rect class="wc1" x="2" y="33" width="64" height="4"/><path class="wc2" d="M0,1v68h68V1H0ZM61.17,5L4,62.17V5h57.17ZM6.83,65L64,7.83v57.17H6.83Z"/></g><g><polygon class="wc2" points="134.26 .99 111.74 69.01 120.53 69.01 142.87 1.38 165.2 69.01 174 69.01 151.47 .99 134.26 .99"/><path class="wc2" d="M334.95,30.66l-8.99-2.17c-11.02-2.66-14.12-5.52-14.12-10.65,0-6.9,5.99-10.75,14.7-10.75,10.25,0,16.24,6.01,17.02,14.1h8.61c-1.16-11.73-9.47-21.2-26.01-21.2-12.57,0-23.3,7.1-23.3,18.24,0,9.46,6.57,15.48,20.5,18.83l8.99,2.17c8.6,2.07,12.57,5.72,12.57,12.03,0,7.2-6.86,11.63-16.73,11.63s-17.79-8.08-18.37-17.84h-8.6c.87,12.92,9.86,24.94,27.36,24.94,15.86,0,25.43-8.38,25.43-18.63,0-11.83-6.67-17.75-19.05-20.7Z"/><polygon class="wc2" points="218.1 69 257 68.99 257 61.9 226.41 61.9 226.41 37.65 257 37.65 257 30.55 226.41 30.55 226.41 8.07 257 8.07 257 .97 218.1 .97 218.1 69"/></g></g></svg>`}}/>
       <div style={{fontFamily:FD,fontSize:22,color:"#ffffff",letterSpacing:"0.06em",
@@ -3711,7 +3711,7 @@ function OnboardingScreen({ onSelect }) {
 function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany }) {
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column"}}>
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column"}}>
       <div style={{background:"#050505",borderBottom:"1px solid rgba(255,255,255,0.08)",
         padding:"10px 16px",display:"flex",alignItems:"center",gap:12}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
@@ -3719,7 +3719,7 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
         <span style={{fontFamily:FD,fontSize:16,color:"#ffffff",fontWeight:"600",
           letterSpacing:"0.04em"}}>Settings</span>
       </div>
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100vh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:16,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
 
         <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"16px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Report Header</div>
@@ -3836,7 +3836,7 @@ function LoginScreen() {
   };
 
   return (
-    <div style={{minHeight:"100vh",background:T.bg,display:"flex",flexDirection:"column",
+    <div style={{minHeight:"100dvh",background:T.bg,display:"flex",flexDirection:"column",
       alignItems:"center",justifyContent:"center",padding:"24px 20px"}}>
       <div style={{width:"100%",maxWidth:360}}>
         <div style={{textAlign:"center",marginBottom:28}}>
@@ -3907,7 +3907,7 @@ export default function App() {
   }, []);
 
   if (session === undefined) {
-    return <div style={{minHeight:"100vh",background:T.bg}}/>;
+    return <div style={{minHeight:"100dvh",background:T.bg}}/>;
   }
   if (!session) {
     return <LoginScreen/>;
@@ -4116,7 +4116,7 @@ function AuthenticatedApp({ session }) {
       <link rel="stylesheet" href={FONT_URL}/>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0}
-        body{background:${T.bg};color:${T.text};font-family:${FB};-webkit-font-smoothing:antialiased;font-weight:500}
+        body{background:${T.bg};color:${T.text};font-family:${FB};-webkit-font-smoothing:antialiased;font-weight:500;min-height:100dvh}
         ::-webkit-scrollbar{width:4px;height:4px}
         ::-webkit-scrollbar-track{background:${T.surface}}
         ::-webkit-scrollbar-thumb{background:${T.borderHi};border-radius:0.3rem}
@@ -4125,7 +4125,7 @@ function AuthenticatedApp({ session }) {
         textarea{color:${T.text}}
         @keyframes trkSpin{to{transform:rotate(360deg)}}
       `}</style>
-      <div style={{maxWidth:520,margin:"0 auto",minHeight:"100vh",background:T.bg,
+      <div style={{maxWidth:520,margin:"0 auto",minHeight:"100dvh",background:T.bg,
         display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top)"}}>
         {screen==="onboarding"&&<OnboardingScreen onSelect={handleOnboardSelect}/>}
         {screen!=="onboarding"&&(
