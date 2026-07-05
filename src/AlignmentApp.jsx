@@ -2974,7 +2974,7 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
    REPORT / PDF
 ══════════════════════════════════════════════════════════════ */
 
-function ReportScreen({ job, company, onClose, actionsRef }) {
+function ReportScreen({ job, company, onClose }) {
   const [exporting, setExporting] = useState(false);
   const axlesOuterRef = useRef(null);
   const axlesInnerRef = useRef(null);
@@ -3348,13 +3348,32 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     }
   };
 
-  // Expose actions to parent via ref
-  if (actionsRef) actionsRef.current = { exportPdf, printReport, exporting };
-
   return (
-    <div style={{display:"flex",flexDirection:"column",background:"#e8e8e8"}}>
-      {/* A4 preview — no fixed header here; header lives in JobEditor */}
-      <div style={{padding:16,overflowX:"auto"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",background:"#e8e8e8"}}>
+      {/* Top bar */}
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"#eb0000",
+          cursor:"pointer",fontSize:22,lineHeight:1}}>←</button>
+        <span style={{flex:1,fontFamily:FD,fontSize:15,color:"#fff",fontWeight:"600"}}>Report Preview</span>
+        <button onClick={exportPdf} disabled={exporting} style={{background:"transparent",
+          border:"1px solid #eb0000",borderRadius:"0.3rem",padding:"8px 16px",color:"#eb0000",
+          fontFamily:FB,fontWeight:"600",fontSize:13,cursor:exporting?"default":"pointer",
+          opacity:exporting?0.6:1}}>
+          {exporting ? "Exporting…" : "Export PDF"}
+        </button>
+        <button onClick={printReport} style={{background:"#eb0000",border:"none",borderRadius:"0.3rem",
+          padding:"8px 16px",color:"#fff",fontFamily:FB,fontWeight:"600",fontSize:13,cursor:"pointer"}}>
+          Print / Save PDF
+        </button>
+        </div>
+      </div>
+
+      {/* A4 preview */}
+      <div style={{padding:16,paddingTop:"calc(60px + env(safe-area-inset-top))",overflowX:"auto"}}>
         <div id="aes-report" style={{
           background:"#fff",width:"281mm",minWidth:"281mm",height:"210mm",margin:"0 auto",
           padding:"8mm 8mm",boxSizing:"border-box",
@@ -3382,11 +3401,12 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               </div>
             </div>
             <div style={{textAlign:"right"}}>
-              <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#ffffff",letterSpacing:"0.05em"}}>
+              <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#eb0000",letterSpacing:"0.05em"}}>
                 WHEEL ALIGNMENT REPORT
               </div>
-              <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",marginTop:4}}>
+              <div style={{fontSize:"6pt",fontFamily:FD,color:"rgba(255,255,255,0.6)",marginTop:4}}>
                 {fmtDate(job.createdAt)}
+                {job.configName&&` · ${job.configName}`}
               </div>
             </div>
           </div>
@@ -3511,7 +3531,6 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     measureMethod: job.measureMethod || "direct",
   }));
   const [saveState,setSaveState]=useState("idle"); // idle|saving|saved
-  const reportActionsRef = useRef({});
   function handleSave() {
     setSaveState("saving");
     setTimeout(()=>{
@@ -3568,24 +3587,6 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           </div>
           <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
         </div>
-        {tab==="report" ? (
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>reportActionsRef.current?.exportPdf&&reportActionsRef.current.exportPdf()}
-              disabled={reportActionsRef.current?.exporting}
-              style={{background:"#eb0000",color:"#ffffff",border:"none",padding:"5px 14px",
-                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                fontSize:11,letterSpacing:"0.04em"}}>
-              Export PDF
-            </button>
-            <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
-              disabled={reportActionsRef.current?.exporting}
-              style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
-                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                fontSize:11,letterSpacing:"0.04em"}}>
-              Print PDF
-            </button>
-          </div>
-        ) : (
         <button onClick={handleSave} disabled={saveState!=="idle"} style={{
           background: saveState==="saved" ? "#16a34a" : "#eb0000",
           color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
@@ -3606,7 +3607,6 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           )}
           {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
         </button>
-        )}
         <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
         </div>
       </div>
@@ -3668,7 +3668,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
 
         {tab==="report"&&beforeHasData&&(
           <div style={{padding:0}}>
-            <ReportScreen job={j} company={company} onClose={()=>setTab("after")} actionsRef={reportActionsRef}/>
+            <ReportScreen job={j} company={company} onClose={()=>setTab("after")}/>
           </div>
         )}
 
