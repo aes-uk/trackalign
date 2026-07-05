@@ -136,6 +136,15 @@ function companyFromRow(row) {
     updatedAt: row.updated_at, syncStatus: "synced",
   };
 }
+async function uploadLogoToStorage(file, userId) {
+  const ext = file.name.split(".").pop() || "png";
+  const path = `${userId}/logo.${ext}`;
+  const { error } = await supabase.storage.from("logos").upload(path, file, { upsert: true, contentType: file.type });
+  if (error) throw error;
+  const { data } = supabase.storage.from("logos").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 async function upsertCompanyRemote(company, userId) {
   if (!userId || !navigator.onLine) return false;
   const row = companyToRow(company, userId);
@@ -3727,9 +3736,27 @@ function OnboardingScreen({ onSelect }) {
   );
 }
 
-function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany }) {
+function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany, userId }) {
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   const [saveState, setSaveState] = useState("idle");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const isBase64Logo = company.logo && company.logo.startsWith("data:");
+
+  async function handleLogoUpload(file) {
+    if (!file) return;
+    if (!userId) { setLogoError("Sign in required to upload logo."); return; }
+    setLogoUploading(true);
+    setLogoError("");
+    try {
+      const url = await uploadLogoToStorage(file, userId);
+      upC("logo", url);
+    } catch(e) {
+      setLogoError("Upload failed — " + (e?.message || "unknown error"));
+    } finally {
+      setLogoUploading(false);
+    }
+  }
   function handleSave() {
     setSaveState("saving");
     setTimeout(()=>{ setSaveState("saved"); setTimeout(()=>{ onBack(); }, 600); }, 300);
@@ -3774,25 +3801,33 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
           <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:12}}>Shown at the top of every PDF report.</div>
           <div style={{display:"flex",flexDirection:"column",gap:3,marginBottom:14}}>
             <label style={{fontSize:10,fontFamily:FB,textTransform:"uppercase",letterSpacing:"0.06em",color:"rgba(5,5,5,0.5)"}}>Logo</label>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{background:"#111",borderRadius:"0.3rem",padding:"6px 10px",
-                display:"flex",alignItems:"center",height:40}}>
-                <img src={company.logo||DEFAULT_LOGO} alt="logo preview" style={{height:28,display:"block"}}/>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{background:"#111",borderRadius:"0.3rem",padding:"6px 10px",
+                  display:"flex",alignItems:"center",height:40}}>
+                  <img src={company.logo||DEFAULT_LOGO} alt="logo preview" style={{height:28,display:"block"}}/>
+                </div>
+                <label style={{background:logoUploading?"#ccc":"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
+                  padding:"8px 12px",cursor:logoUploading?"default":"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
+                  {logoUploading?"Uploading…":"Upload"}
+                  <input type="file" accept="image/*" style={{display:"none"}} disabled={logoUploading} onChange={e=>{
+                    handleLogoUpload(e.target.files?.[0]);
+                    e.target.value="";
+                  }}/>
+                </label>
+                {company.logo && (
+                  <button onClick={()=>upC("logo","")} style={{background:"none",border:"none",
+                    color:"#eb0000",fontFamily:FB,fontSize:12,fontWeight:"600",cursor:"pointer"}}>Remove</button>
+                )}
               </div>
-              <label style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
-                padding:"8px 12px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
-                Upload
-                <input type="file" accept="image/*" style={{display:"none"}} onChange={e=>{
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  const reader = new FileReader();
-                  reader.onload = () => upC("logo", reader.result);
-                  reader.readAsDataURL(file);
-                }}/>
-              </label>
-              {company.logo && (
-                <button onClick={()=>upC("logo","")} style={{background:"none",border:"none",
-                  color:"#eb0000",fontFamily:FB,fontSize:12,fontWeight:"600",cursor:"pointer"}}>Remove</button>
+              {isBase64Logo&&(
+                <div style={{fontFamily:FB,fontSize:11,color:"#d97706",background:"rgba(217,119,6,0.08)",
+                  border:"1px solid rgba(217,119,6,0.3)",borderRadius:"0.3rem",padding:"6px 10px"}}>
+                  Logo stored locally — re-upload to sync across devices.
+                </div>
+              )}
+              {logoError&&(
+                <div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>{logoError}</div>
               )}
             </div>
           </div>
@@ -4183,7 +4218,7 @@ function AuthenticatedApp({ session }) {
             <div className={screen==="dashboard"&&!configScreen?"trk-dash-scroll":""} style={{flex:1,...(screen==="dashboard"&&!configScreen?{paddingTop:"calc(env(safe-area-inset-top) + 18px)",paddingLeft:"16px",paddingRight:"16px"}:{padding:"0"})}}>
               {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
                 setMeasureMode={setMeasureMode} onBack={goHome}
-                company={company} setCompany={setCompany}/>}
+                company={company} setCompany={setCompany} userId={userId}/>}
               {configScreen==="library"&&<ConfigLibraryScreen
                 configs={configs}
                 onSelect={c=>{
