@@ -2479,41 +2479,40 @@ function JobDetailsTab({ j, setJ, allJobs }) {
    SCREENS
 ══════════════════════════════════════════════════════════════ */
 function SwipeableJobCard({ j, onOpen, onDelete }) {
-  const [swipeX, setSwipeX] = useState(0);
-  const [startX, setStartX] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const DELETE_THRESHOLD = 80;
+  const menuRef = useRef(null);
 
-  function onTouchStart(e) { setStartX(e.touches[0].clientX); }
-  function onTouchMove(e) {
-    if (startX===null) return;
-    const dx = e.touches[0].clientX - startX;
-    if (dx < 0) setSwipeX(Math.max(dx, -DELETE_THRESHOLD-20));
-  }
-  function onTouchEnd() {
-    if (swipeX < -DELETE_THRESHOLD) {
-      setDeleting(true);
-    } else {
-      setSwipeX(0);
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
     }
-    setStartX(null);
-  }
-  function confirmDelete(e) { e.stopPropagation(); onDelete(j.id); }
-  function cancelDelete(e)  { e.stopPropagation(); setSwipeX(0); setDeleting(false); }
-  function requestDelete(e) { e.stopPropagation(); setDeleting(true); }
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("touchstart", handleClick);
+    return () => { document.removeEventListener("mousedown", handleClick); document.removeEventListener("touchstart", handleClick); };
+  }, [menuOpen]);
 
-  const fmtDate=iso=>new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
-  const syncCol=s=>s==="synced"?T.greenBright:s==="local"?"#eb0000":T.redBright;
+  function confirmDelete(e) { e.stopPropagation(); onDelete(j.id); }
+  function cancelDelete(e)  { e.stopPropagation(); setDeleting(false); setMenuOpen(false); }
+  function requestDelete(e) { e.stopPropagation(); setMenuOpen(false); setDeleting(true); }
+
+  const fmtDate = iso => new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+  const synced = j.syncStatus==="synced";
+  const syncDot = synced ? "#16a34a" : "#eb0000";
+  const syncLabel = synced ? "Synced" : "Unsynced";
+
+  const makeModel = [j.vehicle.make, j.vehicle.model].filter(Boolean).join(" ");
+  const customer = j.customer.company || j.customer.name || "";
+  const mileage = j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString() + " mi" : "";
 
   if (deleting) {
     return (
-      <div style={{background:"#f7f7f7",borderRadius:"0.3rem",padding:"14px 16px",
-        border:"1px solid rgba(235,0,0,0.3)"}}>
-        <div style={{fontFamily:FB,fontSize:13,color:"#050505",marginBottom:10,fontWeight:"600"}}>
-          Delete this job?
-        </div>
-        <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)",marginBottom:14}}>
-          {j.customer.company||j.customer.name} · {j.vehicle.reg||j.vehicle.make}
+      <div style={{background:"#ffffff",borderRadius:"0.4rem",padding:"14px 16px",
+        borderLeft:"4px solid #eb0000",border:"1px solid rgba(235,0,0,0.25)",borderLeftWidth:4}}>
+        <div style={{fontFamily:FB,fontSize:13,color:"#050505",marginBottom:6,fontWeight:"600"}}>Delete this job?</div>
+        <div style={{fontFamily:FB,fontSize:12,color:"#888",marginBottom:14}}>
+          {customer||j.vehicle.reg||"—"}
         </div>
         <div style={{display:"flex",gap:10}}>
           <button onClick={confirmDelete} style={{flex:1,background:"#eb0000",border:"none",
@@ -2528,61 +2527,100 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   }
 
   return (
-    <div style={{position:"relative",overflow:"hidden",borderRadius:"0.3rem"}}>
-      {/* Delete reveal */}
-      <div style={{position:"absolute",right:0,top:0,bottom:0,width:DELETE_THRESHOLD,
-        background:"#eb0000",display:"flex",alignItems:"center",justifyContent:"center",
-        borderRadius:"0 0.3rem 0.3rem 0"}}>
-        <span style={{color:"#fff",fontFamily:FB,fontSize:12,fontWeight:"600"}}>Delete</span>
+    <div style={{background:"#ffffff",borderRadius:"0.4rem",
+      borderLeft:"4px solid #eb0000",
+      boxShadow:"0 1px 3px rgba(0,0,0,0.08)",
+      overflow:"visible",position:"relative"}}>
+
+      {/* Header row */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:"12px 14px 8px 14px",gap:8}}>
+        {/* REG */}
+        <div style={{fontFamily:FM,fontSize:20,fontWeight:"700",color:"#eb0000",
+          letterSpacing:"0.08em",textTransform:"uppercase",
+          whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1,minWidth:0}}>
+          {j.vehicle.reg || <span style={{color:"#ccc",fontSize:14}}>No reg</span>}
+        </div>
+        {/* Sync badge + menu */}
+        <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:5}}>
+            <div style={{width:7,height:7,borderRadius:"50%",background:syncDot,flexShrink:0}}/>
+            <span style={{fontSize:10,fontFamily:FB,fontWeight:"600",color:"#888"}}>{syncLabel}</span>
+          </div>
+          {/* Three-dot menu */}
+          <div ref={menuRef} style={{position:"relative"}}>
+            <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);}}
+              style={{background:"none",border:"none",cursor:"pointer",padding:"2px 6px",
+                fontSize:18,color:"#aaa",lineHeight:1,borderRadius:"0.25rem"}}
+              onMouseEnter={e=>e.currentTarget.style.color="#050505"}
+              onMouseLeave={e=>e.currentTarget.style.color="#aaa"}>⋮</button>
+            {menuOpen&&(
+              <div style={{position:"absolute",right:0,top:"100%",zIndex:200,
+                background:"#fff",border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.35rem",
+                boxShadow:"0 4px 16px rgba(0,0,0,0.12)",minWidth:120,overflow:"hidden"}}>
+                <button onClick={requestDelete}
+                  style={{display:"block",width:"100%",padding:"10px 14px",textAlign:"left",
+                    background:"none",border:"none",cursor:"pointer",fontFamily:FB,fontSize:13,
+                    fontWeight:"600",color:"#eb0000"}}
+                  onMouseEnter={e=>e.currentTarget.style.background="#fef2f2"}
+                  onMouseLeave={e=>e.currentTarget.style.background="none"}>
+                  Delete job
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      {/* Card */}
-      <button
-        onClick={()=>swipeX===0&&onOpen(j.id)}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        style={{
-          background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-          borderRadius:"0.3rem",padding:"14px 16px",textAlign:"left",
-          cursor:"pointer",width:"100%",display:"block",
-          transform:`translateX(${swipeX}px)`,
-          transition:startX!==null?"none":"transform 0.25s ease",
-          position:"relative",zIndex:1,
-        }}
-        onMouseEnter={e=>{ if(swipeX===0) e.currentTarget.style.background="#e5e5e5"; }}
-        onMouseLeave={e=>e.currentTarget.style.background="#f7f7f7"}
-      >
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
-          <div style={{minWidth:0,flex:1}}>
-            <div style={{fontFamily:FD,fontSize:16,color:"#050505",letterSpacing:"0.04em",fontWeight:"600",
-              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-              {j.vehicle.reg
-                ? <span style={{color:"#eb0000",fontFamily:FM,letterSpacing:"0.08em",textTransform:"uppercase",fontWeight:"700",fontSize:20}}>{j.vehicle.reg}</span>
-                : <span style={{color:"rgba(5,5,5,0.3)"}}>No reg</span>}
-              {j.vehicle.mileage&&<span style={{fontFamily:FM,fontSize:12,color:"#050505",marginLeft:10,fontWeight:"500"}}>Mileage: {parseInt(j.vehicle.mileage).toLocaleString()}</span>}
-            </div>
-            <div style={{fontFamily:FB,fontSize:12,color:"#050505",marginTop:4,fontWeight:"500"}}>
-              {j.customer.company||j.customer.name||"No customer"}
-              &nbsp;·&nbsp;{j.vehicle.make} {j.vehicle.model}
-              &nbsp;·&nbsp;{fmtDate(j.createdAt)}
-            </div>
+
+      {/* Detail grid */}
+      <div style={{padding:"0 14px 10px 14px",display:"flex",flexDirection:"column",gap:5}}>
+        {/* Row 1: date + mileage — always shown */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:5}}>
+            <span style={{fontSize:12,lineHeight:1}}>📅</span>
+            <span style={{fontFamily:FB,fontSize:12,color:"#888"}}>{fmtDate(j.createdAt)}</span>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
-            <div style={{width:7,height:7,borderRadius:"50%",background:syncCol(j.syncStatus)}}/>
-            <span style={{fontSize:10,color:"#050505",fontFamily:FM,fontWeight:"500"}}>{j.syncStatus}</span>
+          {mileage&&(
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <span style={{fontSize:12,lineHeight:1}}>🔢</span>
+              <span style={{fontFamily:FB,fontSize:12,color:"#888"}}>{mileage}</span>
+            </div>
+          )}
+        </div>
+        {/* Row 2: make/model + customer — only if present */}
+        {(makeModel||customer)&&(
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {makeModel&&(
+              <div style={{display:"flex",alignItems:"center",gap:5}}>
+                <span style={{fontSize:12,lineHeight:1}}>🚛</span>
+                <span style={{fontFamily:FB,fontSize:12,color:"#888",whiteSpace:"nowrap",
+                  overflow:"hidden",textOverflow:"ellipsis"}}>{makeModel}</span>
+              </div>
+            )}
+            {customer&&(
+              <div style={{display:"flex",alignItems:"center",gap:5}}>
+                <span style={{fontSize:12,lineHeight:1}}>👤</span>
+                <span style={{fontFamily:FB,fontSize:12,color:"#888",whiteSpace:"nowrap",
+                  overflow:"hidden",textOverflow:"ellipsis"}}>{customer}</span>
+              </div>
+            )}
           </div>
-          <span onClick={requestDelete} title="Delete job" style={{flexShrink:0,cursor:"pointer",
-            color:"rgba(5,5,5,0.35)",fontSize:16,lineHeight:1,padding:"0 2px"}}
-            onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
-            onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.35)"}>×</span>
-        </div>
-        <div style={{marginTop:8,display:"flex",justifyContent:"flex-end"}}>
-          <span style={{padding:"3px 10px",borderRadius:"0.25rem",fontSize:11,
-            fontFamily:FB,fontWeight:"600",color:"rgba(5,5,5,0.5)",
-            background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.12)",
-            pointerEvents:"none"}}>View →</span>
-        </div>
-      </button>
+        )}
+      </div>
+
+      {/* Bottom row: View button */}
+      <div style={{padding:"0 14px 12px 14px",display:"flex",justifyContent:"flex-end"}}>
+        <button onClick={()=>onOpen(j.id)}
+          style={{padding:"5px 14px",borderRadius:"0.3rem",fontSize:12,
+            fontFamily:FB,fontWeight:"600",color:"#eb0000",
+            background:"none",border:"1px solid rgba(235,0,0,0.35)",
+            cursor:"pointer",display:"flex",alignItems:"center",gap:5,
+            transition:"background 0.15s"}}
+          onMouseEnter={e=>e.currentTarget.style.background="rgba(235,0,0,0.05)"}
+          onMouseLeave={e=>e.currentTarget.style.background="none"}>
+          View <span style={{color:"#eb0000",fontSize:14}}>→</span>
+        </button>
+      </div>
     </div>
   );
 }
