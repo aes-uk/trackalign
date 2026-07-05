@@ -138,8 +138,9 @@ function companyFromRow(row) {
 }
 async function uploadLogoToStorage(file, userId) {
   const ext = file.name.split(".").pop() || "png";
-  const path = `${userId}/logo.${ext}`;
-  const { error } = await supabase.storage.from("logos").upload(path, file, { upsert: true, contentType: file.type });
+  const ts = Date.now();
+  const path = `${userId}/logo-${ts}.${ext}`;
+  const { error } = await supabase.storage.from("logos").upload(path, file, { upsert: false, contentType: file.type });
   if (error) throw error;
   const { data } = supabase.storage.from("logos").getPublicUrl(path);
   return data.publicUrl;
@@ -4049,7 +4050,12 @@ function AuthenticatedApp({ session }) {
       await supabase.from("company_settings").insert({ user_id: userId, updated_at: new Date().toISOString() });
     } else {
       const remote = companyFromRow(companyRes.data);
-      setCompany(prev => (!prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt)) ? remote : prev);
+      setCompany(prev => {
+        const useRemote = !prev.updatedAt || new Date(remote.updatedAt) > new Date(prev.updatedAt);
+        const merged = useRemote ? remote : prev;
+        // Logo from Supabase always wins — never let stale localStorage overwrite it
+        return { ...merged, logo: remote.logo || merged.logo };
+      });
     }
   }, [userId]);
 
