@@ -2497,7 +2497,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   function cancelDelete(e)  { e.stopPropagation(); setDeleting(false); }
   function requestDelete(e) { e.stopPropagation(); setMenuOpen(false); setDeleting(true); }
 
-  const fmtDate = iso => new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+  const fmtDate = iso => { const d=new Date(iso); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; };
   const synced = j.syncStatus==="synced";
 
   const cols = [
