@@ -3410,13 +3410,13 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               <div style={{display:"flex",gap:"16pt"}}>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
                   {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
-                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
-                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
+                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.phone}</div>}
+                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.email}</div>}
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
                   {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
                   {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
-                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
+                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.website}</div>}
                 </div>
               </div>
             </div>
@@ -3506,7 +3506,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 {/* AFTER panel */}
                 <div style={{paddingLeft:"6pt"}}>
                   {aAxle ? (
-                    <AxlePanel axle={aAxle} allAxles={afterAxles} steerIdx={steerIdx}
+                    <AxlePanel axle={{...aAxle,dualWheel:bAxle.dualWheel,type:bAxle.type,driveSide:bAxle.driveSide,suspType:bAxle.suspType}}
+                      allAxles={afterAxles} steerIdx={steerIdx}
                       frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true}/>
                   ) : (
                     <div style={{display:"flex",alignItems:"center",justifyContent:"center",
@@ -3581,6 +3582,23 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   const setAfterAxles = useCallback(updater =>
     setJ(p => ({ ...p, afterAxles: typeof updater === "function" ? updater(p.afterAxles) : updater })),
   []);
+
+  // Sync axle config fields from before to after when before changes
+  useEffect(() => {
+    if (!j.afterAxles) return;
+    const configKeys = ["dualWheel","type","driveSide","suspType"];
+    let anyChanged = false;
+    const synced = j.afterAxles.map((aAxle, i) => {
+      const bAxle = j.axles[i];
+      if (!bAxle) return aAxle;
+      const patch = {};
+      let rowChanged = false;
+      for (const k of configKeys) { if (bAxle[k] !== aAxle[k]) { patch[k] = bAxle[k]; rowChanged = true; } }
+      if (rowChanged) { anyChanged = true; return { ...aAxle, ...patch }; }
+      return aAxle;
+    });
+    if (anyChanged) setJ(p => ({ ...p, afterAxles: synced }));
+  }, [j.axles]);
 
   const beforeHasData = Array.isArray(j.axles) && j.axles.some(a =>
     hasVal(a.toeLeft) || hasVal(a.toeRight) ||
