@@ -2539,7 +2539,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
       {/* Top row: REG + sync + menu */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
         padding:"9px 12px 11px 14px",gap:8}}>
-        <div style={{fontFamily:FM,fontSize:20,fontWeight:"700",color:"#eb0000",
+        <div style={{fontFamily:FM,fontSize:24,fontWeight:"800",color:"#eb0000",
           letterSpacing:"0.08em",textTransform:"uppercase",
           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1,minWidth:0}}>
           {j.vehicle.reg||<span style={{color:"#ccc",fontSize:14,fontFamily:FB,fontWeight:"500",letterSpacing:0}}>No reg</span>}
