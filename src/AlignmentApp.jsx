@@ -4340,7 +4340,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>{ setConfigSource("footer"); setConfigScreen("library"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#ffffff",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -4352,7 +4352,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>{ setConfigScreen(null); setScreen("settings"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#ffffff",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -4364,7 +4364,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>supabase.auth.signOut({scope:"local"}).catch(e=>console.error("Sign out failed:",e))} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#eb0000",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
