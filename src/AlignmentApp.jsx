@@ -2502,7 +2502,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
 
   const cols = [
     { label:"Make & Model", value:[j.vehicle.make,j.vehicle.model].filter(Boolean).join(" ") },
-    { label:"Mileage",      value:j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString()+" mi" : "" },
+    { label:"Mileage",      value:j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString() : "" },
     { label:"Date",         value:fmtDate(j.createdAt) },
     { label:"Customer",     value:j.customer.company||j.customer.name||"" },
   ].filter(c=>c.value);
