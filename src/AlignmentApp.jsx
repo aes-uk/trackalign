@@ -2538,7 +2538,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
 
       {/* Top row: REG + sync + menu */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"11px 12px 10px 14px",gap:8}}>
+        padding:"9px 12px 11px 14px",gap:8}}>
         <div style={{fontFamily:FM,fontSize:20,fontWeight:"700",color:"#eb0000",
           letterSpacing:"0.08em",textTransform:"uppercase",
           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1,minWidth:0}}>
