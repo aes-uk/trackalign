@@ -3553,6 +3553,8 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   const reportActionsRef = useRef({});
   const autoSaveTimer = useRef(null);
   const isFirstRender = useRef(true);
+  const [savedTick, setSavedTick] = useState(false);
+  const savedTickTimer = useRef(null);
 
   // Autosave to localStorage + queue Supabase sync on every change (500ms debounce)
   useEffect(() => {
@@ -3562,10 +3564,13 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     return () => clearTimeout(autoSaveTimer.current);
   }, [j]);
 
-  // Force-save immediately (used by Save button and Measure Vehicle)
+  // Manual force-save — also shows "Saved" tick for 2s
   function handleSave() {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     onSave(j);
+    setSavedTick(true);
+    if (savedTickTimer.current) clearTimeout(savedTickTimer.current);
+    savedTickTimer.current = setTimeout(() => setSavedTick(false), 2000);
   }
   const [tab,setTab]=useState(initialTab);
   useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
@@ -3652,22 +3657,18 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           </div>
         ) : (
         <button onClick={handleSave} style={{
-          background: job.syncStatus==="synced" ? "#16a34a" : "#eb0000",
+          background: savedTick ? "#16a34a" : "#eb0000",
           color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
           cursor:"pointer",fontFamily:FB,fontWeight:"600",
           fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
           minWidth:64,justifyContent:"center",transition:"background 0.2s",
         }}>
-          {job.syncStatus==="synced" ? (
+          {savedTick && (
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
-          ) : (
-            <svg width="8" height="8" viewBox="0 0 8 8">
-              <circle cx="4" cy="4" r="4" fill="#ffffff" opacity="0.8"/>
-            </svg>
           )}
-          {job.syncStatus==="synced" ? "Saved" : "Save"}
+          {savedTick ? "Saved" : "Save"}
         </button>
         )}
         <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
