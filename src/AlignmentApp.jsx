@@ -3724,7 +3724,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           <ReadingsPanel axles={j.axles} setAxles={setBeforeAxles}
             isJosam={isJosam} fullDistance={j.fullDistance||""}
             setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
-            jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ)}
+            jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
 />
         )}
 
@@ -4213,8 +4213,9 @@ function AuthenticatedApp({ session }) {
   };
 
   const [pendingSetJ, setPendingSetJ] = useState(null);
+  const [pendingJ, setPendingJ] = useState(null); // unsaved job snapshot when opening library from within a job
   const [configSource, setConfigSource] = useState("footer"); // "footer" | "job"
-  function openConfigLibrary(setJFn) { setPendingSetJ(()=>setJFn); setConfigSource("job"); setConfigScreen("library"); }
+  function openConfigLibrary(setJFn, currentJ) { setPendingSetJ(()=>setJFn); setPendingJ(currentJ||null); setConfigSource("job"); setConfigScreen("library"); }
   function newConfig() { setEditingConfig(makeConfig()); setConfigScreen("editor"); }
   function editConfig(c) { setEditingConfig(c); setConfigScreen("editor"); }
   function saveConfig(c) {
@@ -4307,11 +4308,11 @@ function AuthenticatedApp({ session }) {
                   }));
                   const stamp = {updatedAt:new Date().toISOString(), syncStatus:"local"};
                   if (configSource==="job" && activeId) {
-                    // Apply config to current job — preserve all job details
+                    // Apply config to current job — preserve all unsaved job details
                     setJobs(prev=>prev.map(j=>j.id===activeId
-                      ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
+                      ? {...(pendingJ||j), axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
                       : j));
-                    if (pendingSetJ) pendingSetJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}));
+                    setPendingJ(null);
                     setConfigScreen(null);
                     setScreen("job");
                     setOpenTab("before");
