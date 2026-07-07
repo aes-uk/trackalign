@@ -3550,28 +3550,23 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     afterAxles: job.afterAxles && Array.isArray(job.afterAxles) ? job.afterAxles : null,
     measureMethod: job.measureMethod || "direct",
   }));
-  const [saveState,setSaveState]=useState("idle"); // idle|saving|saved
-  const savedTimerRef = useRef(null);
   const reportActionsRef = useRef({});
-  const savedJRef = useRef(null); // snapshot of j at save time
+  const autoSaveTimer = useRef(null);
+  const isFirstRender = useRef(true);
+
+  // Autosave to localStorage + queue Supabase sync on every change (500ms debounce)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { onSave(j); }, 500);
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [j]);
+
+  // Force-save immediately (used by Save button and Measure Vehicle)
   function handleSave() {
-    setSaveState("saving");
-    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-    setTimeout(()=>{
-      onSave(j);
-      savedJRef.current = j;
-      setSaveState("saved");
-      savedTimerRef.current = setTimeout(()=>{ setSaveState("idle"); savedJRef.current = null; }, 2000);
-    }, 500);
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    onSave(j);
   }
-  // Revert to idle if user edits anything after saving
-  useEffect(()=>{
-    if (saveState==="saved" && savedJRef.current && j!==savedJRef.current) {
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-      setSaveState("idle");
-      savedJRef.current = null;
-    }
-  }, [j, saveState]);
   const [tab,setTab]=useState(initialTab);
   useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
   const isJosam = j.measureMethod==="josam";
@@ -3656,25 +3651,23 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
             </button>
           </div>
         ) : (
-        <button onClick={handleSave} disabled={saveState==="saving"} style={{
-          background: saveState==="saved" ? "#16a34a" : "#eb0000",
+        <button onClick={handleSave} style={{
+          background: job.syncStatus==="synced" ? "#16a34a" : "#eb0000",
           color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
-          cursor:saveState==="saving"?"default":"pointer",fontFamily:FB,fontWeight:"600",
+          cursor:"pointer",fontFamily:FB,fontWeight:"600",
           fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
           minWidth:64,justifyContent:"center",transition:"background 0.2s",
         }}>
-          {saveState==="saving"&&(
-            <svg width="12" height="12" viewBox="0 0 24 24" style={{animation:"trkSpin 0.7s linear infinite"}}>
-              <circle cx="12" cy="12" r="9" fill="none" stroke="#ffffff" strokeWidth="3" strokeOpacity="0.3"/>
-              <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/>
-            </svg>
-          )}
-          {saveState==="saved"&&(
+          {job.syncStatus==="synced" ? (
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
+          ) : (
+            <svg width="8" height="8" viewBox="0 0 8 8">
+              <circle cx="4" cy="4" r="4" fill="#ffffff" opacity="0.8"/>
+            </svg>
           )}
-          {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
+          {job.syncStatus==="synced" ? "Saved" : "Save"}
         </button>
         )}
         <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
@@ -3704,7 +3697,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
-            <button onClick={()=>handleTabChange("before")} style={{
+            <button onClick={()=>{ handleSave(); handleTabChange("before"); }} style={{
               width:"100%",background:"#eb0000",border:"none",borderRadius:"0.3rem",
               padding:"14px 20px",cursor:"pointer",
               display:"flex",alignItems:"center",justifyContent:"space-between",
