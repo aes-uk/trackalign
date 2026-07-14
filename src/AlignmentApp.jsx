@@ -3373,12 +3373,17 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
       if (isIOS) {
         // iOS: trigger native share sheet with PDF file
         const file = new File([blob], fname, { type: "application/pdf" });
+        let shared = false;
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: "Wheel Alignment Report" });
-        } else {
-          // Fallback: open in new tab if file sharing not supported
-          openBlobInNewTab(blob);
+          try {
+            await navigator.share({ files: [file], title: "Wheel Alignment Report" });
+            shared = true;
+          } catch(shareErr) {
+            if (shareErr?.name === "AbortError") { shared = true; } // user dismissed — not an error
+            // NotAllowedError or anything else: fall through to new tab
+          }
         }
+        if (!shared) openBlobInNewTab(blob);
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -3386,7 +3391,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         setTimeout(() => URL.revokeObjectURL(url), 10000);
       }
     } catch(e) {
-      if (e?.name !== "AbortError") alert("Could not export PDF. Please try again.");
+      alert("Could not export PDF. Please try again.");
     } finally {
       setExporting(false);
     }
