@@ -43,6 +43,10 @@ function saveCompany(c) {
 }
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
+function sortNewestFirst(list) {
+  return [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+}
+
 function mergeByUpdatedAt(localList, remoteList) {
   const map = new Map(localList.map(item => [item.id, item]));
   for (const remote of remoteList) {
@@ -51,7 +55,7 @@ function mergeByUpdatedAt(localList, remoteList) {
       map.set(remote.id, { ...remote, syncStatus: "synced" });
     }
   }
-  return Array.from(map.values());
+  return sortNewestFirst(Array.from(map.values()));
 }
 
 function jobToRow(job, userId) {
@@ -273,14 +277,14 @@ function loadJobs() {
     if (raw) {
       const jobs = JSON.parse(raw);
       // Normalise — guard against old data missing fields
-      return jobs.map(j => ({
+      return sortNewestFirst(jobs.map(j => ({
         ...j,
         axles: Array.isArray(j.axles) ? j.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
         afterAxles: j.afterAxles ? (Array.isArray(j.afterAxles) ? j.afterAxles : null) : null,
         measureMethod: j.measureMethod || "direct",
         updatedAt: j.updatedAt || j.createdAt,
         syncStatus: j.syncStatus || "local",
-      }));
+      })));
     }
   } catch(e) {}
   return null;
