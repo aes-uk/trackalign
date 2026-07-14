@@ -3374,13 +3374,13 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         // iOS: trigger native share sheet with PDF file
         const file = new File([blob], fname, { type: "application/pdf" });
         let shared = false;
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (navigator.share) {
           try {
             await navigator.share({ files: [file], title: "Wheel Alignment Report" });
             shared = true;
           } catch(shareErr) {
-            if (shareErr?.name === "AbortError") { shared = true; } // user dismissed — not an error
-            // NotAllowedError or anything else: fall through to new tab
+            if (shareErr?.name === "AbortError") shared = true; // user dismissed — not an error
+            // NotAllowedError / not supported: fall through to new tab
           }
         }
         if (!shared) openBlobInNewTab(blob);
