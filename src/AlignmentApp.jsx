@@ -3684,7 +3684,17 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         </div>
       </div>
 
-      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto",paddingTop:"calc(60px + env(safe-area-inset-top))"}}>
+      {/* Fixed tab bar — sits directly below the fixed header */}
+      <div style={{
+        position:"fixed",
+        top:"calc(60px + env(safe-area-inset-top))",
+        left:0, right:0,
+        zIndex:99,
+        display:"flex",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        background:"#050505",
+        overflowX:"auto",
+      }}>
         {TABS.filter(t=>!t.josam||isJosam).map(t=>(
           <button key={t.id}
             onClick={()=>!t.locked&&handleTabChange(t.id)}
@@ -3702,8 +3712,8 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         ))}
       </div>
 
-      {/* Content */}
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      {/* Content — padded below both fixed header (~60px) and fixed tab bar (~42px) */}
+      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
