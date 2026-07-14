@@ -44,7 +44,9 @@ function saveCompany(c) {
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
 function sortNewestFirst(list) {
-  return [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  const sorted = [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  console.log("[sortNewestFirst]", sorted.map(j=>({ reg:j.vehicle?.reg, createdAt:j.createdAt })));
+  return sorted;
 }
 
 function mergeByUpdatedAt(localList, remoteList) {
