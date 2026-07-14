@@ -87,15 +87,10 @@ async function upsertJobRemote(job, userId) {
   if (!userId || !navigator.onLine) return false;
   const row = jobToRow(job, userId);
   try {
-    const { data, error: updateError } = await supabase
-      .from("jobs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
-    if (updateError) throw updateError;
-    if (!data || data.length===0) {
-      const { error: insertError } = await supabase.from("jobs").insert(row);
-      if (insertError) throw insertError;
-    }
+    const { error } = await supabase.from("jobs").upsert(row, { onConflict: "id" });
+    if (error) throw error;
     return true;
-  } catch(e) { console.error("Job sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
+  } catch(e) { console.error("Job sync failed:", e?.message, e); return false; }
 }
 
 function configToRow(config, userId) {
@@ -114,15 +109,10 @@ async function upsertConfigRemote(config, userId) {
   if (!userId || !navigator.onLine) return false;
   const row = configToRow(config, userId);
   try {
-    const { data, error: updateError } = await supabase
-      .from("configs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
-    if (updateError) throw updateError;
-    if (!data || data.length===0) {
-      const { error: insertError } = await supabase.from("configs").insert(row);
-      if (insertError) throw insertError;
-    }
+    const { error } = await supabase.from("configs").upsert(row, { onConflict: "id" });
+    if (error) throw error;
     return true;
-  } catch(e) { console.error("Config sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
+  } catch(e) { console.error("Config sync failed:", e?.message, e); return false; }
 }
 async function deleteConfigRemote(id, userId) {
   if (!userId || !navigator.onLine) return;
@@ -4156,9 +4146,13 @@ function AuthenticatedApp({ session }) {
     if (pending.length===0) return;
     let cancelled = false;
     (async () => {
-      for (const job of pending) {
-        const ok = await upsertJobRemote(job, userId);
-        if (ok && !cancelled) setJobs(prev=>prev.map(j=>j.id===job.id?{...j,syncStatus:"synced"}:j));
+      const results = await Promise.all(pending.map(job =>
+        upsertJobRemote(job, userId).then(ok => ({ id: job.id, ok }))
+      ));
+      if (!cancelled) {
+        const syncedIds = new Set(results.filter(r=>r.ok).map(r=>r.id));
+        if (syncedIds.size > 0)
+          setJobs(prev=>prev.map(j=>syncedIds.has(j.id)?{...j,syncStatus:"synced"}:j));
       }
     })();
     return () => { cancelled = true; };
@@ -4170,9 +4164,13 @@ function AuthenticatedApp({ session }) {
     if (pending.length===0) return;
     let cancelled = false;
     (async () => {
-      for (const cfg of pending) {
-        const ok = await upsertConfigRemote(cfg, userId);
-        if (ok && !cancelled) setConfigs(prev=>prev.map(c=>c.id===cfg.id?{...c,syncStatus:"synced"}:c));
+      const results = await Promise.all(pending.map(cfg =>
+        upsertConfigRemote(cfg, userId).then(ok => ({ id: cfg.id, ok }))
+      ));
+      if (!cancelled) {
+        const syncedIds = new Set(results.filter(r=>r.ok).map(r=>r.id));
+        if (syncedIds.size > 0)
+          setConfigs(prev=>prev.map(c=>syncedIds.has(c.id)?{...c,syncStatus:"synced"}:c));
       }
     })();
     return () => { cancelled = true; };
