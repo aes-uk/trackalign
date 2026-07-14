@@ -471,44 +471,6 @@ function makeJob(measureMethod="direct") {
 
 
 /* ── Demo data ───────────────────────────────────────────────── */
-const DEMO=[
-  { id:"d1", createdAt:"2026-04-22T08:30:00Z", syncStatus:"synced",
-    customer:{ company:"Whitfield Transport", name:"James Whitfield", phone:"0412 345 678", email:"james@whitfield.com" },
-    vehicle:{ reg:"1ABC 234", make:"Toyota", model:"LandCruiser 300", year:"2022", mileage:"" },
-    axles:[
-      { id:"a1", label:"Front", type:"steering", driveSide:"RHD", suspType:"solid",
-        toeLeft:"+1.0", toeRight:"-2.0", camberLeft:"+0.5", camberRight:"-0.8",
-        casterLeft:"+3.8", casterRight:"+3.5", kpiLeft:"12.0", kpiRight:"11.8",
-        maxTurnLeft:"38", maxTurnRight:"32", tootLeft:"2.5", tootRight:"2.2" },
-      { id:"a2", label:"Rear", type:"fixed", toeLeft:"+3.0", toeRight:"-2.0", camberLeft:"-0.5", camberRight:"-0.3", dualWheel:false },
-    ], notes:"" },
-  { id:"d2", createdAt:"2026-04-28T14:10:00Z", syncStatus:"synced",
-    customer:{ company:"Whitfield Transport", name:"James Whitfield", phone:"0412 345 678", email:"james@whitfield.com" },
-    vehicle:{ reg:"1ABC 235", make:"Toyota", model:"HiLux SR5", year:"2023", mileage:"" },
-    axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
-    notes:"" },
-  { id:"d3", createdAt:"2026-04-30T14:10:00Z", syncStatus:"local",
-    customer:{ company:"Sara Chen", name:"Sara Chen", phone:"0498 765 432", email:"sara@example.com" },
-    vehicle:{ reg:"XYZ 789", make:"Ford", model:"Transit Van", year:"2023", mileage:"" },
-    axles:[
-      { id:"a3", label:"Front", type:"steering", driveSide:"RHD", suspType:"independent",
-        toeLeft:"+1.0", toeRight:"+2.0", camberLeft:"-0.3", camberRight:"-0.5",
-        casterLeft:"+4.0", casterRight:"+3.8", kpiLeft:"13.0", kpiRight:"13.2",
-        maxTurnLeft:"40", maxTurnRight:"40", tootLeft:"", tootRight:"" },
-      { id:"a4", label:"Rear", type:"fixed", toeLeft:"+1.5", toeRight:"+1.5", camberLeft:"", camberRight:"", dualWheel:false },
-    ], notes:"" },
-  { id:"d4", createdAt:"2026-05-01T09:00:00Z", syncStatus:"local",
-    customer:{ company:"Raj Haulage Pty Ltd", name:"Raj Patel", phone:"0411 222 333", email:"raj@rajhaulage.com" },
-    vehicle:{ reg:"TRK 001", make:"Volvo", model:"FH16", year:"2021", mileage:"" },
-    axles:[
-      { id:"a5", label:"Front Steer", type:"steering", driveSide:"LHD", suspType:"solid",
-        toeLeft:"+2.0", toeRight:"+1.0", camberLeft:"-0.5", camberRight:"-0.5",
-        casterLeft:"+5.0", casterRight:"+5.0", kpiLeft:"8.0", kpiRight:"8.0",
-        maxTurnLeft:"42", maxTurnRight:"42", tootLeft:"3.0", tootRight:"3.0" },
-      { id:"a6", label:"Rear Drive", type:"fixed", toeLeft:"+1.0", toeRight:"+1.0", camberLeft:"", camberRight:"", dualWheel:false },
-      { id:"a7", label:"Rear Tag",   type:"fixed", toeLeft:"+0.5", toeRight:"-0.5", camberLeft:"", camberRight:"", dualWheel:false },
-    ], notes:"3-axle truck" },
-];
 
 /* ══════════════════════════════════════════════════════════════
    SVG ATOMS
@@ -4117,7 +4079,7 @@ export default function App() {
 }
 
 function AuthenticatedApp({ session }) {
-  const [jobs,setJobs]=useState(()=>loadJobs()||DEMO);
+  const [jobs,setJobs]=useState(()=>loadJobs()||[]);
   const [configs,setConfigs]=useState(()=>loadConfigs());
   const [company,setCompany]=useState(()=>loadCompany());
   const [configScreen,setConfigScreen]=useState(null); // null|"library"|"editor"
