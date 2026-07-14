@@ -4386,7 +4386,7 @@ function AuthenticatedApp({ session }) {
                 onBack={goHome}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
-                  {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
+                  {screen==="dashboard"&&<Dashboard jobs={sortNewestFirst(jobs)} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
                     pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}
                     onRefresh={pullFromSupabase}/>}
                   {screen==="job"&&activeJob&&
