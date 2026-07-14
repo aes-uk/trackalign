@@ -2983,6 +2983,7 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
 
 function ReportScreen({ job, company, onClose, actionsRef }) {
   const [exporting, setExporting] = useState(false);
+  const [pendingShare, setPendingShare] = useState(null); // { file, blob, fname } waiting for fresh tap
   const axlesOuterRef = useRef(null);
   const axlesInnerRef = useRef(null);
   const [axleScale, setAxleScale] = useState(1);
@@ -3370,26 +3371,18 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     setExporting(true);
     try {
       const { blob, fname } = await buildPdfBlob();
-      if (isIOS) {
-        // iOS: trigger native share sheet with PDF file
+      if (isIOS && navigator.share) {
+        // iOS: gesture is lost after the await — show a prompt so user taps again (fresh gesture)
         const file = new File([blob], fname, { type: "application/pdf" });
-        let shared = false;
-        if (navigator.share) {
-          try {
-            await navigator.share({ files: [file], title: "Wheel Alignment Report" });
-            shared = true;
-          } catch(shareErr) {
-            if (shareErr?.name === "AbortError") shared = true; // user dismissed — not an error
-            // NotAllowedError / not supported: fall through to new tab
-          }
-        }
-        if (!shared) openBlobInNewTab(blob);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = fname; a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        setPendingShare({ file, blob, fname });
+        setExporting(false);
+        return;
       }
+      // Desktop or iOS without share support
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = fname; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch(e) {
       alert("Could not export PDF. Please try again.");
     } finally {
@@ -3397,11 +3390,52 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     }
   };
 
+  // Called from the "Tap to Share" overlay — fresh user gesture, share sheet will open
+  async function triggerShare() {
+    if (!pendingShare) return;
+    const { file, blob } = pendingShare;
+    setPendingShare(null);
+    try {
+      await navigator.share({ files: [file], title: "Wheel Alignment Report" });
+    } catch(e) {
+      if (e?.name !== "AbortError") openBlobInNewTab(blob); // last-resort fallback
+    }
+  }
+
   // Expose actions to parent via ref
   if (actionsRef) actionsRef.current = { exportPdf, printReport, exporting };
 
   return (
     <div style={{display:"flex",flexDirection:"column",background:"#e8e8e8"}}>
+      {/* iOS share prompt — appears after PDF is generated, fresh tap triggers share sheet */}
+      {pendingShare&&(
+        <div style={{position:"fixed",inset:0,zIndex:999,background:"rgba(0,0,0,0.6)",
+          display:"flex",alignItems:"flex-end",justifyContent:"center",
+          padding:"0 0 calc(32px + env(safe-area-inset-bottom))"}}>
+          <div style={{background:"#fff",borderRadius:"1rem",padding:"24px 24px 20px",
+            width:"100%",maxWidth:420,margin:"0 16px",textAlign:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+            <div style={{width:48,height:48,background:"#eb0000",borderRadius:"50%",
+              display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div style={{fontFamily:FB,fontWeight:"700",fontSize:16,color:"#050505",marginBottom:6}}>PDF Ready</div>
+            <div style={{fontFamily:FB,fontSize:13,color:"rgba(5,5,5,0.5)",marginBottom:20}}>{pendingShare.fname}</div>
+            <button onClick={triggerShare} style={{
+              width:"100%",background:"#eb0000",border:"none",borderRadius:"0.5rem",
+              padding:"14px",color:"#fff",fontFamily:FB,fontWeight:"700",fontSize:15,
+              cursor:"pointer",marginBottom:10}}>
+              Tap to Share
+            </button>
+            <button onClick={()=>{ openBlobInNewTab(pendingShare.blob); setPendingShare(null); }} style={{
+              width:"100%",background:"none",border:"none",color:"rgba(5,5,5,0.4)",
+              fontFamily:FB,fontSize:13,cursor:"pointer",padding:"6px"}}>
+              Open in browser instead
+            </button>
+          </div>
+        </div>
+      )}
       {/* A4 preview — no fixed header here; header lives in JobEditor */}
       <div style={{padding:16,overflowX:"auto"}}>
         <div id="aes-report" style={{
