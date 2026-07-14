@@ -3395,8 +3395,13 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     if (!pendingShare) return;
     const { file, blob } = pendingShare;
     setPendingShare(null);
+    const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+    const dateStr = new Date(job.createdAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+    const coName = company?.name||"";
+    const subject = `Wheel Alignment Report${reg?" - "+reg:""}`;
+    const body = `Wheel Alignment Report${reg?" - "+reg:""}${dateStr?" - "+dateStr:""}${coName?" by "+coName:""}`;
     try {
-      await navigator.share({ files: [file], title: "Wheel Alignment Report" });
+      await navigator.share({ files: [file], title: subject, text: body });
     } catch(e) {
       if (e?.name !== "AbortError") openBlobInNewTab(blob); // last-resort fallback
     }
