@@ -43,15 +43,22 @@ function saveCompany(c) {
 }
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
+function sortNewestFirst(list) {
+  return [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+}
+
 function mergeByUpdatedAt(localList, remoteList) {
   const map = new Map(localList.map(item => [item.id, item]));
   for (const remote of remoteList) {
     const local = map.get(remote.id);
     if (!local || !local.updatedAt || new Date(remote.updatedAt) > new Date(local.updatedAt)) {
       map.set(remote.id, { ...remote, syncStatus: "synced" });
+    } else {
+      // Local is newer on content, but always take createdAt from remote (canonical source)
+      map.set(remote.id, { ...local, createdAt: remote.createdAt || local.createdAt });
     }
   }
-  return Array.from(map.values());
+  return sortNewestFirst(Array.from(map.values()));
 }
 
 function jobToRow(job, userId) {
@@ -60,6 +67,7 @@ function jobToRow(job, userId) {
     customer: job.customer, vehicle: job.vehicle, axles: job.axles,
     after_axles: job.afterAxles, full_distance: job.fullDistance, notes: job.notes,
     config_id: job.configId, config_name: job.configName, measure_method: job.measureMethod,
+    created_at: job.createdAt || new Date().toISOString(),
     updated_at: job.updatedAt || job.createdAt || new Date().toISOString(),
   };
 }
@@ -79,15 +87,10 @@ async function upsertJobRemote(job, userId) {
   if (!userId || !navigator.onLine) return false;
   const row = jobToRow(job, userId);
   try {
-    const { data, error: updateError } = await supabase
-      .from("jobs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
-    if (updateError) throw updateError;
-    if (!data || data.length===0) {
-      const { error: insertError } = await supabase.from("jobs").insert(row);
-      if (insertError) throw insertError;
-    }
+    const { error } = await supabase.from("jobs").upsert(row, { onConflict: "id" });
+    if (error) throw error;
     return true;
-  } catch(e) { console.error("Job sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
+  } catch(e) { console.error("Job sync failed:", e?.message, e); return false; }
 }
 
 function configToRow(config, userId) {
@@ -106,15 +109,10 @@ async function upsertConfigRemote(config, userId) {
   if (!userId || !navigator.onLine) return false;
   const row = configToRow(config, userId);
   try {
-    const { data, error: updateError } = await supabase
-      .from("configs").update(row).eq("id", row.id).eq("user_id", userId).select("id");
-    if (updateError) throw updateError;
-    if (!data || data.length===0) {
-      const { error: insertError } = await supabase.from("configs").insert(row);
-      if (insertError) throw insertError;
-    }
+    const { error } = await supabase.from("configs").upsert(row, { onConflict: "id" });
+    if (error) throw error;
     return true;
-  } catch(e) { console.error("Config sync failed:", {message:e?.message, code:e?.code, details:e?.details, hint:e?.hint, raw:e}); return false; }
+  } catch(e) { console.error("Config sync failed:", e?.message, e); return false; }
 }
 async function deleteConfigRemote(id, userId) {
   if (!userId || !navigator.onLine) return;
@@ -273,14 +271,14 @@ function loadJobs() {
     if (raw) {
       const jobs = JSON.parse(raw);
       // Normalise — guard against old data missing fields
-      return jobs.map(j => ({
+      return sortNewestFirst(jobs.map(j => ({
         ...j,
         axles: Array.isArray(j.axles) ? j.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
         afterAxles: j.afterAxles ? (Array.isArray(j.afterAxles) ? j.afterAxles : null) : null,
         measureMethod: j.measureMethod || "direct",
         updatedAt: j.updatedAt || j.createdAt,
         syncStatus: j.syncStatus || "local",
-      }));
+      })));
     }
   } catch(e) {}
   return null;
@@ -467,44 +465,6 @@ function makeJob(measureMethod="direct") {
 
 
 /* ── Demo data ───────────────────────────────────────────────── */
-const DEMO=[
-  { id:"d1", createdAt:"2026-04-22T08:30:00Z", syncStatus:"synced",
-    customer:{ company:"Whitfield Transport", name:"James Whitfield", phone:"0412 345 678", email:"james@whitfield.com" },
-    vehicle:{ reg:"1ABC 234", make:"Toyota", model:"LandCruiser 300", year:"2022", mileage:"" },
-    axles:[
-      { id:"a1", label:"Front", type:"steering", driveSide:"RHD", suspType:"solid",
-        toeLeft:"+1.0", toeRight:"-2.0", camberLeft:"+0.5", camberRight:"-0.8",
-        casterLeft:"+3.8", casterRight:"+3.5", kpiLeft:"12.0", kpiRight:"11.8",
-        maxTurnLeft:"38", maxTurnRight:"32", tootLeft:"2.5", tootRight:"2.2" },
-      { id:"a2", label:"Rear", type:"fixed", toeLeft:"+3.0", toeRight:"-2.0", camberLeft:"-0.5", camberRight:"-0.3", dualWheel:false },
-    ], notes:"" },
-  { id:"d2", createdAt:"2026-04-28T14:10:00Z", syncStatus:"synced",
-    customer:{ company:"Whitfield Transport", name:"James Whitfield", phone:"0412 345 678", email:"james@whitfield.com" },
-    vehicle:{ reg:"1ABC 235", make:"Toyota", model:"HiLux SR5", year:"2023", mileage:"" },
-    axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
-    notes:"" },
-  { id:"d3", createdAt:"2026-04-30T14:10:00Z", syncStatus:"local",
-    customer:{ company:"Sara Chen", name:"Sara Chen", phone:"0498 765 432", email:"sara@example.com" },
-    vehicle:{ reg:"XYZ 789", make:"Ford", model:"Transit Van", year:"2023", mileage:"" },
-    axles:[
-      { id:"a3", label:"Front", type:"steering", driveSide:"RHD", suspType:"independent",
-        toeLeft:"+1.0", toeRight:"+2.0", camberLeft:"-0.3", camberRight:"-0.5",
-        casterLeft:"+4.0", casterRight:"+3.8", kpiLeft:"13.0", kpiRight:"13.2",
-        maxTurnLeft:"40", maxTurnRight:"40", tootLeft:"", tootRight:"" },
-      { id:"a4", label:"Rear", type:"fixed", toeLeft:"+1.5", toeRight:"+1.5", camberLeft:"", camberRight:"", dualWheel:false },
-    ], notes:"" },
-  { id:"d4", createdAt:"2026-05-01T09:00:00Z", syncStatus:"local",
-    customer:{ company:"Raj Haulage Pty Ltd", name:"Raj Patel", phone:"0411 222 333", email:"raj@rajhaulage.com" },
-    vehicle:{ reg:"TRK 001", make:"Volvo", model:"FH16", year:"2021", mileage:"" },
-    axles:[
-      { id:"a5", label:"Front Steer", type:"steering", driveSide:"LHD", suspType:"solid",
-        toeLeft:"+2.0", toeRight:"+1.0", camberLeft:"-0.5", camberRight:"-0.5",
-        casterLeft:"+5.0", casterRight:"+5.0", kpiLeft:"8.0", kpiRight:"8.0",
-        maxTurnLeft:"42", maxTurnRight:"42", tootLeft:"3.0", tootRight:"3.0" },
-      { id:"a6", label:"Rear Drive", type:"fixed", toeLeft:"+1.0", toeRight:"+1.0", camberLeft:"", camberRight:"", dualWheel:false },
-      { id:"a7", label:"Rear Tag",   type:"fixed", toeLeft:"+0.5", toeRight:"-0.5", camberLeft:"", camberRight:"", dualWheel:false },
-    ], notes:"3-axle truck" },
-];
 
 /* ══════════════════════════════════════════════════════════════
    SVG ATOMS
@@ -2497,12 +2457,12 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   function cancelDelete(e)  { e.stopPropagation(); setDeleting(false); }
   function requestDelete(e) { e.stopPropagation(); setMenuOpen(false); setDeleting(true); }
 
-  const fmtDate = iso => new Date(iso).toLocaleDateString("en-AU",{day:"2-digit",month:"short",year:"numeric"});
+  const fmtDate = iso => { const d=new Date(iso); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; };
   const synced = j.syncStatus==="synced";
 
   const cols = [
     { label:"Make & Model", value:[j.vehicle.make,j.vehicle.model].filter(Boolean).join(" ") },
-    { label:"Mileage",      value:j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString()+" mi" : "" },
+    { label:"Mileage",      value:j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString() : "" },
     { label:"Date",         value:fmtDate(j.createdAt) },
     { label:"Customer",     value:j.customer.company||j.customer.name||"" },
   ].filter(c=>c.value);
@@ -2538,9 +2498,9 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
 
       {/* Top row: REG + sync + menu */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"11px 12px 10px 14px",gap:8}}>
-        <div style={{fontFamily:FM,fontSize:20,fontWeight:"700",color:"#eb0000",
-          letterSpacing:"0.08em",textTransform:"uppercase",
+        padding:"9px 12px 11px 14px",gap:8}}>
+        <div style={{fontFamily:FM,fontSize:24,fontWeight:"800",color:"#eb0000",
+          letterSpacing:0,textTransform:"uppercase",
           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",flex:1,minWidth:0}}>
           {j.vehicle.reg||<span style={{color:"#ccc",fontSize:14,fontFamily:FB,fontWeight:"500",letterSpacing:0}}>No reg</span>}
         </div>
@@ -2642,7 +2602,7 @@ function RefreshButton({ onRefresh }) {
 function Dashboard({ jobs, onNew, onOpen, onDelete, pendingCount=0, onRefresh }) {
   const [q,setQ]=useState("");
   const sorted=[...jobs].sort((a,b)=>
-    new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0));
+    new Date(b.createdAt||0) - new Date(a.createdAt||0));
   const filtered=sorted.filter(j=>
     [j.customer.company,j.customer.name,j.vehicle.reg,j.vehicle.make,j.vehicle.model]
       .join(" ").toLowerCase().includes(q.toLowerCase()));
@@ -2983,6 +2943,7 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
 
 function ReportScreen({ job, company, onClose, actionsRef }) {
   const [exporting, setExporting] = useState(false);
+  const [pendingShare, setPendingShare] = useState(null); // { file, blob, fname } waiting for fresh tap
   const axlesOuterRef = useRef(null);
   const axlesInnerRef = useRef(null);
   const [axleScale, setAxleScale] = useState(1);
@@ -3292,19 +3253,61 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
   const PANEL_W = 380;
 
-  const printReport = () => {
+  // iOS Safari/Chrome: iframe.print() and Web Share (after await) don't work reliably.
+  // On iOS we generate the PDF and open it in a new tab — the native PDF viewer
+  // provides working Share/Print buttons. On desktop we keep the direct approaches.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  async function buildPdfBlob() {
+    const el = document.getElementById("aes-report");
+    if (!el) throw new Error("no element");
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const img = canvas.toDataURL("image/jpeg", 0.92);
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+    const drawW = canvas.width * ratio;
+    const drawH = canvas.height * ratio;
+    const x = (pageW - drawW) / 2;
+    pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
+    const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    const fname = (reg ? `${reg}_${dateStr}` : `alignment-report_${dateStr}`) + ".pdf";
+    return { blob: pdf.output("blob"), fname };
+  }
+
+  function openBlobInNewTab(blob) {
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  const printReport = async () => {
+    if (isIOS) {
+      // iOS: generate PDF and open in new tab — user gets native Share/Print from PDF viewer
+      if (exporting) return;
+      setExporting(true);
+      try {
+        const { blob } = await buildPdfBlob();
+        openBlobInNewTab(blob);
+      } catch(e) {
+        alert("Could not generate PDF. Please try again.");
+      } finally {
+        setExporting(false);
+      }
+      return;
+    }
+    // Desktop: print via hidden iframe
     const el = document.getElementById("aes-report");
     if (!el) return;
     let iframe = document.getElementById("aes-print-frame");
     if (iframe) iframe.remove();
     iframe = document.createElement("iframe");
     iframe.id = "aes-print-frame";
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "none";
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:none";
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow.document;
     doc.open();
@@ -3320,46 +3323,84 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     doc.close();
     const cleanup = () => { if (iframe && iframe.parentNode) iframe.remove(); };
     iframe.contentWindow.onafterprint = cleanup;
-    setTimeout(()=>{
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      setTimeout(cleanup, 60000);
-    }, 500);
+    setTimeout(()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print(); setTimeout(cleanup, 60000); }, 500);
   };
 
   const exportPdf = async () => {
-    const el = document.getElementById("aes-report");
-    if (!el || exporting) return;
+    if (exporting) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      const img = canvas.toDataURL("image/jpeg", 0.92);
-      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-      const drawW = canvas.width * ratio;
-      const drawH = canvas.height * ratio;
-      const x = (pageW - drawW) / 2;
-      pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
-      const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
-      const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
-      const now = new Date();
-      const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
-      const fname = [dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report";
-      pdf.save(`${fname}.pdf`);
-    } catch (e) {
-      alert("Could not export PDF. Please try Print / Save PDF instead.");
+      const { blob, fname } = await buildPdfBlob();
+      if (isIOS && navigator.share) {
+        // iOS: gesture is lost after the await — show a prompt so user taps again (fresh gesture)
+        const file = new File([blob], fname, { type: "application/pdf" });
+        setPendingShare({ file, blob, fname });
+        setExporting(false);
+        return;
+      }
+      // Desktop or iOS without share support
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = fname; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch(e) {
+      alert("Could not export PDF. Please try again.");
     } finally {
       setExporting(false);
     }
   };
+
+  // Called from the "Tap to Share" overlay — fresh user gesture, share sheet will open
+  async function triggerShare() {
+    if (!pendingShare) return;
+    const { file, blob } = pendingShare;
+    setPendingShare(null);
+    const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+    const dateStr = new Date(job.createdAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+    const coName = company?.name||"";
+    const subject = `Wheel Alignment Report${reg?" - "+reg:""}`;
+    const body = `Wheel Alignment Report${reg?" - "+reg:""}${dateStr?" - "+dateStr:""}${coName?" by "+coName:""}`;
+    try {
+      await navigator.share({ files: [file], title: subject, text: body });
+    } catch(e) {
+      if (e?.name !== "AbortError") openBlobInNewTab(blob); // last-resort fallback
+    }
+  }
 
   // Expose actions to parent via ref
   if (actionsRef) actionsRef.current = { exportPdf, printReport, exporting };
 
   return (
     <div style={{display:"flex",flexDirection:"column",background:"#e8e8e8"}}>
+      {/* iOS share prompt — appears after PDF is generated, fresh tap triggers share sheet */}
+      {pendingShare&&(
+        <div style={{position:"fixed",inset:0,zIndex:999,background:"rgba(0,0,0,0.6)",
+          display:"flex",alignItems:"flex-end",justifyContent:"center",
+          padding:"0 0 calc(32px + env(safe-area-inset-bottom))"}}>
+          <div style={{background:"#fff",borderRadius:"1rem",padding:"24px 24px 20px",
+            width:"100%",maxWidth:420,margin:"0 16px",textAlign:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+            <div style={{width:48,height:48,background:"#eb0000",borderRadius:"50%",
+              display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <div style={{fontFamily:FB,fontWeight:"700",fontSize:16,color:"#050505",marginBottom:6}}>PDF Ready</div>
+            <div style={{fontFamily:FB,fontSize:13,color:"rgba(5,5,5,0.5)",marginBottom:20}}>{pendingShare.fname}</div>
+            <button onClick={triggerShare} style={{
+              width:"100%",background:"#eb0000",border:"none",borderRadius:"0.5rem",
+              padding:"14px",color:"#fff",fontFamily:FB,fontWeight:"700",fontSize:15,
+              cursor:"pointer",marginBottom:10}}>
+              Tap to Share
+            </button>
+            <button onClick={()=>{ openBlobInNewTab(pendingShare.blob); setPendingShare(null); }} style={{
+              width:"100%",background:"none",border:"none",color:"rgba(5,5,5,0.4)",
+              fontFamily:FB,fontSize:13,cursor:"pointer",padding:"6px"}}>
+              Open in browser instead
+            </button>
+          </div>
+        </div>
+      )}
       {/* A4 preview — no fixed header here; header lives in JobEditor */}
       <div style={{padding:16,overflowX:"auto"}}>
         <div id="aes-report" style={{
@@ -3378,13 +3419,13 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               <div style={{display:"flex",gap:"16pt"}}>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
                   {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
-                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>T: {company.phone}</div>}
-                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>E: {company.email}</div>}
+                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.phone}</div>}
+                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.email}</div>}
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
                   {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
                   {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
-                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>W: {company.website}</div>}
+                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.website}</div>}
                 </div>
               </div>
             </div>
@@ -3431,7 +3472,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             width:`${100/axleScale}%`,
           }}>
           {beforeAxles.map((bAxle, i) => {
-            const aAxle = hasAfter ? (afterAxles.find(a=>a.label===bAxle.label)||null) : null;
+            const aAxle = hasAfter ? (afterAxles[i] || afterAxles.find(a=>a.label===bAxle.label) || null) : null;
             const isSteer = bAxle.type==="steering"||bAxle.type==="rear-steer";
             const steersBefore = beforeAxles.slice(0,i).filter(a=>a.type==="steering").length;
             const steerIdx = bAxle.type==="steering" ? steersBefore : -1;
@@ -3474,7 +3515,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 {/* AFTER panel */}
                 <div style={{paddingLeft:"6pt"}}>
                   {aAxle ? (
-                    <AxlePanel axle={aAxle} allAxles={afterAxles} steerIdx={steerIdx}
+                    <AxlePanel axle={{...aAxle,dualWheel:bAxle.dualWheel,type:bAxle.type,driveSide:bAxle.driveSide,suspType:bAxle.suspType}}
+                      allAxles={afterAxles} steerIdx={steerIdx}
                       frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true}/>
                   ) : (
                     <div style={{display:"flex",alignItems:"center",justifyContent:"center",
@@ -3517,14 +3559,27 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     afterAxles: job.afterAxles && Array.isArray(job.afterAxles) ? job.afterAxles : null,
     measureMethod: job.measureMethod || "direct",
   }));
-  const [saveState,setSaveState]=useState("idle"); // idle|saving|saved
   const reportActionsRef = useRef({});
+  const autoSaveTimer = useRef(null);
+  const isFirstRender = useRef(true);
+  const [savedTick, setSavedTick] = useState(false);
+  const savedTickTimer = useRef(null);
+
+  // Autosave to localStorage + queue Supabase sync on every change (500ms debounce)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => { onSave(j); }, 500);
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [j]);
+
+  // Manual force-save — also shows "Saved" tick for 2s
   function handleSave() {
-    setSaveState("saving");
-    setTimeout(()=>{
-      setSaveState("saved");
-      setTimeout(()=>onSave(j), 650);
-    }, 500);
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    onSave(j);
+    setSavedTick(true);
+    if (savedTickTimer.current) clearTimeout(savedTickTimer.current);
+    savedTickTimer.current = setTimeout(() => setSavedTick(false), 2000);
   }
   const [tab,setTab]=useState(initialTab);
   useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
@@ -3536,6 +3591,23 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   const setAfterAxles = useCallback(updater =>
     setJ(p => ({ ...p, afterAxles: typeof updater === "function" ? updater(p.afterAxles) : updater })),
   []);
+
+  // Sync axle config fields from before to after when before changes
+  useEffect(() => {
+    if (!j.afterAxles) return;
+    const configKeys = ["dualWheel","type","driveSide","suspType"];
+    let anyChanged = false;
+    const synced = j.afterAxles.map((aAxle, i) => {
+      const bAxle = j.axles[i];
+      if (!bAxle) return aAxle;
+      const patch = {};
+      let rowChanged = false;
+      for (const k of configKeys) { if (bAxle[k] !== aAxle[k]) { patch[k] = bAxle[k]; rowChanged = true; } }
+      if (rowChanged) { anyChanged = true; return { ...aAxle, ...patch }; }
+      return aAxle;
+    });
+    if (anyChanged) setJ(p => ({ ...p, afterAxles: synced }));
+  }, [j.axles]);
 
   const beforeHasData = Array.isArray(j.axles) && j.axles.some(a =>
     hasVal(a.toeLeft) || hasVal(a.toeRight) ||
@@ -3560,88 +3632,85 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
 
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
-      {/* Top bar */}
-      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
-        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
-        <div style={{maxWidth:520,margin:"0 auto",
-          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-          display:"flex",alignItems:"center",gap:12}}>
-        <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
-          cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:FM,fontSize:16,color:"#ffffff",letterSpacing:"0.08em",fontWeight:"700",
-            textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-            {j.vehicle.reg||"No reg"}
+      {/* Fixed chrome: header + tab bar in one container so they're always flush */}
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505"}}>
+        {/* Top bar */}
+        <div style={{borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+          <div style={{maxWidth:520,margin:"0 auto",
+            paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+            display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
+            cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:FM,fontSize:16,color:"#ffffff",letterSpacing:"0.08em",fontWeight:"700",
+              textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+              {j.vehicle.reg||"No reg"}
+            </div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
           </div>
-          <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
-        </div>
-        {tab==="report" ? (
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>reportActionsRef.current?.exportPdf&&reportActionsRef.current.exportPdf()}
-              disabled={reportActionsRef.current?.exporting}
-              style={{background:"#eb0000",color:"#ffffff",border:"none",padding:"5px 14px",
-                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                fontSize:11,letterSpacing:"0.04em"}}>
-              Export PDF
-            </button>
-            <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
-              disabled={reportActionsRef.current?.exporting}
-              style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
-                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                fontSize:11,letterSpacing:"0.04em"}}>
-              Print PDF
-            </button>
-          </div>
-        ) : (
-        <button onClick={handleSave} disabled={saveState!=="idle"} style={{
-          background: saveState==="saved" ? "#16a34a" : "#eb0000",
-          color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
-          cursor:saveState!=="idle"?"default":"pointer",fontFamily:FB,fontWeight:"600",
-          fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
-          minWidth:64,justifyContent:"center",transition:"background 0.2s",
-        }}>
-          {saveState==="saving"&&(
-            <svg width="12" height="12" viewBox="0 0 24 24" style={{animation:"trkSpin 0.7s linear infinite"}}>
-              <circle cx="12" cy="12" r="9" fill="none" stroke="#ffffff" strokeWidth="3" strokeOpacity="0.3"/>
-              <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round"/>
-            </svg>
-          )}
-          {saveState==="saved"&&(
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          )}
-          {saveState==="idle"?"Save":saveState==="saving"?"Saving":"Saved"}
-        </button>
-        )}
-        <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      </div>
-
-      <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"#050505",overflowX:"auto",paddingTop:"calc(60px + env(safe-area-inset-top))"}}>
-        {TABS.filter(t=>!t.josam||isJosam).map(t=>(
-          <button key={t.id}
-            onClick={()=>!t.locked&&handleTabChange(t.id)}
-            style={{
-              padding:"10px 16px",border:"none",cursor:t.locked?"not-allowed":"pointer",
-              fontFamily:FB,fontWeight:"600",fontSize:12,letterSpacing:"0.06em",
-              textTransform:"uppercase",background:"transparent",whiteSpace:"nowrap",
-              color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"rgba(255,255,255,0.5)",
-              borderBottom:tab===t.id?"2px solid #eb0000":"2px solid transparent",
-              transition:"color 0.15s",
-            }}>
-            {t.label}
-            {t.locked&&<span style={{fontSize:8,marginLeft:4,opacity:0.5}}>🔒</span>}
+          {tab==="report" ? (
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>reportActionsRef.current?.exportPdf&&reportActionsRef.current.exportPdf()}
+                disabled={reportActionsRef.current?.exporting}
+                style={{background:"#eb0000",color:"#ffffff",border:"none",padding:"5px 14px",
+                  borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
+                  fontSize:11,letterSpacing:"0.04em"}}>
+                Export PDF
+              </button>
+              <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
+                disabled={reportActionsRef.current?.exporting}
+                style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
+                  borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
+                  fontSize:11,letterSpacing:"0.04em"}}>
+                Print PDF
+              </button>
+            </div>
+          ) : (
+          <button onClick={handleSave} style={{
+            background: savedTick ? "#16a34a" : "#eb0000",
+            color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
+            cursor:"pointer",fontFamily:FB,fontWeight:"600",
+            fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
+            minWidth:64,justifyContent:"center",transition:"background 0.2s",
+          }}>
+            {savedTick && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+            {savedTick ? "Saved" : "Save"}
           </button>
-        ))}
+          )}
+          <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        </div>
+        {/* Tab bar — directly below header, no gap */}
+        <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",overflowX:"auto"}}>
+          {TABS.filter(t=>!t.josam||isJosam).map(t=>(
+            <button key={t.id}
+              onClick={()=>!t.locked&&handleTabChange(t.id)}
+              style={{
+                padding:"10px 16px",border:"none",cursor:t.locked?"not-allowed":"pointer",
+                fontFamily:FB,fontWeight:"600",fontSize:12,letterSpacing:"0.06em",
+                textTransform:"uppercase",background:"transparent",whiteSpace:"nowrap",
+                color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"rgba(255,255,255,0.5)",
+                borderBottom:tab===t.id?"2px solid #eb0000":"2px solid transparent",
+                transition:"color 0.15s",
+              }}>
+              {t.label}
+              {t.locked&&<span style={{fontSize:8,marginLeft:4,opacity:0.5}}>🔒</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{padding:"18px 16px",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      {/* Content — paddingTop clears header (~60px+safe-area) + tab bar (~42px) */}
+      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
-            <button onClick={()=>handleTabChange("before")} style={{
+            <button onClick={()=>{ handleSave(); handleTabChange("before"); }} style={{
               width:"100%",background:"#eb0000",border:"none",borderRadius:"0.3rem",
               padding:"14px 20px",cursor:"pointer",
               display:"flex",alignItems:"center",justifyContent:"space-between",
@@ -3661,7 +3730,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           <ReadingsPanel axles={j.axles} setAxles={setBeforeAxles}
             isJosam={isJosam} fullDistance={j.fullDistance||""}
             setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
-            jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ)}
+            jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
 />
         )}
 
@@ -4007,7 +4076,7 @@ export default function App() {
 }
 
 function AuthenticatedApp({ session }) {
-  const [jobs,setJobs]=useState(()=>loadJobs()||DEMO);
+  const [jobs,setJobs]=useState(()=>loadJobs()||[]);
   const [configs,setConfigs]=useState(()=>loadConfigs());
   const [company,setCompany]=useState(()=>loadCompany());
   const [configScreen,setConfigScreen]=useState(null); // null|"library"|"editor"
@@ -4080,9 +4149,13 @@ function AuthenticatedApp({ session }) {
     if (pending.length===0) return;
     let cancelled = false;
     (async () => {
-      for (const job of pending) {
-        const ok = await upsertJobRemote(job, userId);
-        if (ok && !cancelled) setJobs(prev=>prev.map(j=>j.id===job.id?{...j,syncStatus:"synced"}:j));
+      const results = await Promise.all(pending.map(job =>
+        upsertJobRemote(job, userId).then(ok => ({ id: job.id, ok }))
+      ));
+      if (!cancelled) {
+        const syncedIds = new Set(results.filter(r=>r.ok).map(r=>r.id));
+        if (syncedIds.size > 0)
+          setJobs(prev=>prev.map(j=>syncedIds.has(j.id)?{...j,syncStatus:"synced"}:j));
       }
     })();
     return () => { cancelled = true; };
@@ -4094,9 +4167,13 @@ function AuthenticatedApp({ session }) {
     if (pending.length===0) return;
     let cancelled = false;
     (async () => {
-      for (const cfg of pending) {
-        const ok = await upsertConfigRemote(cfg, userId);
-        if (ok && !cancelled) setConfigs(prev=>prev.map(c=>c.id===cfg.id?{...c,syncStatus:"synced"}:c));
+      const results = await Promise.all(pending.map(cfg =>
+        upsertConfigRemote(cfg, userId).then(ok => ({ id: cfg.id, ok }))
+      ));
+      if (!cancelled) {
+        const syncedIds = new Set(results.filter(r=>r.ok).map(r=>r.id));
+        if (syncedIds.size > 0)
+          setConfigs(prev=>prev.map(c=>syncedIds.has(c.id)?{...c,syncStatus:"synced"}:c));
       }
     })();
     return () => { cancelled = true; };
@@ -4150,8 +4227,9 @@ function AuthenticatedApp({ session }) {
   };
 
   const [pendingSetJ, setPendingSetJ] = useState(null);
+  const [pendingJ, setPendingJ] = useState(null); // unsaved job snapshot when opening library from within a job
   const [configSource, setConfigSource] = useState("footer"); // "footer" | "job"
-  function openConfigLibrary(setJFn) { setPendingSetJ(()=>setJFn); setConfigSource("job"); setConfigScreen("library"); }
+  function openConfigLibrary(setJFn, currentJ) { setPendingSetJ(()=>setJFn); setPendingJ(currentJ||null); setConfigSource("job"); setConfigScreen("library"); }
   function newConfig() { setEditingConfig(makeConfig()); setConfigScreen("editor"); }
   function editConfig(c) { setEditingConfig(c); setConfigScreen("editor"); }
   function saveConfig(c) {
@@ -4196,7 +4274,7 @@ function AuthenticatedApp({ session }) {
     const j={...makeJob(measureMode), fullDistance:""};
     setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job"); setForceTab(null);
   };
-  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
+  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,createdAt:x.createdAt||j.createdAt,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
 
   function handleOnboardSelect(mode) {
     setMeasureMode(mode);
@@ -4244,11 +4322,11 @@ function AuthenticatedApp({ session }) {
                   }));
                   const stamp = {updatedAt:new Date().toISOString(), syncStatus:"local"};
                   if (configSource==="job" && activeId) {
-                    // Apply config to current job — preserve all job details
+                    // Apply config to current job — preserve all unsaved job details
                     setJobs(prev=>prev.map(j=>j.id===activeId
-                      ? {...j, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
+                      ? {...(pendingJ||j), axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}
                       : j));
-                    if (pendingSetJ) pendingSetJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null, ...stamp}));
+                    setPendingJ(null);
                     setConfigScreen(null);
                     setScreen("job");
                     setOpenTab("before");
@@ -4275,7 +4353,7 @@ function AuthenticatedApp({ session }) {
                 onBack={goHome}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
-                  {screen==="dashboard"&&<Dashboard jobs={jobs} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
+                  {screen==="dashboard"&&<Dashboard jobs={sortNewestFirst(jobs)} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
                     pendingCount={jobs.filter(j=>j.syncStatus!=="synced").length+configs.filter(c=>c.syncStatus!=="synced").length+(company.syncStatus!=="synced"?1:0)}
                     onRefresh={pullFromSupabase}/>}
                   {screen==="job"&&activeJob&&
@@ -4295,7 +4373,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>{ setConfigSource("footer"); setConfigScreen("library"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#ffffff",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -4307,7 +4385,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>{ setConfigScreen(null); setScreen("settings"); }} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#ffffff",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -4319,7 +4397,7 @@ function AuthenticatedApp({ session }) {
               <button onClick={()=>supabase.auth.signOut({scope:"local"}).catch(e=>console.error("Sign out failed:",e))} style={{
                 background:"none",border:"none",cursor:"pointer",
                 display:"flex",alignItems:"center",gap:6,
-                color:"rgba(255,255,255,0.5)",fontFamily:FB,fontSize:12,
+                color:"#eb0000",fontFamily:FB,fontSize:12,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
