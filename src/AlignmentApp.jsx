@@ -53,6 +53,9 @@ function mergeByUpdatedAt(localList, remoteList) {
     const local = map.get(remote.id);
     if (!local || !local.updatedAt || new Date(remote.updatedAt) > new Date(local.updatedAt)) {
       map.set(remote.id, { ...remote, syncStatus: "synced" });
+    } else {
+      // Local is newer on content, but always take createdAt from remote (canonical source)
+      map.set(remote.id, { ...local, createdAt: remote.createdAt || local.createdAt });
     }
   }
   return sortNewestFirst(Array.from(map.values()));
