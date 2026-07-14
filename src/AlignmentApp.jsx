@@ -3632,81 +3632,88 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
 
   return (
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
-      {/* Fixed chrome: header + tab bar in one container so they're always flush */}
-      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505"}}>
-        {/* Top bar */}
-        <div style={{borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
-          <div style={{maxWidth:520,margin:"0 auto",
-            paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
-            display:"flex",alignItems:"center",gap:12}}>
-          <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
-            cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontFamily:FM,fontSize:16,color:"#ffffff",letterSpacing:"0.08em",fontWeight:"700",
-              textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
-              {j.vehicle.reg||"No reg"}
-            </div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
+      {/* Top bar */}
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505",
+        borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{maxWidth:520,margin:"0 auto",
+          paddingTop:"calc(env(safe-area-inset-top) + 10px)",paddingBottom:"10px",paddingLeft:"16px",paddingRight:"16px",
+          display:"flex",alignItems:"center",gap:12}}>
+        <button onClick={onBack} style={{background:"none",border:"none",color:"#eb0000",
+          cursor:"pointer",fontSize:22,padding:"0 4px",lineHeight:1}}>←</button>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontFamily:FM,fontSize:16,color:"#ffffff",letterSpacing:"0.08em",fontWeight:"700",
+            textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+            {j.vehicle.reg||"No reg"}
           </div>
-          {tab==="report" ? (
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>reportActionsRef.current?.exportPdf&&reportActionsRef.current.exportPdf()}
-                disabled={reportActionsRef.current?.exporting}
-                style={{background:"#eb0000",color:"#ffffff",border:"none",padding:"5px 14px",
-                  borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                  fontSize:11,letterSpacing:"0.04em"}}>
-                Export PDF
-              </button>
-              <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
-                disabled={reportActionsRef.current?.exporting}
-                style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
-                  borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
-                  fontSize:11,letterSpacing:"0.04em"}}>
-                Print PDF
-              </button>
-            </div>
-          ) : (
-          <button onClick={handleSave} style={{
-            background: savedTick ? "#16a34a" : "#eb0000",
-            color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
-            cursor:"pointer",fontFamily:FB,fontWeight:"600",
-            fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
-            minWidth:64,justifyContent:"center",transition:"background 0.2s",
-          }}>
-            {savedTick && (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            )}
-            {savedTick ? "Saved" : "Save"}
-          </button>
-          )}
-          <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
-          </div>
+          <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontFamily:FB}}>{j.customer.company||"No customer"}</div>
         </div>
-        {/* Tab bar — directly below header, no gap */}
-        <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",overflowX:"auto"}}>
-          {TABS.filter(t=>!t.josam||isJosam).map(t=>(
-            <button key={t.id}
-              onClick={()=>!t.locked&&handleTabChange(t.id)}
-              style={{
-                padding:"10px 16px",border:"none",cursor:t.locked?"not-allowed":"pointer",
-                fontFamily:FB,fontWeight:"600",fontSize:12,letterSpacing:"0.06em",
-                textTransform:"uppercase",background:"transparent",whiteSpace:"nowrap",
-                color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"rgba(255,255,255,0.5)",
-                borderBottom:tab===t.id?"2px solid #eb0000":"2px solid transparent",
-                transition:"color 0.15s",
-              }}>
-              {t.label}
-              {t.locked&&<span style={{fontSize:8,marginLeft:4,opacity:0.5}}>🔒</span>}
+        {tab==="report" ? (
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>reportActionsRef.current?.exportPdf&&reportActionsRef.current.exportPdf()}
+              disabled={reportActionsRef.current?.exporting}
+              style={{background:"#eb0000",color:"#ffffff",border:"none",padding:"5px 14px",
+                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
+                fontSize:11,letterSpacing:"0.04em"}}>
+              Export PDF
             </button>
-          ))}
+            <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
+              disabled={reportActionsRef.current?.exporting}
+              style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
+                borderRadius:"0.3rem",cursor:"pointer",fontFamily:FB,fontWeight:"600",
+                fontSize:11,letterSpacing:"0.04em"}}>
+              Print PDF
+            </button>
+          </div>
+        ) : (
+        <button onClick={handleSave} style={{
+          background: savedTick ? "#16a34a" : "#eb0000",
+          color:"#ffffff",border:"none",padding:"5px 14px",borderRadius:"0.3rem",
+          cursor:"pointer",fontFamily:FB,fontWeight:"600",
+          fontSize:11,letterSpacing:"0.04em",display:"flex",alignItems:"center",gap:6,
+          minWidth:64,justifyContent:"center",transition:"background 0.2s",
+        }}>
+          {savedTick && (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          )}
+          {savedTick ? "Saved" : "Save"}
+        </button>
+        )}
+        <style>{`@keyframes trkSpin{to{transform:rotate(360deg)}}`}</style>
         </div>
       </div>
 
-      {/* Content — paddingTop clears header (~60px+safe-area) + tab bar (~42px) */}
-      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      {/* Fixed tab bar — sits directly below the fixed header */}
+      <div style={{
+        position:"fixed",
+        top:"calc(60px + env(safe-area-inset-top))",
+        left:0, right:0,
+        zIndex:99,
+        display:"flex",
+        borderBottom:"1px solid rgba(255,255,255,0.08)",
+        background:"#050505",
+        overflowX:"auto",
+      }}>
+        {TABS.filter(t=>!t.josam||isJosam).map(t=>(
+          <button key={t.id}
+            onClick={()=>!t.locked&&handleTabChange(t.id)}
+            style={{
+              padding:"10px 16px",border:"none",cursor:t.locked?"not-allowed":"pointer",
+              fontFamily:FB,fontWeight:"600",fontSize:12,letterSpacing:"0.06em",
+              textTransform:"uppercase",background:"transparent",whiteSpace:"nowrap",
+              color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"rgba(255,255,255,0.5)",
+              borderBottom:tab===t.id?"2px solid #eb0000":"2px solid transparent",
+              transition:"color 0.15s",
+            }}>
+            {t.label}
+            {t.locked&&<span style={{fontSize:8,marginLeft:4,opacity:0.5}}>🔒</span>}
+          </button>
+        ))}
+      </div>
 
+      {/* Content — padded below both fixed header (~60px) and fixed tab bar (~42px) */}
+      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
