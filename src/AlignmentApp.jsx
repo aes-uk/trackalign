@@ -4273,7 +4273,7 @@ function AuthenticatedApp({ session }) {
     const j={...makeJob(measureMode), fullDistance:""};
     setJobs(p=>[j,...p]); setActiveId(j.id); setScreen("job"); setOpenTab("job"); setForceTab(null);
   };
-  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
+  const saveJob =j   =>{ setJobs(p=>p.map(x=>x.id===j.id?{...j,createdAt:x.createdAt||j.createdAt,syncStatus:"local",updatedAt:new Date().toISOString()}:x)); };
 
   function handleOnboardSelect(mode) {
     setMeasureMode(mode);
