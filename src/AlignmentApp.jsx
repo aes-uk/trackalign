@@ -44,7 +44,7 @@ function saveCompany(c) {
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
 function sortNewestFirst(list) {
-  return [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  return [...list].sort((a,b) => new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0));
 }
 
 function mergeByUpdatedAt(localList, remoteList) {
@@ -64,6 +64,7 @@ function jobToRow(job, userId) {
     customer: job.customer, vehicle: job.vehicle, axles: job.axles,
     after_axles: job.afterAxles, full_distance: job.fullDistance, notes: job.notes,
     config_id: job.configId, config_name: job.configName, measure_method: job.measureMethod,
+    created_at: job.createdAt || new Date().toISOString(),
     updated_at: job.updatedAt || job.createdAt || new Date().toISOString(),
   };
 }
