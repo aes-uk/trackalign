@@ -3312,10 +3312,9 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     const x = (pageW - drawW) / 2;
     pdf.addImage(img, "JPEG", x, 0, drawW, drawH);
     const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
-    const cust = (job.customer?.company||job.customer?.name||"").replace(/\s+/g,"");
     const now = new Date();
-    const dateStr = `${now.getDate()}-${now.getMonth()+1}-${String(now.getFullYear()).slice(-2)}`;
-    const fname = ([dateStr, cust, reg].filter(Boolean).join("-") || "alignment-report") + ".pdf";
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+    const fname = (reg ? `${reg}_${dateStr}` : `alignment-report_${dateStr}`) + ".pdf";
     return { blob: pdf.output("blob"), fname };
   }
 
@@ -3372,8 +3371,14 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     try {
       const { blob, fname } = await buildPdfBlob();
       if (isIOS) {
-        // iOS: open in new tab — user can save/share from PDF viewer toolbar
-        openBlobInNewTab(blob);
+        // iOS: trigger native share sheet with PDF file
+        const file = new File([blob], fname, { type: "application/pdf" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Wheel Alignment Report" });
+        } else {
+          // Fallback: open in new tab if file sharing not supported
+          openBlobInNewTab(blob);
+        }
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -3381,7 +3386,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         setTimeout(() => URL.revokeObjectURL(url), 10000);
       }
     } catch(e) {
-      alert("Could not export PDF. Please try again.");
+      if (e?.name !== "AbortError") alert("Could not export PDF. Please try again.");
     } finally {
       setExporting(false);
     }
