@@ -105,11 +105,10 @@ function DailyBarChart({ data }) {
           const barH = (d.count / max) * chartH;
           const x = PAD_L + i * barW;
           const y = PAD_T + chartH - barH;
-          const isToday = d.date === todayStr;
           return (
             <g key={d.date}>
               <rect x={x + barW * 0.1} y={y} width={barW * 0.8} height={barH}
-                fill={isToday ? RED : "rgba(235,0,0,0.55)"} rx="1"/>
+                fill={RED} rx="1"/>
               {d.count > 0 && barH > 14 && (
                 <text x={x + barW / 2} y={y + 11} textAnchor="middle"
                   fontSize="10" fill="rgba(255,255,255,0.85)" fontFamily={FM}
@@ -128,11 +127,11 @@ function DailyBarChart({ data }) {
           stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
 
         {/* X labels */}
-        {xLabels.map(({ i, d, isToday }) => {
+        {xLabels.map(({ i, d }) => {
           const x = PAD_L + i * barW + barW / 2;
           return (
             <text key={d.date} x={x} y={PAD_T + chartH + 18} textAnchor="middle"
-              fontSize="10" fill={isToday ? RED : "rgba(255,255,255,0.45)"}
+              fontSize="10" fill="rgba(255,255,255,0.45)"
               fontFamily={FM}>{fmtShortDate(d.date)}</text>
           );
         })}
@@ -181,11 +180,10 @@ function MonthlyBarChart({ data }) {
           const barH = (d.count / max) * chartH;
           const x = PAD_L + i * barW;
           const y = PAD_T + chartH - barH;
-          const isCurrent = d.key === currentMonth;
           return (
             <g key={d.key}>
               <rect x={x + barW * 0.12} y={y} width={barW * 0.76} height={barH}
-                fill={isCurrent ? RED : "rgba(235,0,0,0.55)"} rx="1"/>
+                fill={RED} rx="1"/>
               {d.count > 0 && barH > 14 && (
                 <text x={x + barW / 2} y={y + 11} textAnchor="middle"
                   fontSize="11" fill="rgba(255,255,255,0.85)" fontFamily={FM}
@@ -245,6 +243,7 @@ function UserRow({ user, jobs }) {
       <tr onClick={() => setExpanded(e => !e)}
         style={{ cursor:"pointer", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
         <td style={td}>{user.email}</td>
+        <td style={td}>{user.company_name || <span style={{color:"rgba(255,255,255,0.25)"}}>—</span>}</td>
         <td style={{...td, textAlign:"center"}}>{userJobs.length}</td>
         <td style={td}>{fmtDate(userJobs[0]?.created_at)}</td>
         <td style={td}>{fmtDate(user.created_at)}</td>
@@ -254,7 +253,7 @@ function UserRow({ user, jobs }) {
       </tr>
       {expanded && userJobs.length > 0 && (
         <tr style={{ background:"rgba(255,255,255,0.02)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-          <td colSpan={5} style={{ padding:"0 0 0 32px" }}>
+          <td colSpan={6} style={{ padding:"0 0 0 32px" }}>
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
                 <tr>
@@ -284,7 +283,7 @@ function UserRow({ user, jobs }) {
       )}
       {expanded && userJobs.length === 0 && (
         <tr style={{ background:"rgba(255,255,255,0.02)" }}>
-          <td colSpan={5} style={{ padding:"10px 16px 10px 32px", fontFamily:FB,
+          <td colSpan={6} style={{ padding:"10px 16px 10px 32px", fontFamily:FB,
             fontSize:12, color:"rgba(255,255,255,0.3)" }}>No jobs</td>
         </tr>
       )}
@@ -507,6 +506,7 @@ export default function AdminApp() {
                   <thead>
                     <tr>
                       <th style={th}>Email</th>
+                      <th style={th}>Company</th>
                       <th style={{...th, textAlign:"center"}}>Jobs</th>
                       <th style={th}>Last Active</th>
                       <th style={th}>Registered</th>
