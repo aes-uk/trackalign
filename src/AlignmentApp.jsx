@@ -44,7 +44,7 @@ function saveCompany(c) {
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
 function sortNewestFirst(list) {
-  return [...list].sort((a,b) => new Date(b.updatedAt||b.createdAt||0) - new Date(a.updatedAt||a.createdAt||0));
+  return [...list].sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
 }
 
 function mergeByUpdatedAt(localList, remoteList) {
