@@ -28,26 +28,29 @@ function startOf(unit) {
   return d.toISOString();
 }
 
+function localDateStr(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
 function last30Days() {
   const days = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date();
     d.setHours(0,0,0,0);
     d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0,10));
+    days.push(localDateStr(d));
   }
   return days;
 }
 
-function last12Months() {
+function currentYearMonths() {
+  const year = new Date().getFullYear();
   const months = [];
-  const now = new Date();
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+  for (let m = 0; m < 12; m++) {
+    const d = new Date(year, m, 1);
     months.push({
-      key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,
+      key: `${year}-${String(m+1).padStart(2,"0")}`,
       label: d.toLocaleString("en-GB", { month:"short" }),
-      year: d.getFullYear(),
     });
   }
   return months;
@@ -62,7 +65,7 @@ function DailyBarChart({ data }) {
   const chartW = W - PAD_L - PAD_R;
   const chartH = H;
   const barW = chartW / data.length;
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = localDateStr(new Date());
 
   // Y axis ticks
   const yTicks = [];
@@ -146,7 +149,8 @@ function MonthlyBarChart({ data }) {
   const chartW = W - PAD_L - PAD_R;
   const chartH = H;
   const barW = chartW / data.length;
-  const currentMonth = new Date().toISOString().slice(0,7);
+  const n = new Date();
+  const currentMonth = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
 
   const yTicks = [];
   const tickCount = Math.min(max, 5);
@@ -342,22 +346,26 @@ export default function AdminApp() {
       const allJobs = jobsRes.data || [];
       setJobs(allJobs);
 
-      // Daily chart: last 30 days
+      // Daily chart: last 30 days (local dates)
       const days = last30Days();
       const byDay = {};
       for (const d of days) byDay[d] = 0;
       for (const j of allJobs) {
-        const day = (j.created_at || "").slice(0, 10);
+        if (!j.created_at) continue;
+        const d = new Date(j.created_at);
+        const day = localDateStr(d);
         if (byDay[day] !== undefined) byDay[day]++;
       }
       setDailyData(days.map(d => ({ date: d, count: byDay[d] })));
 
-      // Monthly chart: last 12 months
-      const months = last12Months();
+      // Monthly chart: Jan–Dec current year (local dates)
+      const months = currentYearMonths();
       const byMonth = {};
       for (const m of months) byMonth[m.key] = 0;
       for (const j of allJobs) {
-        const month = (j.created_at || "").slice(0, 7);
+        if (!j.created_at) continue;
+        const d = new Date(j.created_at);
+        const month = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
         if (byMonth[month] !== undefined) byMonth[month]++;
       }
       setMonthlyData(months.map(m => ({ ...m, count: byMonth[m.key] })));
@@ -474,7 +482,7 @@ export default function AdminApp() {
 
           {/* Monthly chart */}
           <div>
-            <SectionLabel>Jobs per Month — Last 12 Months</SectionLabel>
+            <SectionLabel>Jobs per Month — {new Date().getFullYear()}</SectionLabel>
             <div style={{ background:"#111", border:"1px solid rgba(255,255,255,0.08)",
               borderRadius:"0.5rem", padding:"20px 16px" }}>
               {loading
