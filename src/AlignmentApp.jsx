@@ -3169,7 +3169,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
         {/* Row 3 steer: Steering Middle [+ Twinsteer] centred */}
         {isSteer && v.smObj && (
-          <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:3}}>
+          <div style={{display:"flex",gap:6,justifyContent:"center",marginTop:-4,marginBottom:8}}>
             <div style={BOX}>
               <div style={SML}>STEERING MIDDLE</div>
               <div style={VAL(tlC(v.smObj.value,t.steeringMiddle))}>{f1(v.smObj.value)}mm</div>
@@ -3242,7 +3242,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             <div style={{display:"grid",
               gridTemplateColumns:`max-content repeat(${COLS.length}, 1fr)`,
               gridTemplateRows:"repeat(3, auto)",
-              marginTop:2,fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
+              marginTop:0,fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
               <div style={{...thS,background:"#e8e8e8",padding:"1.5pt 4pt"}}/>
               {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
 
