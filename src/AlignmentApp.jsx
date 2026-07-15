@@ -3381,7 +3381,18 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           display:"flex",alignItems:"flex-end",justifyContent:"center",
           padding:"0 0 calc(32px + env(safe-area-inset-bottom))"}}>
           <div style={{background:"#fff",borderRadius:"1rem",padding:"24px 24px 20px",
-            width:"100%",maxWidth:420,margin:"0 16px",textAlign:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+            width:"100%",maxWidth:420,margin:"0 16px",textAlign:"center",boxShadow:"0 8px 32px rgba(0,0,0,0.3)",
+            position:"relative"}}>
+            <button onClick={()=>setPendingShare(null)} style={{
+              position:"absolute",top:12,right:12,
+              background:"rgba(5,5,5,0.07)",border:"none",borderRadius:"50%",
+              width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",padding:0,
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
             <div style={{width:48,height:48,background:"#eb0000",borderRadius:"50%",
               display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
