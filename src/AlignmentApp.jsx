@@ -1018,7 +1018,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   const dm = decToDM(value);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(!dm.min?"":String(dm.min).padStart(2,"0"));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
   // edited tracks whether the user has intentionally interacted with this field.
   // Starts true if a value is already stored, so existing data is never silently cleared.
   // Prevents iOS from committing a value when it auto-blurs an untouched field on section open/close.
@@ -1027,7 +1027,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
     const d = decToDM(value);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(!d.min?"":String(d.min).padStart(2,"0"));
+    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
     edited.current = hasVal(value);
   }, [value]);
   const commit = (newSign, newD, newM) => {
@@ -1141,12 +1141,12 @@ function AngleTolField({ tol, f, upd }) {
   const dm = decToDM(tol[f]);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
-  const [mStr, setMStr] = useState(!dm.min?"":String(dm.min).padStart(2,"0"));
+  const [mStr, setMStr] = useState(dm.min===""?"":String(dm.min).padStart(2,"0"));
   useEffect(()=>{
     const d = decToDM(tol[f]);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
-    setMStr(!d.min?"":String(d.min).padStart(2,"0"));
+    setMStr(d.min===""?"":String(d.min).padStart(2,"0"));
   }, [tol[f]]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
@@ -3511,7 +3511,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             ].some(v => v !== undefined && v !== null && v !== "");
             // Geo fields: if after has none, fall through to before geo below
             const GEO_KEYS = ["camberLeft","camberRight","casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","tootLeft","tootRight"];
-            const hasAfterGeo = rawAAxle && GEO_KEYS.some(k => hasVal(rawAAxle[k]));
+            const hasAfterGeo = rawAAxle && GEO_KEYS.some(k => hasVal(rawAAxle[k]) && parseFloat(rawAAxle[k]) !== 0);
             // Build the axle used for the after column: use raw after for toe, merge before geo where after has none
             const aAxle = hasAfterToe
               ? { ...rawAAxle,
