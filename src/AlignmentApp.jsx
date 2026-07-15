@@ -3654,7 +3654,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   ];
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",overflowX:"hidden"}}>
       {/* Fixed chrome: header + tab bar in one block so they're always flush — no gap calculation */}
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505"}}>
         {/* Top bar */}
@@ -3728,7 +3728,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       </div>
 
       {/* Content — paddingTop clears the unified fixed chrome (header + tab bar) */}
-      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",minHeight:"100dvh",borderRadius:"0.3rem"}}>
+      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
