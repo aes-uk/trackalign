@@ -3240,16 +3240,16 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           // (used for PDF export) doesn't render rowSpan/colSpan correctly.
           return (
             <div style={{display:"grid",
-              gridTemplateColumns:`32px repeat(${COLS.length}, 1fr)`,
+              gridTemplateColumns:`max-content repeat(${COLS.length}, 1fr)`,
               gridTemplateRows:"repeat(3, auto)",
               marginTop:2,fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
-              <div style={{...thS,background:"#e8e8e8"}}/>
+              <div style={{...thS,background:"#e8e8e8",padding:"1.5pt 4pt"}}/>
               {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
 
               {rows.map((row,ri)=>(
                 <Fragment key={ri}>
                   <div style={{...cellS,background:ri===0?"#f5f5f5":"#efefef",
-                    fontWeight:"bold",color:"#666",fontSize:"5pt"}}>{row.lbl}</div>
+                    fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
                   {COLS.map((col,ci)=>{
                     if (col.span) {
                       if (ri!==0) return null;
