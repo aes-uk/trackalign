@@ -1012,29 +1012,39 @@ function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
 
 function DegMinInput({ label, value, onChange, tol=null }) {
   const tl = tol ? trafficLight(value, tol) : "none";
-  const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
-  const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
+  const filled = hasVal(value);
+  const borderCol = (tl!=="none" && filled) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
+  const textCol   = (tl!=="none" && filled) ? TL_COLOR[tl] : "#050505";
   const dm = decToDM(value);
   const [sign, setSign] = useState(dm.sign);
   const [dStr, setDStr] = useState(dm.deg===""?"":String(dm.deg));
   const [mStr, setMStr] = useState(!dm.min?"":String(dm.min).padStart(2,"0"));
+  // edited tracks whether the user has intentionally interacted with this field.
+  // Starts true if a value is already stored, so existing data is never silently cleared.
+  // Prevents iOS from committing a value when it auto-blurs an untouched field on section open/close.
+  const edited = useRef(filled);
   useEffect(()=>{
     const d = decToDM(value);
     setSign(d.sign);
     setDStr(d.deg===""?"":String(d.deg));
     setMStr(!d.min?"":String(d.min).padStart(2,"0"));
+    edited.current = hasVal(value);
   }, [value]);
   const commit = (newSign, newD, newM) => {
+    if (!edited.current) return; // iOS spurious blur on untouched field — ignore
     const dec = dmToDec(newSign, newD, newM);
-    if (dec===""||dec===0) { onChange(""); return; }
+    if (dec==="") { onChange(""); return; }
     const s = Math.abs(dec).toFixed(4);
     onChange(newSign<0 ? `-${s}` : s);
   };
-  const toggleSign = () => { const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr); };
+  const toggleSign = () => {
+    edited.current = true;
+    const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr);
+  };
   const fieldStyle = {
     width:40,boxSizing:"border-box",background:"#f7f7f7",
     border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
-    padding:"6px 4px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
+    padding:"6px 4px",color:filled?textCol:"rgba(5,5,5,0.35)",
     fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
   };
   return (
@@ -1049,14 +1059,14 @@ function DegMinInput({ label, value, onChange, tol=null }) {
           cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={dStr} placeholder="0"
-          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
+          onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
           onBlur={e=>commit(sign, e.target.value, mStr)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
           className="no-spin" style={fieldStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={mStr} placeholder="00"
-          onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
+          onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
           onBlur={e=>commit(sign, dStr, e.target.value)}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
           className="no-spin" style={fieldStyle}/>
@@ -2221,7 +2231,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   const sm = bothSides ? calcSteeringMiddle(axleForSM) : null;
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -2276,7 +2286,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       {isJosam
@@ -2301,7 +2311,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
 function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const dual = axle.dualWheel||false;
-  const geoFilled=[axle.camberLeft,axle.camberRight].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
+  const geoFilled=[axle.camberLeft,axle.camberRight].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -3068,7 +3078,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
     const geoL = [v.camberL, v.casterL, v.kpiL, v.maxTL, v.tootL];
     const geoR = [v.camberR, v.casterR, v.kpiR, v.maxTR, v.tootR];
-    const hasGeoSteer = isSteer && geoL.concat(geoR).some(x=>x!==null);
+    const hasGeoSteer = isSteer && geoL.concat(geoR).some(x=>x!==null && x!==0);
 
     const tootDiff = (v.tootL!==null && v.tootR!==null) ? v.tootL - v.tootR : null;
     const crossCamber = (v.camberL!==null && v.camberR!==null) ? v.camberL - v.camberR : null;
@@ -3192,19 +3202,18 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
         {/* Geo table — steer only, hidden if no values entered */}
         {hasGeoSteer && (()=>{
-          // Columns: per-row metrics interleaved with blended (left+right) spanning columns
           const COLS = [
-            {label:"Camber",       span:false, intFmt:false},
-            {label:"Cross Camber", span:true,  value:crossCamber},
-            {label:"Caster",       span:false, intFmt:false},
-            {label:"Cross Caster", span:true,  value:crossCaster},
-            {label:"KPI",          span:false, intFmt:false},
+            {label:"Camber",       span:false, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight},
+            {label:"Cross Camber", span:true,  value:crossCamber, tol:t.crossCamber},
+            {label:"Caster",       span:false, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight},
+            {label:"Cross Caster", span:true,  value:crossCaster, tol:t.crossCaster},
+            {label:"KPI",          span:false, intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight},
             {label:"Max Turn",     span:false, intFmt:true},
             {label:"TOOT",         span:false, intFmt:true},
           ];
           const rows = [
-            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiff]},
-            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiff]},
+            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiff], side:"L"},
+            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiff], side:"R"},
           ];
           const cellS = {textAlign:"center",fontWeight:"bold",color:"#111",
             padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt",
@@ -3215,9 +3224,14 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           const fmtVal = (val,intFmt) => intFmt
             ? (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
+          // Resolve traffic-light colour for a geo value given its tolerance
+          const geoColor = (val, tol) => {
+            if (val===null || !tol) return "#111";
+            const r = trafficLight(String(val), tol);
+            return r==="green"?"#16a34a":r==="red"?"#dc2626":"#111";
+          };
           // CSS grid instead of a native <table> with rowSpan — html2canvas
           // (used for PDF export) doesn't render rowSpan/colSpan correctly.
-          const nCols = COLS.length + 1; // +1 for label column
           return (
             <div style={{display:"grid",
               gridTemplateColumns:`32px repeat(${COLS.length}, 1fr)`,
@@ -3233,14 +3247,17 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                   {COLS.map((col,ci)=>{
                     if (col.span) {
                       if (ri!==0) return null;
+                      const col2 = geoColor(col.value, col.tol);
                       return (
-                        <div key={ci} style={{...cellS,background:"#f0f4f8",gridRow:"span 2"}}>
+                        <div key={ci} style={{...cellS,color:col2,background:"#f0f4f8",gridRow:"span 2"}}>
                           {fmtVal(col.value,col.intFmt)}
                         </div>
                       );
                     }
+                    const tol = row.side==="L" ? col.tolL : col.tolR;
+                    const col2 = geoColor(row.vals[ci], tol);
                     return (
-                      <div key={ci} style={{...cellS,background:ri===0?"white":"#fafafa"}}>
+                      <div key={ci} style={{...cellS,color:col2,background:ri===0?"white":"#fafafa"}}>
                         {fmtVal(row.vals[ci],col.intFmt)}
                       </div>
                     );
@@ -3487,15 +3504,23 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           }}>
           {beforeAxles.map((bAxle, i) => {
             const rawAAxle = hasAfter ? (afterAxles[i] || afterAxles.find(a=>a.label===bAxle.label) || null) : null;
-            // Check if this specific axle has any actual after readings entered
-            const axleHasAfter = rawAAxle && [
-              rawAAxle.toeLeft, rawAAxle.toeRight, rawAAxle.camberLeft, rawAAxle.camberRight,
-              rawAAxle.casterLeft, rawAAxle.casterRight, rawAAxle.kpiLeft, rawAAxle.kpiRight,
+            // Check if this axle has any toe/scale after readings (geo is handled separately)
+            const hasAfterToe = rawAAxle && [
+              rawAAxle.toeLeft, rawAAxle.toeRight,
               rawAAxle.frontScale, rawAAxle.rearScale, rawAAxle.frontScaleRight, rawAAxle.rearScaleRight,
             ].some(v => v !== undefined && v !== null && v !== "");
-            // If no after readings for this axle, fall back to before readings, flagged as unchanged
-            const aAxle = axleHasAfter ? rawAAxle : null;
-            const afterUnchanged = !axleHasAfter;
+            // Geo fields: if after has none, fall through to before geo below
+            const GEO_KEYS = ["camberLeft","camberRight","casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","tootLeft","tootRight"];
+            const hasAfterGeo = rawAAxle && GEO_KEYS.some(k => hasVal(rawAAxle[k]));
+            // Build the axle used for the after column: use raw after for toe, merge before geo where after has none
+            const aAxle = hasAfterToe
+              ? { ...rawAAxle,
+                  ...(hasAfterGeo ? {} : Object.fromEntries(GEO_KEYS.map(k=>[k, bAxle[k]]))),
+                  dualWheel:bAxle.dualWheel, type:bAxle.type, driveSide:bAxle.driveSide, suspType:bAxle.suspType,
+                  tolerances: bAxle.tolerances,
+                }
+              : null;
+            const afterUnchanged = !hasAfterToe;
             const isSteer = bAxle.type==="steering"||bAxle.type==="rear-steer";
             const steersBefore = beforeAxles.slice(0,i).filter(a=>a.type==="steering").length;
             const steerIdx = bAxle.type==="steering" ? steersBefore : -1;
@@ -3538,7 +3563,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 {/* AFTER panel — falls back to before readings with 'Unchanged' label if no after data */}
                 <div style={{paddingLeft:"6pt"}}>
                   {aAxle ? (
-                    <AxlePanel axle={{...aAxle,dualWheel:bAxle.dualWheel,type:bAxle.type,driveSide:bAxle.driveSide,suspType:bAxle.suspType}}
+                    <AxlePanel axle={aAxle}
                       allAxles={afterAxles} steerIdx={steerIdx}
                       frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true}/>
                   ) : (
