@@ -3742,7 +3742,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
           </div>
         </div>
         {/* Tab bar — immediately below header in the same fixed block, guaranteed flush */}
-        <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.08)",overflowX:"auto"}}>
+        <div style={{display:"flex",justifyContent:"center",borderBottom:"1px solid rgba(255,255,255,0.08)",overflowX:"auto"}}>
           {TABS.filter(t=>!t.josam||isJosam).map(t=>(
             <button key={t.id}
               onClick={()=>!t.locked&&handleTabChange(t.id)}
