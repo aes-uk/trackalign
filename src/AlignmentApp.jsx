@@ -3082,7 +3082,11 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     // tootL (tootLeft) is auto-set to 20 by TootBox; exclude it from the "has user geo?" check
     const hasGeoSteer = isSteer && [v.camberL, v.casterL, v.kpiL, v.maxTL].concat(geoR).some(x=>x!==null && x!==0);
 
-    const tootDiff = (v.tootL!==null && v.tootR!==null) ? v.tootL - v.tootR : null;
+    // tootDiffA: left wheel fixed at 20°, right wheel measured → left TootBox diff
+    const tootDiffA = (v.tootL!==null && v.tootR!==null) ? v.tootL - v.tootR : null;
+    // tootDiffB: right wheel fixed at 20°, left wheel measured → right TootBox diff
+    const tootDiffB = (v.tootR2!==null && v.tootL2!==null) ? v.tootR2 - v.tootL2 : null;
+    const tootDiff = (tootDiffA!==null && tootDiffB!==null) ? tootDiffA - tootDiffB : null;
     const crossCamber = (v.camberL!==null && v.camberR!==null) ? v.camberL - v.camberR : null;
     const crossCaster = (v.casterL!==null && v.casterR!==null) ? v.casterL - v.casterR : null;
 
@@ -3214,8 +3218,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             {label:"TOOT",         span:false, intFmt:true},
           ];
           const rows = [
-            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiff], side:"L"},
-            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiff], side:"R"},
+            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiffA], side:"L"},
+            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiffB], side:"R"},
           ];
           const cellS = {textAlign:"center",fontWeight:"bold",color:"#111",
             padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt",
