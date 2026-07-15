@@ -3511,13 +3511,16 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               rawAAxle.toeLeft, rawAAxle.toeRight,
               rawAAxle.frontScale, rawAAxle.rearScale, rawAAxle.frontScaleRight, rawAAxle.rearScaleRight,
             ].some(v => v !== undefined && v !== null && v !== "");
-            // Geo fields: if after has none, fall through to before geo below
+            // Geo fields: per-field fallback — use After value if entered, else fall back to Before value
             const GEO_KEYS = ["camberLeft","camberRight","casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","tootRight","tootLeft2"];
-            const hasAfterGeo = rawAAxle && GEO_KEYS.some(k => hasVal(rawAAxle[k]) && parseFloat(rawAAxle[k]) !== 0);
-            // Build the axle used for the after column: use raw after for toe, merge before geo where after has none
+            const geoPerField = Object.fromEntries(GEO_KEYS.map(k => {
+              const av = rawAAxle ? rawAAxle[k] : undefined;
+              return [k, hasVal(av) ? av : bAxle[k]];
+            }));
+            // Build the axle used for the after column: use raw after for toe, per-field geo merge
             const aAxle = hasAfterToe
               ? { ...rawAAxle,
-                  ...(hasAfterGeo ? {} : Object.fromEntries(GEO_KEYS.map(k=>[k, bAxle[k]]))),
+                  ...geoPerField,
                   dualWheel:bAxle.dualWheel, type:bAxle.type, driveSide:bAxle.driveSide, suspType:bAxle.suspType,
                   tolerances: bAxle.tolerances,
                 }
