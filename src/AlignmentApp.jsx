@@ -1026,7 +1026,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   }, [value]);
   const commit = (newSign, newD, newM) => {
     const dec = dmToDec(newSign, newD, newM);
-    if (dec==="") { onChange(""); return; }
+    if (dec===""||dec===0) { onChange(""); return; }
     const s = Math.abs(dec).toFixed(4);
     onChange(newSign<0 ? `-${s}` : s);
   };
@@ -2221,7 +2221,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   const sm = bothSides ? calcSteeringMiddle(axleForSM) : null;
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -2276,7 +2276,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
+    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       {isJosam
@@ -2301,7 +2301,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
 function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const dual = axle.dualWheel||false;
-  const geoFilled=[axle.camberLeft,axle.camberRight].filter(hasVal).length;
+  const geoFilled=[axle.camberLeft,axle.camberRight].filter(v=>hasVal(v)&&parseFloat(v)!==0).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
