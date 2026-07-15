@@ -1023,6 +1023,7 @@ function DegMinInput({ label, value, onChange, tol=null }) {
   // Starts true if a value is already stored, so existing data is never silently cleared.
   // Prevents iOS from committing a value when it auto-blurs an untouched field on section open/close.
   const edited = useRef(filled);
+  const mRef = useRef(null);
   useEffect(()=>{
     const d = decToDM(value);
     setSign(d.sign);
@@ -1060,11 +1061,11 @@ function DegMinInput({ label, value, onChange, tol=null }) {
         <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={dStr} placeholder="0"
           onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
-          onBlur={e=>commit(sign, e.target.value, mStr)}
+          onBlur={e=>{ if(e.relatedTarget===mRef.current) return; commit(sign, e.target.value, mStr); }}
           onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
           className="no-spin" style={fieldStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
-        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
+        <input ref={mRef} type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
           value={mStr} placeholder="00"
           onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
           onBlur={e=>commit(sign, dStr, e.target.value)}
