@@ -3054,7 +3054,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
   //   Row 3 fixed:  [LEFT CAMBER left] [OUT OF SQUARE centre] [RIGHT CAMBER right]  (only if camber entered)
   //   Row 4: Geo table (steer: full 5-col; fixed: hidden — camber shown above)
   //          Hidden entirely if no geo entered
-  function AxlePanel({axle, allAxles, steerIdx, frontSM, label, isAfter=false}) {
+  function AxlePanel({axle, allAxles, steerIdx, frontSM, label, isAfter=false, unchanged=false}) {
     const v = axleVals(axle, allAxles);
     const isSteer = axle.type==="steering"||axle.type==="rear-steer";
     const isFixed = axle.type==="fixed";
@@ -3093,7 +3093,10 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         {/* Row 1: Axle label left, Total Toe box centred */}
         <div style={{display:"flex",alignItems:"center",marginBottom:3}}>
           <div style={{fontWeight:"bold",fontSize:"7.5pt",whiteSpace:"nowrap",
-            width:TOE_W,flexShrink:0}}>{label}</div>
+            width:TOE_W,flexShrink:0}}>
+            {label}
+            {unchanged&&<span style={{fontWeight:"normal",fontStyle:"italic",fontSize:"5.5pt",color:"#aaa",marginLeft:4}}>Unchanged</span>}
+          </div>
           <div style={{flex:1,display:"flex",justifyContent:"center"}}>
             {v.total!==null&&(
               <div style={BOX}>
@@ -3472,7 +3475,16 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             width:`${100/axleScale}%`,
           }}>
           {beforeAxles.map((bAxle, i) => {
-            const aAxle = hasAfter ? (afterAxles[i] || afterAxles.find(a=>a.label===bAxle.label) || null) : null;
+            const rawAAxle = hasAfter ? (afterAxles[i] || afterAxles.find(a=>a.label===bAxle.label) || null) : null;
+            // Check if this specific axle has any actual after readings entered
+            const axleHasAfter = rawAAxle && [
+              rawAAxle.toeLeft, rawAAxle.toeRight, rawAAxle.camberLeft, rawAAxle.camberRight,
+              rawAAxle.casterLeft, rawAAxle.casterRight, rawAAxle.kpiLeft, rawAAxle.kpiRight,
+              rawAAxle.frontScale, rawAAxle.rearScale, rawAAxle.frontScaleRight, rawAAxle.rearScaleRight,
+            ].some(v => v !== undefined && v !== null && v !== "");
+            // If no after readings for this axle, fall back to before readings, flagged as unchanged
+            const aAxle = axleHasAfter ? rawAAxle : null;
+            const afterUnchanged = !axleHasAfter;
             const isSteer = bAxle.type==="steering"||bAxle.type==="rear-steer";
             const steersBefore = beforeAxles.slice(0,i).filter(a=>a.type==="steering").length;
             const steerIdx = bAxle.type==="steering" ? steersBefore : -1;
@@ -3512,15 +3524,15 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                   <AxlePanel axle={bAxle} allAxles={beforeAxles} steerIdx={steerIdx}
                     frontSM={frontSM} label={`Axle ${i+1}`}/>
                 </div>
-                {/* AFTER panel */}
+                {/* AFTER panel — falls back to before readings with 'Unchanged' label if no after data */}
                 <div style={{paddingLeft:"6pt"}}>
                   {aAxle ? (
                     <AxlePanel axle={{...aAxle,dualWheel:bAxle.dualWheel,type:bAxle.type,driveSide:bAxle.driveSide,suspType:bAxle.suspType}}
                       allAxles={afterAxles} steerIdx={steerIdx}
                       frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true}/>
                   ) : (
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"center",
-                      height:"100%",minHeight:60,color:"#ccc",fontSize:"7pt"}}>No after readings</div>
+                    <AxlePanel axle={bAxle} allAxles={beforeAxles} steerIdx={steerIdx}
+                      frontSM={frontSM} label={`Axle ${i+1}`} isAfter={true} unchanged={true}/>
                   )}
                 </div>
               </div>
