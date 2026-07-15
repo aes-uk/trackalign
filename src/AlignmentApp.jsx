@@ -3705,7 +3705,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
                 padding:"10px 16px",border:"none",cursor:t.locked?"not-allowed":"pointer",
                 fontFamily:FB,fontWeight:"600",fontSize:12,letterSpacing:"0.06em",
                 textTransform:"uppercase",background:"transparent",whiteSpace:"nowrap",
-                color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"rgba(255,255,255,0.5)",
+                color:t.locked?"rgba(255,255,255,0.2)":tab===t.id?"#eb0000":"#ffffff",
                 borderBottom:tab===t.id?"2px solid #eb0000":"2px solid transparent",
                 transition:"color 0.15s",
               }}>
