@@ -2231,7 +2231,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   const sm = bothSides ? calcSteeringMiddle(axleForSM) : null;
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
+    axle.tootRight,axle.tootLeft2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -2286,7 +2286,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
-    axle.tootLeft,axle.tootRight,axle.tootLeft2,axle.tootRight2].filter(hasVal).length;
+    axle.tootRight,axle.tootLeft2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       {isJosam
@@ -3078,7 +3078,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 
     const geoL = [v.camberL, v.casterL, v.kpiL, v.maxTL, v.tootL];
     const geoR = [v.camberR, v.casterR, v.kpiR, v.maxTR, v.tootR];
-    const hasGeoSteer = isSteer && geoL.concat(geoR).some(x=>x!==null && x!==0);
+    // tootL (tootLeft) is auto-set to 20 by TootBox; exclude it from the "has user geo?" check
+    const hasGeoSteer = isSteer && [v.camberL, v.casterL, v.kpiL, v.maxTL].concat(geoR).some(x=>x!==null && x!==0);
 
     const tootDiff = (v.tootL!==null && v.tootR!==null) ? v.tootL - v.tootR : null;
     const crossCamber = (v.camberL!==null && v.camberR!==null) ? v.camberL - v.camberR : null;
@@ -3510,7 +3511,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               rawAAxle.frontScale, rawAAxle.rearScale, rawAAxle.frontScaleRight, rawAAxle.rearScaleRight,
             ].some(v => v !== undefined && v !== null && v !== "");
             // Geo fields: if after has none, fall through to before geo below
-            const GEO_KEYS = ["camberLeft","camberRight","casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","tootLeft","tootRight"];
+            const GEO_KEYS = ["camberLeft","camberRight","casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","tootRight","tootLeft2"];
             const hasAfterGeo = rawAAxle && GEO_KEYS.some(k => hasVal(rawAAxle[k]) && parseFloat(rawAAxle[k]) !== 0);
             // Build the axle used for the after column: use raw after for toe, merge before geo where after has none
             const aAxle = hasAfterToe
