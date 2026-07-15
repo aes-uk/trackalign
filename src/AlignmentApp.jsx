@@ -3371,7 +3371,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
   }
 
   // Expose actions to parent via ref
-  if (actionsRef) actionsRef.current = { exportPdf, printReport, exporting };
+  if (actionsRef) actionsRef.current = { exportPdf, printReport, exporting, isIOS };
 
   return (
     <div style={{display:"flex",flexDirection:"column",background:"#e8e8e8"}}>
@@ -3680,6 +3680,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
                   fontSize:11,letterSpacing:"0.04em"}}>
                 Export PDF
               </button>
+              {!reportActionsRef.current?.isIOS&&(
               <button onClick={()=>reportActionsRef.current?.printReport&&reportActionsRef.current.printReport()}
                 disabled={reportActionsRef.current?.exporting}
                 style={{background:"rgba(255,255,255,0.12)",color:"#ffffff",border:"none",padding:"5px 14px",
@@ -3687,6 +3688,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
                   fontSize:11,letterSpacing:"0.04em"}}>
                 Print PDF
               </button>
+              )}
             </div>
           ) : (
           <button onClick={handleSave} style={{
