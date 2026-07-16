@@ -3165,7 +3165,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",
           gap:0,marginBottom:3}}>
           <div style={{width:TOE_W,flexShrink:0,display:"flex",flexDirection:"column",
-            alignItems:"flex-end",gap:3,paddingRight:8}}>
+            alignItems:"flex-end",gap:6,paddingRight:8}}>
             {v.tL!==null&&(
               <div style={BOX}>
                 <div style={SML}>LEFT TOE</div>
@@ -3188,7 +3188,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               noRoll={v.tL===null&&v.tR===null}/>
           </div>
           <div style={{width:TOE_W,flexShrink:0,display:"flex",flexDirection:"column",
-            alignItems:"flex-start",gap:3,paddingLeft:8}}>
+            alignItems:"flex-start",gap:6,paddingLeft:8}}>
             {v.tR!==null&&(
               <div style={BOX}>
                 <div style={SML}>RIGHT TOE</div>
