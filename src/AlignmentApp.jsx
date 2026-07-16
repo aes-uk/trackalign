@@ -3287,19 +3287,18 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 gridTemplateColumns:`max-content ${COLS.map(()=>COL_W).join(" ")}`,
                 gridTemplateRows:"repeat(3, auto)",
                 fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
-                <div style={{...thS,background:"#e8e8e8",padding:"1.5pt 4pt"}}/>
-                {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
+                <div style={{...thS,padding:"1.5pt 4pt"}}/>
+                {COLS.map(c=><div key={c.label} style={{...thS}}>{c.label}</div>)}
 
                 {rows.map((row,ri)=>(
                   <Fragment key={ri}>
-                    <div style={{...cellS,background:ri===0?"#f5f5f5":"#efefef",
-                      fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
+                    <div style={{...cellS,fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
                     {COLS.map((col,ci)=>{
                       if (col.span) {
                         if (ri!==0) return null;
                         const col2 = geoColor(col.value, col.tol);
                         return (
-                          <div key={ci} style={{...cellS,color:col2,background:"#f0f4f8",gridRow:"span 2"}}>
+                          <div key={ci} style={{...cellS,color:col2,gridRow:"span 2"}}>
                             {fmtVal(col.value, col.intFmt)}
                           </div>
                         );
@@ -3308,7 +3307,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                       const tol = row.side==="L" ? col.tolL : col.tolR;
                       const col2 = geoColor(val, tol);
                       return (
-                        <div key={ci} style={{...cellS,color:col2,background:ri===0?"white":"#fafafa"}}>
+                        <div key={ci} style={{...cellS,color:col2}}>
                           {fmtVal(val, col.intFmt)}
                         </div>
                       );
