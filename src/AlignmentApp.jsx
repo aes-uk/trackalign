@@ -3258,7 +3258,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           ].filter(g => g.valL!==null || g.valR!==null);
           if (ALL_GROUPS.length === 0) return null;
 
-          const COL_W = "38pt";
+          const COL_W = "28pt";
           const fmtVal = (val, intFmt) => intFmt
             ? (val===null ? "—" : `${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
