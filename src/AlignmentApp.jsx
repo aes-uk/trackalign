@@ -3481,28 +3481,28 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         }}>
 
           {/* ── HEADER — fixed size, never shrinks ── */}
-          <div style={{background:"#111",padding:"10pt",marginBottom:"6pt",flexShrink:0,
+          <div style={{background:"#f8f8f8",border:"0.5pt solid #e0e0e0",padding:"10pt",marginBottom:"6pt",flexShrink:0,
             display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <div style={{display:"flex",alignItems:"center",gap:"14pt"}}>
               <img src={company.logo||DEFAULT_LOGO} alt="logo" style={{height:"32pt",display:"block",flexShrink:0}}/>
               <div style={{display:"flex",gap:"16pt"}}>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                  {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.name}</div>}
-                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.phone}</div>}
-                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.email}</div>}
+                  {company.name&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111"}}>{company.name}</div>}
+                  {company.phone&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111"}}>{company.phone}</div>}
+                  {company.email&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111"}}>{company.email}</div>}
                 </div>
                 <div style={{display:"flex",flexDirection:"column",gap:"2pt"}}>
-                  {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address}</div>}
-                  {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)",maxWidth:"110pt"}}>{company.address2}</div>}
-                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"rgba(255,255,255,0.85)"}}>{company.website}</div>}
+                  {company.address&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111",maxWidth:"110pt"}}>{company.address}</div>}
+                  {company.address2&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111",maxWidth:"110pt"}}>{company.address2}</div>}
+                  {company.website&&<div style={{fontSize:"7pt",fontFamily:FD,color:"#111"}}>{company.website}</div>}
                 </div>
               </div>
             </div>
             <div style={{textAlign:"right"}}>
-              <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#ffffff",letterSpacing:"0.05em"}}>
+              <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#111",letterSpacing:"0.05em"}}>
                 WHEEL ALIGNMENT REPORT
               </div>
-              <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",marginTop:4}}>
+              <div style={{fontSize:"8pt",fontFamily:FD,color:"#111",marginTop:4}}>
                 {fmtDate(job.createdAt)}
               </div>
             </div>
