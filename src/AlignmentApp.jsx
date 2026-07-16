@@ -3863,11 +3863,75 @@ function OnboardingScreen({ onSelect }) {
   );
 }
 
+const LS_LAST_BACKUP_KEY = "trackalign_last_backup";
+
 function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany, userId }) {
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   const [saveState, setSaveState] = useState("idle");
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState("");
+  const [lastBackup, setLastBackup] = useState(()=>{ try{ return localStorage.getItem(LS_LAST_BACKUP_KEY)||""; }catch(e){ return ""; } });
+  const [restoreConfirm, setRestoreConfirm] = useState(null); // holds parsed backup while awaiting confirm
+  const [restoreError, setRestoreError] = useState("");
+  const restoreInputRef = useRef(null);
+
+  function handleDownloadBackup() {
+    const backup = {
+      _type: "trackalign-backup",
+      _version: 1,
+      _exported: new Date().toISOString(),
+      jobs: JSON.parse(localStorage.getItem(LS_KEY) || "[]"),
+      configs: JSON.parse(localStorage.getItem(LS_CONFIGS_KEY) || "[]"),
+      company: JSON.parse(localStorage.getItem(LS_COMPANY_KEY) || "{}"),
+      measureMode: localStorage.getItem(LS_MODE_KEY) || "direct",
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = `trackalign-backup-${date}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    const now = new Date().toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+    localStorage.setItem(LS_LAST_BACKUP_KEY, now);
+    setLastBackup(now);
+  }
+
+  function handleRestorePick(e) {
+    setRestoreError("");
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data._type !== "trackalign-backup" || !Array.isArray(data.jobs)) {
+          setRestoreError("Invalid backup file — please select a TrackAlign backup.");
+          return;
+        }
+        setRestoreConfirm(data);
+      } catch {
+        setRestoreError("Could not read file — please select a valid JSON backup.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  async function handleConfirmRestore() {
+    const data = restoreConfirm;
+    setRestoreConfirm(null);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(data.jobs || [])); } catch(e){}
+    try { localStorage.setItem(LS_CONFIGS_KEY, JSON.stringify(data.configs || [])); } catch(e){}
+    try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(data.company || {})); } catch(e){}
+    try { if (data.measureMode) localStorage.setItem(LS_MODE_KEY, data.measureMode); } catch(e){}
+    // Push to Supabase in background if online
+    if (userId && navigator.onLine) {
+      (data.jobs || []).forEach(j => upsertJobRemote(j, userId));
+      (data.configs || []).forEach(c => upsertConfigRemote(c, userId));
+      if (data.company && Object.keys(data.company).length) upsertCompanyRemote(data.company, userId);
+    }
+    window.location.reload();
+  }
   const isBase64Logo = company.logo && company.logo.startsWith("data:");
 
   async function handleLogoUpload(file) {
@@ -3996,6 +4060,65 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
             ))}
           </div>
         </div>
+
+        {/* Backup & Restore */}
+        <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",padding:"16px"}}>
+          <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>Backup &amp; Restore</div>
+          <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:12,lineHeight:1.5}}>
+            Your data syncs automatically when online. Use this backup for extra protection or when switching devices without internet access.
+          </div>
+          {lastBackup&&(
+            <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",marginBottom:12}}>
+              Last backup: {lastBackup}
+            </div>
+          )}
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <button onClick={handleDownloadBackup} style={{
+              background:"transparent",border:"2px solid #050505",borderRadius:"0.3rem",
+              padding:"10px 14px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",
+              color:"#050505",textAlign:"center",
+            }}>
+              Download Backup
+            </button>
+            <button onClick={()=>{ setRestoreError(""); restoreInputRef.current?.click(); }} style={{
+              background:"#eb0000",border:"none",borderRadius:"0.3rem",
+              padding:"10px 14px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",
+              color:"#ffffff",textAlign:"center",
+            }}>
+              Restore from Backup
+            </button>
+            <input ref={restoreInputRef} type="file" accept=".json,application/json" style={{display:"none"}} onChange={handleRestorePick}/>
+            {restoreError&&(
+              <div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>{restoreError}</div>
+            )}
+          </div>
+        </div>
+
+        {/* Restore confirmation modal */}
+        {restoreConfirm&&(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:200,
+            display:"flex",alignItems:"center",justifyContent:"center",padding:"0 16px"}}>
+            <div style={{background:"#fff",borderRadius:"1rem",padding:"24px",width:"100%",maxWidth:380,boxShadow:"0 8px 32px rgba(0,0,0,0.3)"}}>
+              <div style={{fontFamily:FB,fontSize:15,fontWeight:"700",color:"#050505",marginBottom:10}}>Restore Backup?</div>
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.6)",lineHeight:1.5,marginBottom:6}}>
+                This will replace all current jobs, configurations and company settings with the contents of the backup file.
+              </div>
+              <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",lineHeight:1.5,marginBottom:20}}>
+                Backup contains {restoreConfirm.jobs?.length||0} job{restoreConfirm.jobs?.length!==1?"s":""} and {restoreConfirm.configs?.length||0} configuration{restoreConfirm.configs?.length!==1?"s":""}, exported {restoreConfirm._exported ? new Date(restoreConfirm._exported).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) : "unknown date"}.
+              </div>
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={()=>setRestoreConfirm(null)} style={{
+                  flex:1,background:"#e5e5e5",border:"none",borderRadius:"0.3rem",
+                  padding:"10px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",
+                }}>Cancel</button>
+                <button onClick={handleConfirmRestore} style={{
+                  flex:1,background:"#eb0000",border:"none",borderRadius:"0.3rem",
+                  padding:"10px",cursor:"pointer",fontFamily:FB,fontSize:12,fontWeight:"600",color:"#ffffff",
+                }}>Restore</button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
