@@ -3252,13 +3252,13 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               calc: crossCaster!==null ? {label:"Cross Caster", value:crossCaster, tol:t.crossCaster, intFmt:false} : null },
             { label:"KPI",      valL:v.kpiL,    valR:v.kpiR,    intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    calc:null },
             { label:"Max Turn", valL:v.maxTL,   valR:v.maxTR,   intFmt:true,
-              calc: turnDiff!==null ? {label:"Max Turn Diff", value:turnDiff, tol:t.turnDiff, intFmt:true} : null },
+              calc: turnDiff!==null ? {label:"Diff", value:turnDiff, tol:t.turnDiff, intFmt:true} : null },
             { label:"TOOT",     valL:tootDiffA, valR:tootDiffB, intFmt:true,
-              calc: tootDiff!==null ? {label:"TOOT Diff", value:tootDiff, intFmt:true} : null },
+              calc: tootDiff!==null ? {label:"Diff", value:tootDiff, intFmt:true} : null },
           ].filter(g => g.valL!==null || g.valR!==null);
           if (ALL_GROUPS.length === 0) return null;
 
-          const COL_W = "28pt";
+          const COL_W = "max-content";
           const fmtVal = (val, intFmt) => intFmt
             ? (val===null ? "—" : `${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
