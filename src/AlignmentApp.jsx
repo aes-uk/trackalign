@@ -3161,8 +3161,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           <div style={{width:TOE_W,flexShrink:0}}/>
         </div>
 
-        {/* Row 2: Left toe | diagram | Right toe — all fixed px widths, centred */}
-        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",
+        {/* Row 2: Left toe+camber | diagram | Right toe+camber — centred vertically */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",
           gap:0,marginBottom:3}}>
           <div style={{width:TOE_W,flexShrink:0,display:"flex",flexDirection:"column",
             alignItems:"flex-end",gap:3,paddingRight:8}}>
@@ -3172,10 +3172,10 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 <div style={VAL(tlC(v.tL,t.toeLeft))}>{f1(v.tL)}mm</div>
               </div>
             )}
-            {isFixed && v.camberL!==null&&(
+            {v.camberL!==null&&(
               <div style={BOX}>
                 <div style={SML}>LEFT CAMBER</div>
-                <div style={VAL()}>{fDeg(v.camberL)}</div>
+                <div style={VAL(tlC(v.camberL,t.camberLeft))}>{fDeg(v.camberL)}</div>
               </div>
             )}
           </div>
@@ -3195,10 +3195,10 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 <div style={VAL(tlC(v.tR,t.toeRight))}>{f1(v.tR)}mm</div>
               </div>
             )}
-            {isFixed && v.camberR!==null&&(
+            {v.camberR!==null&&(
               <div style={BOX}>
                 <div style={SML}>RIGHT CAMBER</div>
-                <div style={VAL()}>{fDeg(v.camberR)}</div>
+                <div style={VAL(tlC(v.camberR,t.camberRight))}>{fDeg(v.camberR)}</div>
               </div>
             )}
           </div>
