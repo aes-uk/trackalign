@@ -3258,7 +3258,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           ].filter(g => g.valL!==null || g.valR!==null);
           if (ALL_GROUPS.length === 0) return null;
 
-          const COL_W = "24pt";
+          const COL_W = "26pt";
           const fmtVal = (val, intFmt) => intFmt
             ? (val===null ? "—" : `${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
@@ -3281,7 +3281,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             display:"flex",alignItems:"center",justifyContent:"center"};
 
           return (
-            <div style={{display:"flex",justifyContent:"center",flexWrap:"nowrap",gap:"4pt"}}>
+            <div style={{display:"flex",justifyContent:"center",flexWrap:"nowrap",gap:"4pt",overflowX:"hidden"}}>
               {ALL_GROUPS.map(g => {
                 const cols = g.calc ? 3 : 2;
                 return (
