@@ -3101,7 +3101,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
   //   Row 3 fixed:  [LEFT CAMBER left] [OUT OF SQUARE centre] [RIGHT CAMBER right]  (only if camber entered)
   //   Row 4: Geo table (steer: full 5-col; fixed: hidden — camber shown above)
   //          Hidden entirely if no geo entered
-  function AxlePanel({axle, allAxles, steerIdx, frontSM, label, isAfter=false, unchanged=false}) {
+  function AxlePanel({axle, allAxles, steerIdx, frontSM, label, isAfter=false, unchanged=false, geoUnchanged=false}) {
     const v = axleVals(axle, allAxles);
     const isSteer = axle.type==="steering"||axle.type==="rear-steer";
     const isFixed = axle.type==="fixed";
@@ -3242,21 +3242,27 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           </div>
         )}
 
-        {/* Geo table — steer only, hidden if no values entered */}
+        {/* Geo table — steer only, dynamic columns, centred */}
         {hasGeoSteer && (()=>{
-          const COLS = [
-            {label:"Camber",       span:false, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight},
-            {label:"Cross Camber", span:true,  value:crossCamber, tol:t.crossCamber},
-            {label:"Caster",       span:false, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight},
-            {label:"Cross Caster", span:true,  value:crossCaster, tol:t.crossCaster},
-            {label:"KPI",          span:false, intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight},
-            {label:"Max Turn",     span:false, intFmt:true},
-            {label:"TOOT",         span:false, intFmt:true},
+          // Each column carries its own values so we can filter before rendering
+          const ALL_COLS = [
+            {label:"Camber",       span:false, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight, valL:v.camberL,  valR:v.camberR},
+            {label:"Cross Camber", span:true,  intFmt:false, value:crossCamber,  tol:t.crossCamber},
+            {label:"Caster",       span:false, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight, valL:v.casterL,  valR:v.casterR},
+            {label:"Cross Caster", span:true,  intFmt:false, value:crossCaster,  tol:t.crossCaster},
+            {label:"KPI",          span:false, intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    valL:v.kpiL,     valR:v.kpiR},
+            {label:"Max Turn",     span:false, intFmt:true,  valL:v.maxTL,       valR:v.maxTR},
+            {label:"TOOT",         span:false, intFmt:true,  valL:tootDiffA,     valR:tootDiffB},
           ];
+          // Only include a column if it has at least one value
+          const COLS = ALL_COLS.filter(c => c.span ? c.value !== null : (c.valL !== null || c.valR !== null));
+          if (COLS.length === 0) return null;
+
           const rows = [
-            {lbl:"Left Wheel",  vals:[v.camberL,null,v.casterL,null,v.kpiL,v.maxTL,tootDiffA], side:"L"},
-            {lbl:"Right Wheel", vals:[v.camberR,null,v.casterR,null,v.kpiR,v.maxTR,tootDiffB], side:"R"},
+            {lbl:"Left Wheel",  side:"L"},
+            {lbl:"Right Wheel", side:"R"},
           ];
+          const COL_W = "38pt";
           const cellS = {textAlign:"center",fontWeight:"bold",color:"#111",
             padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt",
             display:"flex",alignItems:"center",justifyContent:"center"};
@@ -3266,46 +3272,52 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           const fmtVal = (val,intFmt) => intFmt
             ? (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
-          // Resolve traffic-light colour for a geo value given its tolerance
           const geoColor = (val, tol) => {
             if (val===null || !tol) return "#111";
             const r = trafficLight(String(val), tol);
             return r==="green"?"#16a34a":r==="red"?"#dc2626":"#111";
           };
-          // CSS grid instead of a native <table> with rowSpan — html2canvas
-          // (used for PDF export) doesn't render rowSpan/colSpan correctly.
+          // CSS grid — html2canvas doesn't support rowSpan/colSpan so we use gridRow:"span 2"
           return (
-            <div style={{display:"grid",
-              gridTemplateColumns:`max-content repeat(${COLS.length}, 1fr)`,
-              gridTemplateRows:"repeat(3, auto)",
-              marginTop:0,fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
-              <div style={{...thS,background:"#e8e8e8",padding:"1.5pt 4pt"}}/>
-              {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+              {geoUnchanged&&(
+                <div style={{fontStyle:"italic",fontSize:"5pt",color:"#aaa",textAlign:"center"}}>
+                  Unchanged — Before values shown
+                </div>
+              )}
+              <div style={{display:"grid",
+                gridTemplateColumns:`max-content ${COLS.map(()=>COL_W).join(" ")}`,
+                gridTemplateRows:"repeat(3, auto)",
+                fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
+                <div style={{...thS,background:"#e8e8e8",padding:"1.5pt 4pt"}}/>
+                {COLS.map(c=><div key={c.label} style={{...thS,background:"#f0f0f0"}}>{c.label}</div>)}
 
-              {rows.map((row,ri)=>(
-                <Fragment key={ri}>
-                  <div style={{...cellS,background:ri===0?"#f5f5f5":"#efefef",
-                    fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
-                  {COLS.map((col,ci)=>{
-                    if (col.span) {
-                      if (ri!==0) return null;
-                      const col2 = geoColor(col.value, col.tol);
+                {rows.map((row,ri)=>(
+                  <Fragment key={ri}>
+                    <div style={{...cellS,background:ri===0?"#f5f5f5":"#efefef",
+                      fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
+                    {COLS.map((col,ci)=>{
+                      if (col.span) {
+                        if (ri!==0) return null;
+                        const col2 = geoColor(col.value, col.tol);
+                        return (
+                          <div key={ci} style={{...cellS,color:col2,background:"#f0f4f8",gridRow:"span 2"}}>
+                            {fmtVal(col.value, col.intFmt)}
+                          </div>
+                        );
+                      }
+                      const val = row.side==="L" ? col.valL : col.valR;
+                      const tol = row.side==="L" ? col.tolL : col.tolR;
+                      const col2 = geoColor(val, tol);
                       return (
-                        <div key={ci} style={{...cellS,color:col2,background:"#f0f4f8",gridRow:"span 2"}}>
-                          {fmtVal(col.value,col.intFmt)}
+                        <div key={ci} style={{...cellS,color:col2,background:ri===0?"white":"#fafafa"}}>
+                          {fmtVal(val, col.intFmt)}
                         </div>
                       );
-                    }
-                    const tol = row.side==="L" ? col.tolL : col.tolR;
-                    const col2 = geoColor(row.vals[ci], tol);
-                    return (
-                      <div key={ci} style={{...cellS,color:col2,background:ri===0?"white":"#fafafa"}}>
-                        {fmtVal(row.vals[ci],col.intFmt)}
-                      </div>
-                    );
-                  })}
-                </Fragment>
-              ))}
+                    })}
+                  </Fragment>
+                ))}
+              </div>
             </div>
           );
         })()}
@@ -3557,6 +3569,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               const av = rawAAxle ? rawAAxle[k] : undefined;
               return [k, hasVal(av) ? av : bAxle[k]];
             }));
+            // True when After has toe data but geo falls back to Before for at least one field
+            const afterGeoUnchanged = hasAfterToe && GEO_KEYS.some(k => !hasVal(rawAAxle?.[k]) && hasVal(bAxle[k]));
             // Build the axle used for the after column: use raw after for toe, per-field geo merge
             const aAxle = hasAfterToe
               ? { ...rawAAxle,
@@ -3610,7 +3624,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                   {aAxle ? (
                     <AxlePanel axle={aAxle}
                       allAxles={afterAxles} steerIdx={steerIdx}
-                      frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true}/>
+                      frontSM={frontSMAfter} label={`Axle ${i+1}`} isAfter={true} geoUnchanged={afterGeoUnchanged}/>
                   ) : (
                     <AxlePanel axle={bAxle} allAxles={beforeAxles} steerIdx={steerIdx}
                       frontSM={frontSM} label={`Axle ${i+1}`} isAfter={true} unchanged={true}/>
