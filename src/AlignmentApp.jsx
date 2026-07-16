@@ -3279,12 +3279,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           };
           // CSS grid — html2canvas doesn't support rowSpan/colSpan so we use gridRow:"span 2"
           return (
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-              {geoUnchanged&&(
-                <div style={{fontStyle:"italic",fontSize:"5pt",color:"#aaa",textAlign:"center"}}>
-                  Unchanged — Before values shown
-                </div>
-              )}
+            <div style={{display:"flex",justifyContent:"center"}}>
               <div style={{display:"grid",
                 gridTemplateColumns:`max-content ${COLS.map(()=>COL_W).join(" ")}`,
                 gridTemplateRows:"repeat(3, auto)",
