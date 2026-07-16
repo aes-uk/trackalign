@@ -3247,9 +3247,9 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         {hasGeoSteer && (()=>{
           const ALL_GROUPS = [
             { label:"Camber",   valL:v.camberL, valR:v.camberR, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight,
-              calc: crossCamber!==null ? {label:"Cross", value:crossCamber, tol:t.crossCamber, intFmt:false} : null },
+              calc: crossCamber!==null ? {label:"Cross Camber", value:crossCamber, tol:t.crossCamber, intFmt:false} : null },
             { label:"Caster",   valL:v.casterL, valR:v.casterR, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight,
-              calc: crossCaster!==null ? {label:"Cross", value:crossCaster, tol:t.crossCaster, intFmt:false} : null },
+              calc: crossCaster!==null ? {label:"Cross Caster", value:crossCaster, tol:t.crossCaster, intFmt:false} : null },
             { label:"KPI",      valL:v.kpiL,    valR:v.kpiR,    intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    calc:null },
             { label:"Max Turn", valL:v.maxTL,   valR:v.maxTR,   intFmt:true,
               calc: turnDiff!==null ? {label:"Diff", value:turnDiff, tol:t.turnDiff, intFmt:true} : null },
@@ -3258,7 +3258,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           ].filter(g => g.valL!==null || g.valR!==null);
           if (ALL_GROUPS.length === 0) return null;
 
-          const COL_W = "30pt";
+          const COL_W = "max-content";
           const fmtVal = (val, intFmt) => intFmt
             ? (val===null ? "—" : `${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
