@@ -237,6 +237,9 @@ function UserRow({ user, jobs }) {
   const [expanded, setExpanded] = useState(false);
   const userJobs = jobs.filter(j => j.user_id === user.id)
     .sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+  const twelveMonthsAgo = new Date(); twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+  const recentJobs = userJobs.filter(j => j.created_at && new Date(j.created_at) >= twelveMonthsAgo);
+  const userAvg = (recentJobs.length / 12).toFixed(1);
 
   return (
     <>
@@ -245,6 +248,7 @@ function UserRow({ user, jobs }) {
         <td style={td}>{user.email}</td>
         <td style={td}>{user.company_name || <span style={{color:"rgba(255,255,255,0.25)"}}>—</span>}</td>
         <td style={{...td, textAlign:"center"}}>{userJobs.length}</td>
+        <td style={{...td, textAlign:"center"}}>{userAvg}</td>
         <td style={td}>{fmtDate(userJobs[0]?.created_at)}</td>
         <td style={td}>{fmtDate(user.created_at)}</td>
         <td style={{...td, textAlign:"center", color:"rgba(255,255,255,0.4)"}}>
@@ -253,7 +257,7 @@ function UserRow({ user, jobs }) {
       </tr>
       {expanded && userJobs.length > 0 && (
         <tr style={{ background:"rgba(255,255,255,0.02)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-          <td colSpan={6} style={{ padding:"0 0 0 32px" }}>
+          <td colSpan={7} style={{ padding:"0 0 0 32px" }}>
             <table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead>
                 <tr>
@@ -283,7 +287,7 @@ function UserRow({ user, jobs }) {
       )}
       {expanded && userJobs.length === 0 && (
         <tr style={{ background:"rgba(255,255,255,0.02)" }}>
-          <td colSpan={6} style={{ padding:"10px 16px 10px 32px", fontFamily:FB,
+          <td colSpan={7} style={{ padding:"10px 16px 10px 32px", fontFamily:FB,
             fontSize:12, color:"rgba(255,255,255,0.3)" }}>No jobs</td>
         </tr>
       )}
@@ -421,9 +425,11 @@ export default function AdminApp() {
   const todayStart  = startOf("day");
   const weekStart   = startOf("week");
   const monthStart  = startOf("month");
+  const twelveMonthsAgo = new Date(); twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
   const jobsToday   = jobs.filter(j => j.created_at >= todayStart).length;
   const jobsWeek    = jobs.filter(j => j.created_at >= weekStart).length;
   const jobsMonth   = jobs.filter(j => j.created_at >= monthStart).length;
+  const avgPerMonth = (jobs.filter(j => j.created_at && new Date(j.created_at) >= twelveMonthsAgo).length / 12).toFixed(1);
 
   return (
     <>
@@ -463,6 +469,7 @@ export default function AdminApp() {
               <StatCard label="Jobs This Week"  value={jobsWeek}     loading={loading}/>
               <StatCard label="Jobs This Month" value={jobsMonth}    loading={loading}/>
               <StatCard label="Jobs All Time"   value={jobs.length}  loading={loading}/>
+              <StatCard label="Avg Jobs / Month" value={avgPerMonth} loading={loading}/>
               <StatCard label="Total Users"     value={users.length} loading={loading}/>
             </div>
           </div>
@@ -508,6 +515,7 @@ export default function AdminApp() {
                       <th style={th}>Email</th>
                       <th style={th}>Company</th>
                       <th style={{...th, textAlign:"center"}}>Jobs</th>
+                      <th style={{...th, textAlign:"center"}}>Avg / Month</th>
                       <th style={th}>Last Active</th>
                       <th style={th}>Registered</th>
                       <th style={{...th, width:40}}></th>
