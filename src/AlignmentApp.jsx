@@ -3546,7 +3546,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,marginBottom:"4pt",flexShrink:0}}>
             <div style={{background:"#eb0000",color:"#fff",textAlign:"center",fontSize:"7pt",
               fontWeight:"bold",padding:"3pt",letterSpacing:"0.08em"}}>BEFORE</div>
-            <div style={{background:"#222",color:"#fff",textAlign:"center",fontSize:"7pt",
+            <div style={{background:"#16a34a",color:"#fff",textAlign:"center",fontSize:"7pt",
               fontWeight:"bold",padding:"3pt",letterSpacing:"0.08em"}}>AFTER</div>
           </div>
 
