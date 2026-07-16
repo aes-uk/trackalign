@@ -3125,6 +3125,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     const tootDiff = (tootDiffA!==null && tootDiffB!==null) ? tootDiffA - tootDiffB : null;
     const crossCamber = (v.camberL!==null && v.camberR!==null) ? v.camberL - v.camberR : null;
     const crossCaster = (v.casterL!==null && v.casterR!==null) ? v.casterL - v.casterR : null;
+    const turnDiff = (v.maxTL!==null && v.maxTR!==null) ? v.maxTL - v.maxTR : null;
 
     const BW = 72; // all boxes same fixed width
     const BOX = {
@@ -3252,7 +3253,9 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             {label:"Cross Caster", span:true,  intFmt:false, value:crossCaster,  tol:t.crossCaster},
             {label:"KPI",          span:false, intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    valL:v.kpiL,     valR:v.kpiR},
             {label:"Max Turn",     span:false, intFmt:true,  valL:v.maxTL,       valR:v.maxTR},
+            {label:"Max Turn Diff",span:true,  intFmt:true,  value:turnDiff,     tol:t.turnDiff},
             {label:"TOOT",         span:false, intFmt:true,  valL:tootDiffA,     valR:tootDiffB},
+            {label:"TOOT Diff",    span:true,  intFmt:true,  value:tootDiff},
           ];
           // Only include a column if it has at least one value
           const COLS = ALL_COLS.filter(c => c.span ? c.value !== null : (c.valL !== null || c.valR !== null));
