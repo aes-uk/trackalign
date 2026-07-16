@@ -31,15 +31,17 @@ const LS_MODE_KEY = "trackalign_mode_v1";
 const LS_CONFIGS_KEY = "trackalign_configs_v1";
 const LS_COMPANY_KEY = "trackalign_company_v1";
 
-function loadCompany() {
+function lsKey(base, uid) { return uid ? `${base}_${uid}` : base; }
+
+function loadCompany(uid) {
   try {
-    const r=localStorage.getItem(LS_COMPANY_KEY);
+    const r=localStorage.getItem(lsKey(LS_COMPANY_KEY, uid));
     const def={name:"",address:"",address2:"",phone:"",email:"",website:"",logo:"",updatedAt:null,syncStatus:"local"};
     return r?{...def,...JSON.parse(r)}:def;
   } catch(e){ return {name:"",address:"",address2:"",phone:"",email:"",website:"",logo:"",updatedAt:null,syncStatus:"local"}; }
 }
-function saveCompany(c) {
-  try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(c)); } catch(e){}
+function saveCompany(c, uid) {
+  try { localStorage.setItem(lsKey(LS_COMPANY_KEY, uid), JSON.stringify(c)); } catch(e){}
 }
 
 /* ── Supabase sync helpers ───────────────────────────────────── */
@@ -167,15 +169,15 @@ async function upsertCompanyRemote(company, userId) {
 const DEFAULT_LOGO = "/default-logo.png";
 
 
-function loadConfigs() {
+function loadConfigs(uid) {
   try {
-    const r=localStorage.getItem(LS_CONFIGS_KEY);
+    const r=localStorage.getItem(lsKey(LS_CONFIGS_KEY, uid));
     const list = r?JSON.parse(r):[];
     return list.map(c=>({ ...c, updatedAt: c.updatedAt||c.createdAt, syncStatus: c.syncStatus||"local" }));
   } catch(e){ return []; }
 }
-function saveConfigs(configs) {
-  try { localStorage.setItem(LS_CONFIGS_KEY, JSON.stringify(configs)); } catch(e){}
+function saveConfigs(configs, uid) {
+  try { localStorage.setItem(lsKey(LS_CONFIGS_KEY, uid), JSON.stringify(configs)); } catch(e){}
 }
 
 /* ── Tolerance helpers ───────────────────────────────────────── */
@@ -258,16 +260,16 @@ function makeConfig(name="New Configuration") {
   };
 }
 
-function loadMode() {
-  try { return localStorage.getItem(LS_MODE_KEY) || "direct"; } catch(e) { return "direct"; }
+function loadMode(uid) {
+  try { return localStorage.getItem(lsKey(LS_MODE_KEY, uid)) || "direct"; } catch(e) { return "direct"; }
 }
-function saveMode(mode) {
-  try { localStorage.setItem(LS_MODE_KEY, mode); } catch(e) {}
+function saveMode(mode, uid) {
+  try { localStorage.setItem(lsKey(LS_MODE_KEY, uid), mode); } catch(e) {}
 }
 
-function loadJobs() {
+function loadJobs(uid) {
   try {
-    const raw = localStorage.getItem(LS_KEY);
+    const raw = localStorage.getItem(lsKey(LS_KEY, uid));
     if (raw) {
       const jobs = JSON.parse(raw);
       // Normalise — guard against old data missing fields
@@ -284,8 +286,8 @@ function loadJobs() {
   return null;
 }
 
-function saveJobs(jobs) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(jobs)); } catch(e) {}
+function saveJobs(jobs, uid) {
+  try { localStorage.setItem(lsKey(LS_KEY, uid), JSON.stringify(jobs)); } catch(e) {}
 }
 
 /* ── History helpers ─────────────────────────────────────────── */
@@ -3912,10 +3914,10 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
       _type: "trackalign-backup",
       _version: 1,
       _exported: new Date().toISOString(),
-      jobs: JSON.parse(localStorage.getItem(LS_KEY) || "[]"),
-      configs: JSON.parse(localStorage.getItem(LS_CONFIGS_KEY) || "[]"),
-      company: JSON.parse(localStorage.getItem(LS_COMPANY_KEY) || "{}"),
-      measureMode: localStorage.getItem(LS_MODE_KEY) || "direct",
+      jobs: JSON.parse(localStorage.getItem(lsKey(LS_KEY, userId)) || "[]"),
+      configs: JSON.parse(localStorage.getItem(lsKey(LS_CONFIGS_KEY, userId)) || "[]"),
+      company: JSON.parse(localStorage.getItem(lsKey(LS_COMPANY_KEY, userId)) || "{}"),
+      measureMode: localStorage.getItem(lsKey(LS_MODE_KEY, userId)) || "direct",
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -3952,10 +3954,10 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
   async function handleConfirmRestore() {
     const data = restoreConfirm;
     setRestoreConfirm(null);
-    try { localStorage.setItem(LS_KEY, JSON.stringify(data.jobs || [])); } catch(e){}
-    try { localStorage.setItem(LS_CONFIGS_KEY, JSON.stringify(data.configs || [])); } catch(e){}
-    try { localStorage.setItem(LS_COMPANY_KEY, JSON.stringify(data.company || {})); } catch(e){}
-    try { if (data.measureMode) localStorage.setItem(LS_MODE_KEY, data.measureMode); } catch(e){}
+    try { localStorage.setItem(lsKey(LS_KEY, userId), JSON.stringify(data.jobs || [])); } catch(e){}
+    try { localStorage.setItem(lsKey(LS_CONFIGS_KEY, userId), JSON.stringify(data.configs || [])); } catch(e){}
+    try { localStorage.setItem(lsKey(LS_COMPANY_KEY, userId), JSON.stringify(data.company || {})); } catch(e){}
+    try { if (data.measureMode) localStorage.setItem(lsKey(LS_MODE_KEY, userId), data.measureMode); } catch(e){}
     // Push to Supabase in background if online
     if (userId && navigator.onLine) {
       (data.jobs || []).forEach(j => upsertJobRemote(j, userId));
@@ -4287,21 +4289,21 @@ export default function App() {
 }
 
 function AuthenticatedApp({ session }) {
-  const [jobs,setJobs]=useState(()=>loadJobs()||[]);
-  const [configs,setConfigs]=useState(()=>loadConfigs());
-  const [company,setCompany]=useState(()=>loadCompany());
+  const userId = session?.user?.id;
+
+  const [jobs,setJobs]=useState(()=>loadJobs(userId)||[]);
+  const [configs,setConfigs]=useState(()=>loadConfigs(userId));
+  const [company,setCompany]=useState(()=>loadCompany(userId));
   const [configScreen,setConfigScreen]=useState(null); // null|"library"|"editor"
   const [editingConfig,setEditingConfig]=useState(null);
   const [screen,setScreen]=useState(()=>hasOnboarded()?"dashboard":"onboarding");
   const [activeId,setActiveId]=useState(null);
-  const [measureMode,setMeasureMode]=useState(()=>loadMode());
+  const [measureMode,setMeasureMode]=useState(()=>loadMode(userId));
 
-  useEffect(()=>{ saveJobs(jobs); },[jobs]);
-  useEffect(()=>{ saveMode(measureMode); },[measureMode]);
-  useEffect(()=>{ saveConfigs(configs); },[configs]);
-  useEffect(()=>{ saveCompany(company); },[company]);
-
-  const userId = session?.user?.id;
+  useEffect(()=>{ saveJobs(jobs, userId); },[jobs, userId]);
+  useEffect(()=>{ saveMode(measureMode, userId); },[measureMode, userId]);
+  useEffect(()=>{ saveConfigs(configs, userId); },[configs, userId]);
+  useEffect(()=>{ saveCompany(company, userId); },[company, userId]);
 
   // Pull latest jobs/configs/company from Supabase and merge into localStorage
   // (remote wins if newer; locally-synced items removed elsewhere are dropped).
