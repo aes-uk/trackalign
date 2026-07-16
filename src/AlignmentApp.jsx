@@ -3243,78 +3243,63 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           </div>
         )}
 
-        {/* Geo table — steer only, dynamic columns, centred */}
+        {/* Geo table — steer only, grouped by measurement, centred */}
         {hasGeoSteer && (()=>{
-          // Each column carries its own values so we can filter before rendering
-          const ALL_COLS = [
-            {label:"Camber",       span:false, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight, valL:v.camberL,  valR:v.camberR},
-            {label:"Cross Camber", span:true,  intFmt:false, value:crossCamber,  tol:t.crossCamber},
-            {label:"Caster",       span:false, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight, valL:v.casterL,  valR:v.casterR},
-            {label:"Cross Caster", span:true,  intFmt:false, value:crossCaster,  tol:t.crossCaster},
-            {label:"KPI",          span:false, intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    valL:v.kpiL,     valR:v.kpiR},
-            {label:"Max Turn",     span:false, intFmt:true,  valL:v.maxTL,       valR:v.maxTR},
-            {label:"Max Turn Diff",span:true,  intFmt:true,  value:turnDiff,     tol:t.turnDiff},
-            {label:"TOOT",         span:false, intFmt:true,  valL:tootDiffA,     valR:tootDiffB},
-            {label:"TOOT Diff",    span:true,  intFmt:true,  value:tootDiff},
-          ];
-          // Only include a column if it has at least one value
-          const COLS = ALL_COLS.filter(c => c.span ? c.value !== null : (c.valL !== null || c.valR !== null));
-          if (COLS.length === 0) return null;
+          const ALL_GROUPS = [
+            { label:"Camber",   valL:v.camberL, valR:v.camberR, intFmt:false, tolL:t.camberLeft,  tolR:t.camberRight,
+              calc: crossCamber!==null ? {label:"Cross Camber", value:crossCamber, tol:t.crossCamber, intFmt:false} : null },
+            { label:"Caster",   valL:v.casterL, valR:v.casterR, intFmt:false, tolL:t.casterLeft,  tolR:t.casterRight,
+              calc: crossCaster!==null ? {label:"Cross Caster", value:crossCaster, tol:t.crossCaster, intFmt:false} : null },
+            { label:"KPI",      valL:v.kpiL,    valR:v.kpiR,    intFmt:false, tolL:t.kpiLeft,     tolR:t.kpiRight,    calc:null },
+            { label:"Max Turn", valL:v.maxTL,   valR:v.maxTR,   intFmt:true,
+              calc: turnDiff!==null ? {label:"Max Turn Diff", value:turnDiff, tol:t.turnDiff, intFmt:true} : null },
+            { label:"TOOT",     valL:tootDiffA, valR:tootDiffB, intFmt:true,
+              calc: tootDiff!==null ? {label:"TOOT Diff", value:tootDiff, intFmt:true} : null },
+          ].filter(g => g.valL!==null || g.valR!==null);
+          if (ALL_GROUPS.length === 0) return null;
 
-          const rows = [
-            {lbl:"Left Wheel",  side:"L"},
-            {lbl:"Right Wheel", side:"R"},
-          ];
           const COL_W = "38pt";
-          const cellS = {textAlign:"center",fontWeight:"bold",color:"#111",
-            padding:"2pt 2pt",border:"0.4pt solid #ddd",fontSize:"6pt",
-            display:"flex",alignItems:"center",justifyContent:"center"};
-          const thS = {textAlign:"center",color:"#888",fontWeight:"normal",
-            padding:"1.5pt 0",border:"0.4pt solid #ddd",fontSize:"5.5pt",
-            display:"flex",alignItems:"center",justifyContent:"center"};
-          const fmtVal = (val,intFmt) => intFmt
-            ? (val===null?"—":`${val>=0?"+":""}${Math.round(val)}°`)
+          const fmtVal = (val, intFmt) => intFmt
+            ? (val===null ? "—" : `${val>=0?"+":""}${Math.round(val)}°`)
             : fDeg(val);
           const geoColor = (val, tol) => {
             if (val===null || !tol) return "#111";
             const r = trafficLight(String(val), tol);
-            return r==="green"?"#16a34a":r==="red"?"#dc2626":"#111";
+            return r==="green" ? "#16a34a" : r==="red" ? "#dc2626" : "#111";
           };
-          // CSS grid — html2canvas doesn't support rowSpan/colSpan so we use gridRow:"span 2"
-          return (
-            <div style={{display:"flex",justifyContent:"center"}}>
-              <div style={{display:"grid",
-                gridTemplateColumns:`max-content ${COLS.map(()=>COL_W).join(" ")}`,
-                gridTemplateRows:"repeat(3, auto)",
-                fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
-                <div style={{...thS,padding:"1.5pt 4pt"}}/>
-                {COLS.map(c=><div key={c.label} style={{...thS}}>{c.label}</div>)}
+          const borderS = "0.4pt solid #ddd";
+          const labelRowS = {textAlign:"center",color:"#555",fontWeight:"bold",
+            padding:"2pt 2pt",border:borderS,fontSize:"6pt",
+            display:"flex",alignItems:"center",justifyContent:"center"};
+          const subLblS = {textAlign:"center",color:"#888",fontWeight:"normal",
+            padding:"1.5pt 2pt",border:borderS,fontSize:"5pt",
+            display:"flex",alignItems:"center",justifyContent:"center",whiteSpace:"nowrap"};
+          const valS = {textAlign:"center",fontWeight:"bold",color:"#111",
+            padding:"2pt 2pt",border:borderS,fontSize:"6pt",
+            display:"flex",alignItems:"center",justifyContent:"center"};
 
-                {rows.map((row,ri)=>(
-                  <Fragment key={ri}>
-                    <div style={{...cellS,fontWeight:"bold",color:"#666",fontSize:"5pt",whiteSpace:"nowrap",padding:"2pt 4pt"}}>{row.lbl}</div>
-                    {COLS.map((col,ci)=>{
-                      if (col.span) {
-                        if (ri!==0) return null;
-                        const col2 = geoColor(col.value, col.tol);
-                        return (
-                          <div key={ci} style={{...cellS,color:col2,gridRow:"span 2"}}>
-                            {fmtVal(col.value, col.intFmt)}
-                          </div>
-                        );
-                      }
-                      const val = row.side==="L" ? col.valL : col.valR;
-                      const tol = row.side==="L" ? col.tolL : col.tolR;
-                      const col2 = geoColor(val, tol);
-                      return (
-                        <div key={ci} style={{...cellS,color:col2}}>
-                          {fmtVal(val, col.intFmt)}
-                        </div>
-                      );
-                    })}
-                  </Fragment>
-                ))}
-              </div>
+          return (
+            <div style={{display:"flex",justifyContent:"center",flexWrap:"wrap",gap:"4pt"}}>
+              {ALL_GROUPS.map(g => {
+                const cols = g.calc ? 3 : 2;
+                return (
+                  <div key={g.label} style={{display:"grid",
+                    gridTemplateColumns:`repeat(${cols}, ${COL_W})`,
+                    gridTemplateRows:"repeat(3, auto)",
+                    fontSize:"6pt",fontFamily:"Arial,sans-serif"}}>
+                    {/* Row 1: measurement label spanning all cols */}
+                    <div style={{...labelRowS, gridColumn:`1 / span ${cols}`}}>{g.label}</div>
+                    {/* Row 2: sub-column labels */}
+                    <div style={subLblS}>Left Wheel</div>
+                    <div style={subLblS}>Right Wheel</div>
+                    {g.calc && <div style={subLblS}>{g.calc.label}</div>}
+                    {/* Row 3: values */}
+                    <div style={{...valS, color:geoColor(g.valL, g.tolL)}}>{fmtVal(g.valL, g.intFmt)}</div>
+                    <div style={{...valS, color:geoColor(g.valR, g.tolR)}}>{fmtVal(g.valR, g.intFmt)}</div>
+                    {g.calc && <div style={{...valS, color:geoColor(g.calc.value, g.calc.tol)}}>{fmtVal(g.calc.value, g.calc.intFmt)}</div>}
+                  </div>
+                );
+              })}
             </div>
           );
         })()}
