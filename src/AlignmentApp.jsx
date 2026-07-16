@@ -3268,8 +3268,10 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             return r==="green" ? "#16a34a" : r==="red" ? "#dc2626" : "#111";
           };
           const borderS = "0.4pt solid #ddd";
-          const labelRowS = {textAlign:"center",color:"#555",fontWeight:"bold",
-            padding:"2pt 2pt",border:borderS,fontSize:"6pt",
+          const labelRowS = {textAlign:"center",color:"#888",fontWeight:"normal",
+            textTransform:"uppercase",letterSpacing:"0.04em",
+            padding:"2pt 2pt",border:borderS,fontSize:"4.5pt",
+            background:"#f8f8f8",
             display:"flex",alignItems:"center",justifyContent:"center"};
           const subLblS = {textAlign:"center",color:"#888",fontWeight:"normal",
             padding:"1.5pt 2pt",border:borderS,fontSize:"5pt",
@@ -3290,8 +3292,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                     {/* Row 1: measurement label spanning all cols */}
                     <div style={{...labelRowS, gridColumn:`1 / span ${cols}`}}>{g.label}</div>
                     {/* Row 2: sub-column labels */}
-                    <div style={subLblS}>Left Wheel</div>
-                    <div style={subLblS}>Right Wheel</div>
+                    <div style={subLblS}>Left</div>
+                    <div style={subLblS}>Right</div>
                     {g.calc && <div style={subLblS}>{g.calc.label}</div>}
                     {/* Row 3: values */}
                     <div style={{...valS, color:geoColor(g.valL, g.tolL)}}>{fmtVal(g.valL, g.intFmt)}</div>
