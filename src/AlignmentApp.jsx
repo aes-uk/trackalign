@@ -3386,19 +3386,34 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     setTimeout(()=>{ iframe.contentWindow.focus(); iframe.contentWindow.print(); setTimeout(cleanup, 60000); }, 500);
   };
 
+  const isAndroid = /android/i.test(navigator.userAgent);
+
   const exportPdf = async () => {
     if (exporting) return;
     setExporting(true);
     try {
       const { blob, fname } = await buildPdfBlob();
+      const file = new File([blob], fname, { type: "application/pdf" });
       if (isIOS && navigator.share) {
         // iOS: gesture is lost after the await — show a prompt so user taps again (fresh gesture)
-        const file = new File([blob], fname, { type: "application/pdf" });
         setPendingShare({ file, blob, fname });
         setExporting(false);
         return;
       }
-      // Desktop or iOS without share support
+      if (isAndroid && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Android: gesture survives the await, share directly
+        const reg = (job.vehicle?.reg||"").toUpperCase().replace(/\s+/g,"");
+        const dateStr = new Date(job.createdAt).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+        const subject = `Wheel Alignment Report${reg?" - "+reg:""}`;
+        const body = `Wheel Alignment Report${reg?" - "+reg:""}${dateStr?" - "+dateStr:""}${company?.name?" by "+company.name:""}`;
+        try {
+          await navigator.share({ files: [file], title: subject, text: body });
+        } catch(e) {
+          if (e?.name !== "AbortError") openBlobInNewTab(blob);
+        }
+        return;
+      }
+      // Desktop fallback — direct download
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url; a.download = fname; a.click();
