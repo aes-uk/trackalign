@@ -3473,7 +3473,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         </div>
       )}
       {/* A4 preview — no fixed header here; header lives in JobEditor */}
-      <div style={{padding:16,overflowX:"auto"}}>
+      <div style={{padding:16,overflowX:"scroll",WebkitOverflowScrolling:"touch"}}>
         <div id="aes-report" style={{
           background:"#fff",width:"281mm",minWidth:"281mm",height:"210mm",margin:"0 auto",
           padding:"8mm 8mm",boxSizing:"border-box",
