@@ -1599,19 +1599,22 @@ function CollapseSection({ label, open, onToggle, children, badge="" }) {
 /* ── Distance picker select (0–20m in 0.1 increments) ──────────── */
 const DIST_OPTS = Array.from({length:201},(_,i)=>(i/10).toFixed(1));
 function DistancePicker({ value, onChange }) {
+  const [local, setLocal] = useState(value===undefined||value===null||value===""?"":String(value));
+  useEffect(()=>{ setLocal(value===undefined||value===null||value===""?"":String(value)); }, [value]);
+  const commit = v => { onChange(v===""?"":parseFloat(v).toFixed(1)); };
   return (
     <input
       type="number"
       step="0.1"
       min="0"
-      key={value}
-      defaultValue={value===undefined||value===null||value===""?"":value}
-      onBlur={e=>{ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); }}
-      onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } if(e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
+      value={local}
+      onChange={e=>setLocal(e.target.value)}
+      onBlur={e=>commit(e.target.value)}
+      onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
       placeholder="0.0"
       style={{width:90,boxSizing:"border-box",background:"#e5e5e5",
         border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
-        padding:"7px 6px",color:value?"#050505":"rgba(5,5,5,0.35)",
+        padding:"7px 6px",color:local?"#050505":"rgba(5,5,5,0.35)",
         fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
   );
 }
