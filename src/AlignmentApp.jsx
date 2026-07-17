@@ -1069,8 +1069,8 @@ function DegMinInput({ label, value, onChange, tol=null }) {
         <input type="text" inputMode="numeric" enterKeyHint="done" pattern="[0-9]*"
           value={dStr} placeholder="0"
           onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
-          onBlur={e=>{ if(e.relatedTarget===mRef.current) return; commit(sign, e.target.value, mStr); }}
-          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, e.target.value, mStr); } if(e.key==="Tab") commit(sign, e.target.value, mStr); }}
+          onBlur={e=>{ const dVal=e.target.value; setTimeout(()=>{ if(document.activeElement!==mRef.current) commit(sign, dVal, mStr); }, 0); }}
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, e.target.value, mStr); } }}
           className="no-spin" style={degStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
         <input ref={mRef} type="text" inputMode="numeric" enterKeyHint="done" pattern="[0-9]*"
