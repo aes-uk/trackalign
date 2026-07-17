@@ -3724,7 +3724,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   ];
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",overflowX:tab==="report"?"auto":"hidden"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",overflowX:"hidden"}}>
       {/* Fixed chrome: header + tab bar in one block so they're always flush — no gap calculation */}
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505"}}>
         {/* Top bar */}
