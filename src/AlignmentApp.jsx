@@ -2992,6 +2992,42 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
    REPORT / PDF
 ══════════════════════════════════════════════════════════════ */
 
+function PanContainer({ children }) {
+  const ref = useRef(null);
+  const dragging = useRef(false);
+  const start = useRef({ x: 0, y: 0, sl: 0, st: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function onMouseDown(e) {
+    if (isMobile || e.button !== 0) return;
+    dragging.current = true;
+    setIsDragging(true);
+    start.current = { x: e.clientX, y: e.clientY, sl: ref.current.scrollLeft, st: ref.current.scrollTop };
+    e.preventDefault();
+  }
+  function onMouseMove(e) {
+    if (!dragging.current) return;
+    ref.current.scrollLeft = start.current.sl - (e.clientX - start.current.x);
+    ref.current.scrollTop  = start.current.st - (e.clientY - start.current.y);
+  }
+  function onMouseUp() { dragging.current = false; setIsDragging(false); }
+
+  return (
+    <div ref={ref}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      style={{padding:16, overflow:"auto",
+        cursor: isMobile ? "default" : isDragging ? "grabbing" : "grab",
+        userSelect:"none", WebkitUserSelect:"none"}}>
+      {children}
+    </div>
+  );
+}
+
 function ReportScreen({ job, company, onClose, actionsRef }) {
   const [exporting, setExporting] = useState(false);
   const [pendingShare, setPendingShare] = useState(null); // { file, blob, fname } waiting for fresh tap
@@ -3488,7 +3524,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         </div>
       )}
       {/* A4 preview — no fixed header here; header lives in JobEditor */}
-      <div style={{padding:16,overflowX:"auto"}}>
+      <PanContainer>
         <div id="aes-report" style={{
           background:"#fff",width:"281mm",minWidth:"281mm",height:"210mm",margin:"0 auto",
           padding:"8mm 8mm",boxSizing:"border-box",
@@ -3654,7 +3690,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
           </div>
 
         </div>
-      </div>
+      </PanContainer>
     </div>
   );
 }
