@@ -1044,11 +1044,17 @@ function DegMinInput({ label, value, onChange, tol=null }) {
     edited.current = true;
     const ns = sign<0?1:-1; setSign(ns); commit(ns, dStr, mStr);
   };
-  const fieldStyle = {
+  const dFilled = dStr !== "";
+  const mFilled = mStr !== "";
+  const degStyle = {
     width:40,boxSizing:"border-box",background:"#f7f7f7",
     border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
-    padding:"6px 4px",color:filled?textCol:"rgba(5,5,5,0.35)",
+    padding:"6px 4px",color:dFilled?textCol:"rgba(5,5,5,0.35)",
     fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center",
+  };
+  const minStyle = {
+    ...degStyle,
+    color:mFilled?textCol:"rgba(5,5,5,0.35)",
   };
   return (
     <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
@@ -1060,19 +1066,23 @@ function DegMinInput({ label, value, onChange, tol=null }) {
           border:`1.5px solid ${sign<0?"rgba(235,0,0,0.4)":"rgba(5,5,5,0.18)"}`,borderRadius:"0.3rem",
           color: sign<0 ? "#eb0000" : "#050505",fontFamily:FM,fontSize:15,fontWeight:"700",
           cursor:"pointer",padding:0}}>{sign<0?"−":"+"}</button>
-        <input type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
+        <input type="text" inputMode="numeric" enterKeyHint="done" pattern="[0-9]*"
           value={dStr} placeholder="0"
           onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
           onBlur={e=>{ if(e.relatedTarget===mRef.current) return; commit(sign, e.target.value, mStr); }}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
-          className="no-spin" style={fieldStyle}/>
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, e.target.value, mStr); } if(e.key==="Tab") commit(sign, e.target.value, mStr); }}
+          className="no-spin" style={degStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>°</span>
-        <input ref={mRef} type="text" inputMode="numeric" enterKeyHint="next" pattern="[0-9]*"
+        <input ref={mRef} type="text" inputMode="numeric" enterKeyHint="done" pattern="[0-9]*"
           value={mStr} placeholder="00"
           onChange={e=>{ edited.current=true; const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
-          onBlur={e=>commit(sign, dStr, e.target.value)}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
-          className="no-spin" style={fieldStyle}/>
+          onBlur={e=>{
+            const m = e.target.value==="" && dStr!=="" ? "0" : e.target.value;
+            if(e.target.value==="" && dStr!=="") setMStr("00");
+            commit(sign, dStr, m);
+          }}
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, dStr, e.target.value); } if(e.key==="Tab") commit(sign, dStr, e.target.value); }}
+          className="no-spin" style={minStyle}/>
         <span style={{fontSize:11,color:"rgba(5,5,5,0.45)",fontFamily:FM}}>'</span>
       </div>
     </div>
