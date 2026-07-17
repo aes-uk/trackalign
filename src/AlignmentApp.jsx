@@ -997,7 +997,7 @@ function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
           key={value}
           defaultValue={value===undefined||value===null||value===""?"":value}
           onBlur={e=>{ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); }}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } if(e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
           placeholder="0.0"
           className="no-spin"
           style={{width:"100%",boxSizing:"border-box",
@@ -1104,11 +1104,11 @@ function DecDegInput({ label, value, onChange, tol=null, disabled=false }) {
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
       <div style={{position:"relative",width:72}}>
         <input
-          type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="next"
+          type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done"
           value={str} placeholder="0" disabled={disabled} readOnly={disabled}
           onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)){ setStr(v); onChange(v===""?"":v); } }}
           onBlur={e=>commit(e.target.value)}
-          onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
           className="no-spin"
           style={{width:"100%",boxSizing:"border-box",background:disabled?"#ececec":"#f7f7f7",
             border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
@@ -1183,14 +1183,14 @@ function AngleTolField({ tol, f, upd }) {
         value={dStr}
         onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setDStr(v); }}
         onBlur={e=>commit(sign, e.target.value, mStr)}
-        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, e.target.value, mStr); }}
+        onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, e.target.value, mStr); } if(e.key==="Tab") commit(sign, e.target.value, mStr); }}
         className="no-spin" style={fStyle}/>
       <span style={{fontSize:10,color:"rgba(5,5,5,0.45)",flexShrink:0}}>°</span>
       <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="00"
         value={mStr}
         onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setMStr(v); }}
         onBlur={e=>commit(sign, dStr, e.target.value)}
-        onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(sign, dStr, e.target.value); }}
+        onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(sign, dStr, e.target.value); } if(e.key==="Tab") commit(sign, dStr, e.target.value); }}
         className="no-spin" style={fStyle}/>
       <span style={{fontSize:10,color:"rgba(5,5,5,0.45)",flexShrink:0}}>'</span>
     </div>
@@ -1204,11 +1204,11 @@ function NumTolInput({ tol, f, upd }) {
     <input
       type="number"
       step="0.1"
-      enterKeyHint="next"
+      enterKeyHint="done"
       key={value}
       defaultValue={value}
       onBlur={e=>commit(e.target.value)}
-      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+      onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
       placeholder="—"
       className="no-spin"
       style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
@@ -1229,11 +1229,11 @@ function IntDegTolInput({ tol, f, upd }) {
       type="text"
       inputMode="numeric"
       pattern="[0-9]*"
-      enterKeyHint="next"
+      enterKeyHint="done"
       value={str}
       onChange={e=>{ const v=e.target.value; if(/^[0-9]*$/.test(v)) setStr(v); }}
       onBlur={e=>commit(e.target.value)}
-      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab") commit(e.target.value); }}
+      onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
       placeholder="—"
       className="no-spin"
       style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
@@ -1607,7 +1607,7 @@ function DistancePicker({ value, onChange }) {
       key={value}
       defaultValue={value===undefined||value===null||value===""?"":value}
       onBlur={e=>{ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); }}
-      onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
+      onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } if(e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
       placeholder="0.0"
       style={{width:90,boxSizing:"border-box",background:"#e5e5e5",
         border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
@@ -1627,24 +1627,13 @@ function ScaleInput({label, value, onCh}) {
       <input
         type="text"
         inputMode="numeric"
-        enterKeyHint="next"
+        enterKeyHint="done"
         pattern="-?[0-9]*"
         className="no-spin"
         value={local}
         onInput={e=>setLocal(e.target.value.replace(/[^0-9-]/g,""))}
         onBlur={e=>commit(e.target.value)}
-        onKeyDown={e=>{
-          if(e.key==="Enter"||e.key==="Tab"){
-            commit(e.target.value);
-            if(e.key==="Enter"){
-              e.preventDefault();
-              const inputs = Array.from(document.querySelectorAll("input.no-spin"));
-              const idx = inputs.indexOf(e.target);
-              if(idx>-1 && idx<inputs.length-1) inputs[idx+1].focus();
-              else e.target.blur();
-            }
-          }
-        }}
+        onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
         placeholder="0"
         style={{width:60,boxSizing:"border-box",background:"#e5e5e5",
           border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
@@ -1936,7 +1925,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange }) {
                   defaultValue={tgt===undefined||tgt===null?"":tgt}
                   disabled={!hasVal(daVal)}
                   onBlur={e=>{ const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); }}
-                  onKeyDown={e=>{ if(e.key==="Enter"||e.key==="Tab"){ const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); } }}
+                  onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); } if(e.key==="Tab"){ const v=e.target.value; setTgt(v===""?"":parseFloat(v).toFixed(1)); } }}
                   placeholder="0.0"
                   className="no-spin"
                   style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
@@ -2960,7 +2949,7 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
                         textTransform:"uppercase",letterSpacing:"0.06em"}}>Target Toe</label>
                       <input defaultValue={target}
                         onBlur={e=>setTgt(e.target.value)}
-                        onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab")setTgt(e.target.value);}}
+                        onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); setTgt(e.target.value); } if(e.key==="Tab") setTgt(e.target.value); }}
                         placeholder="e.g. 0.0"
                         style={{background:"#e5e5e5",border:"1.5px solid rgba(5,5,5,0.15)",
                           borderRadius:"0.3rem",outline:"none",padding:"6px 10px",
