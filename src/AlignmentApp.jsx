@@ -1647,7 +1647,7 @@ function CollapseSection({ label, open, onToggle, children, badge="", variant="d
 /* ── Josam scale entry row ───────────────────────────────────── */
 /* ── Distance picker select (0–20m in 0.1 increments) ──────────── */
 const DIST_OPTS = Array.from({length:201},(_,i)=>(i/10).toFixed(1));
-function DistancePicker({ value, onChange }) {
+function DistancePicker({ value, onChange, bare=false }) {
   const [local, setLocal] = useState(value===undefined||value===null||value===""?"":String(value));
   useEffect(()=>{ setLocal(value===undefined||value===null||value===""?"":String(value)); }, [value]);
   const commit = v => { onChange(v===""?"":parseFloat(v).toFixed(1)); };
@@ -1661,10 +1661,14 @@ function DistancePicker({ value, onChange }) {
       onBlur={e=>commit(e.target.value)}
       onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
       placeholder="0.0"
-      style={{width:90,boxSizing:"border-box",background:"#e5e5e5",
-        border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
-        padding:"7px 6px",color:local?"#050505":"rgba(5,5,5,0.35)",
-        fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
+      style={bare
+        ? {width:90,background:"transparent",border:"none",outline:"none",
+            padding:"7px 6px",color:local?"#050505":"rgba(5,5,5,0.35)",
+            fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center",boxSizing:"border-box"}
+        : {width:90,boxSizing:"border-box",background:"#e5e5e5",
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",outline:"none",
+            padding:"7px 6px",color:local?"#050505":"rgba(5,5,5,0.35)",
+            fontFamily:FM,fontSize:16,fontWeight:"600",textAlign:"center"}}/>
   );
 }
 
@@ -1900,26 +1904,21 @@ function WheelBox({ header, subHeader, current, target }) {
   const hasResult = target !== null && target !== undefined;
   const hasCurrent = current !== null && current !== undefined;
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:5,
-      border:"1.5px solid rgba(5,5,5,0.11)",borderRadius:"0.5rem",
-      padding:"9px 9px",background:"rgba(5,5,5,0.01)",minWidth:0}}>
-      <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:9,fontWeight:"700",
-        color:"#050505",textTransform:"uppercase",letterSpacing:"0.06em",lineHeight:1.3}}>
-        {header}
-      </div>
+    <div style={{display:"flex",flexDirection:"column",gap:6,minWidth:0}}>
+      <SectionHead>{header}</SectionHead>
       {subHeader&&(
-        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7.5,
-          color:"rgba(5,5,5,0.4)",textTransform:"uppercase",letterSpacing:"0.06em",
-          marginBottom:2}}>{subHeader}</div>
+        <div style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.4)",
+          textTransform:"uppercase",letterSpacing:"0.06em",marginTop:-6,marginBottom:2}}>
+          {subHeader}
+        </div>
       )}
       <div style={{display:"flex",alignItems:"center",gap:5}}>
         {/* CURRENT */}
         <div style={{flex:1,background:"rgba(235,0,0,0.09)",border:"1px solid rgba(235,0,0,0.22)",
           borderRadius:"0.3rem",padding:"5px 4px",textAlign:"center",minWidth:0}}>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7,color:"#eb0000",
+          <div style={{fontFamily:FB,fontSize:7,color:"#eb0000",
             textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>Current</div>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:17,color:"#eb0000",
-            fontWeight:"700",lineHeight:1}}>
+          <div style={{fontFamily:FM,fontSize:17,color:"#eb0000",fontWeight:"700",lineHeight:1}}>
             {hasCurrent ? Math.round(current) : "—"}
           </div>
         </div>
@@ -1928,11 +1927,10 @@ function WheelBox({ header, subHeader, current, target }) {
         <div style={{flex:1,background:hasResult?"rgba(22,163,74,0.09)":"rgba(5,5,5,0.03)",
           border:`1px solid ${hasResult?"rgba(22,163,74,0.28)":"rgba(5,5,5,0.09)"}`,
           borderRadius:"0.3rem",padding:"5px 4px",textAlign:"center",minWidth:0}}>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7,
-            color:hasResult?"#16a34a":"rgba(5,5,5,0.3)",
+          <div style={{fontFamily:FB,fontSize:7,color:hasResult?"#16a34a":"rgba(5,5,5,0.3)",
             textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>Target</div>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:17,
-            color:hasResult?"#16a34a":"rgba(5,5,5,0.2)",fontWeight:"700",lineHeight:1}}>
+          <div style={{fontFamily:FM,fontSize:17,color:hasResult?"#16a34a":"rgba(5,5,5,0.2)",
+            fontWeight:"700",lineHeight:1}}>
             {hasResult ? Math.round(target) : "—"}
           </div>
         </div>
@@ -2082,9 +2080,12 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
       {/* Distance input */}
       <div>
         <SectionHead>Distance from laser to Front Scale</SectionHead>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <DistancePicker value={distFront} onChange={setDistFront}/>
-          <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>metres</span>
+        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden",
+          width:"fit-content"}}>
+          <DistancePicker bare value={distFront} onChange={setDistFront}/>
+          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
         </div>
         {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
         {df>0&&D>0&&df>=D&&(
@@ -2097,21 +2098,20 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
       {/* Target toe input */}
       <div>
         <SectionHead>Target Total Toe</SectionHead>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
-            <input type="number" step="0.1" className="no-spin"
-              key={targetTotalToe}
-              defaultValue={targetTotalToe===""?"":targetTotalToe}
-              placeholder="0.0"
-              onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
-              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={{width:90,background:"transparent",border:"none",outline:"none",
-                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
-                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
-            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-          </div>
+        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+          border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden",
+          width:"fit-content"}}>
+          <input type="number" step="0.1" className="no-spin"
+            key={targetTotalToe}
+            defaultValue={targetTotalToe===""?"":targetTotalToe}
+            placeholder="0.0"
+            onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
+            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
+            style={{width:90,background:"transparent",border:"none",outline:"none",
+              padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+              fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
+          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
         </div>
       </div>
 
@@ -2192,9 +2192,12 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
       {/* Distance input */}
       <div>
         <SectionHead>Distance from laser to Front Scale</SectionHead>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <DistancePicker value={distFront} onChange={setDistFront}/>
-          <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>metres</span>
+        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden",
+          width:"fit-content"}}>
+          <DistancePicker bare value={distFront} onChange={setDistFront}/>
+          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
         </div>
         {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
         {df>0&&D>0&&df>=D&&(
@@ -2207,21 +2210,20 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
       {/* Target OOS input */}
       <div>
         <SectionHead>Target OOS</SectionHead>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
-            <input type="number" step="0.1" className="no-spin"
-              key={targetOOS}
-              defaultValue={targetOOS===""?"":targetOOS}
-              placeholder="0.0"
-              onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
-              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={{width:90,background:"transparent",border:"none",outline:"none",
-                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
-                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
-            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-          </div>
+        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+          border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden",
+          width:"fit-content"}}>
+          <input type="number" step="0.1" className="no-spin"
+            key={targetOOS}
+            defaultValue={targetOOS===""?"":targetOOS}
+            placeholder="0.0"
+            onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
+            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
+            style={{width:90,background:"transparent",border:"none",outline:"none",
+              padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+              fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
+          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
         </div>
       </div>
 
