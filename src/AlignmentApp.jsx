@@ -1896,6 +1896,42 @@ function _adjUnit(label) {
       flexShrink:0,background:"#e5e5e5"}}>{label}</span>
   );
 }
+/* Shared step layout for Adjustment Calculator */
+function AdjStep({ number, title, description, children }) {
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      <SectionHead>Step {number} — {title}</SectionHead>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,alignItems:"start"}}>
+        <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.65)",lineHeight:1.55}}>{description}</div>
+        <div>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function AdjInputCard({ label, borderColor="rgba(5,5,5,0.15)", children, unit, unitText }) {
+  return (
+    <div style={{border:`1.5px solid ${borderColor}`,borderRadius:"0.3rem",
+      background:"#f7f7f7",overflow:"hidden"}}>
+      <div style={{padding:"5px 10px",borderBottom:`1px solid ${borderColor}`,
+        fontFamily:FB,fontSize:10,fontWeight:"600",
+        color:borderColor.includes("22,163")?"#16a34a":"#050505",
+        textTransform:"uppercase",letterSpacing:"0.07em"}}>
+        {label}
+      </div>
+      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5"}}>
+        <div style={{flex:1}}>{children}</div>
+        {unitText&&(
+          <span style={{padding:"0 10px",fontFamily:FB,fontSize:12,
+            color:"rgba(5,5,5,0.5)",flexShrink:0,borderLeft:"1px solid rgba(5,5,5,0.12)"}}>
+            {unitText}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function WheelBox({ header, subHeader, current, target }) {
   const hasResult = target !== null && target !== undefined;
   const hasCurrent = current !== null && current !== undefined;
@@ -2073,73 +2109,73 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 
   if (!beforeAxle) return null;
 
-  const diagAxle = axle || afterAxle;
-  const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
+  const farScaleAimLabel = `With laser pointing to ${farScaleSide.toUpperCase()} scale, move wheel until green figure`;
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      {/* Two inputs side by side */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:FB,
-            textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
-            Distance to Front Scale
-          </label>
-          <div style={_adjInputStyle()}>
-            <DistancePicker value={distFront} onChange={setDistFront}/>
-            {_adjUnit("m")}
-          </div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#16a34a",fontFamily:FB,
-            textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
-            Target Total Toe
-          </label>
-          <div style={{..._adjInputStyle(),border:"1.5px solid rgba(22,163,74,0.4)"}}>
-            <input type="number" step="0.1" className="no-spin"
-              key={targetTotalToe}
-              defaultValue={targetTotalToe===""?"":targetTotalToe}
-              placeholder="0.0"
-              onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
-              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={_adjInputInner()}/>
-            {_adjUnit("mm")}
-          </div>
-        </div>
-      </div>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* Validation */}
-      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
-      {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
-          ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
+      {/* Step 1 — Distance */}
+      <AdjStep number={1} title="Distance to Front Scale"
+        description="Measure the distance from the front measuring scale to the laser and enter in metres.">
+        <AdjInputCard label="Distance to Front Scale" unitText="metres (front scale to laser)">
+          <DistancePicker value={distFront} onChange={setDistFront}/>
+        </AdjInputCard>
+        {df>0&&D>0&&df>=D&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
+            ⚠ Cannot exceed full distance ({fullDistance}m)
+          </div>
+        )}
+        {D===0&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above first.</div>
+        )}
+      </AdjStep>
 
-      {/* Axle diagram + wheel boxes */}
+      {/* Step 2 — Target toe */}
+      <AdjStep number={2} title="Enter Target"
+        description={isIndependent ? "Enter the total toe target for this axle." : "Enter the total toe target for this axle."}>
+        <AdjInputCard label="Target Total Toe" borderColor="rgba(22,163,74,0.45)" unitText="mm">
+          <input type="number" step="0.1" className="no-spin"
+            key={targetTotalToe}
+            defaultValue={targetTotalToe===""?"":targetTotalToe}
+            placeholder="0.0"
+            onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
+            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
+            style={{width:"100%",background:"transparent",border:"none",outline:"none",
+              padding:"8px 10px",color:"#050505",fontFamily:FM,fontSize:16,fontWeight:"600",
+              textAlign:"center",boxSizing:"border-box"}}/>
+        </AdjInputCard>
+      </AdjStep>
+
+      {/* Steps 3 & 4 — only when inputs are valid */}
       {distFrontValid&&(
         <>
-          <div style={{display:"flex",justifyContent:"center"}}>
-            <WheelPair
-              toeLeft={toeL!==null?String(toeL):""}
-              toeRight={toeR!==null?String(toeR):""}
-              size={220}
-              dual={diagAxle?.dual||false}
-              axleType={diagAxle?.type||"fixed"}
-              driveSide={diagAxle?.driveSide||"RHD"}
-              steerIndex={steerIndex}/>
-          </div>
-          {/* Connector arrows */}
-          <div style={{display:"flex",justifyContent:"space-between",padding:"0 12%",marginTop:-6,marginBottom:-4}}>
-            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
-            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {boxes.map((b,i)=>(
-              <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
-                current={b.now} target={b.target}/>
-            ))}
-          </div>
+          {isIndependent ? (
+            <>
+              <AdjStep number={3} title="Adjust Left Wheel"
+                description={farScaleAimLabel}>
+                <WheelBox header="Left Wheel" subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+                  current={farL} target={leftTarget}/>
+              </AdjStep>
+              <AdjStep number={4} title="Adjust Right Wheel"
+                description={farScaleAimLabel}>
+                <WheelBox header="Right Wheel" subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+                  current={farR} target={rightTarget}/>
+              </AdjStep>
+            </>
+          ) : (
+            <>
+              <AdjStep number={3} title={driveHeader}
+                description={`With laser pointing to ${farScaleSide.toUpperCase()} scale, set straight ahead (even front and rear) on ${driveSideStr.toLowerCase()} (driver's) side. Move wheel until green figure is reached.`}>
+                <WheelBox header={`${driveSideStr} Wheel`} subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+                  current={driveNow} target={driveTarget}/>
+              </AdjStep>
+              <AdjStep number={4} title={oppHeader}
+                description={`With laser pointing to ${farScaleSide.toUpperCase()} scale, adjust track rod until target figure is reached. Monitor ${driveSideStr.toLowerCase()} (driver's) side — if moved, reset to straight ahead first.`}>
+                <WheelBox header={`${oppSideStr} Wheel`} subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+                  current={oppNow} target={oppTarget}/>
+              </AdjStep>
+            </>
+          )}
         </>
       )}
     </div>
@@ -2202,70 +2238,54 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
 
   if (!beforeAxle) return null;
 
-  const diagAxle = axle || afterAxle;
-  const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
-
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      {/* Two inputs side by side */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:FB,
-            textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
-            Distance to Front Scale
-          </label>
-          <div style={_adjInputStyle()}>
-            <DistancePicker value={distFront} onChange={setDistFront}/>
-            {_adjUnit("m")}
-          </div>
-        </div>
-        <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#16a34a",fontFamily:FB,
-            textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
-            Target OOS
-          </label>
-          <div style={{..._adjInputStyle(),border:"1.5px solid rgba(22,163,74,0.4)"}}>
-            <input type="number" step="0.1" className="no-spin"
-              key={targetOOS}
-              defaultValue={targetOOS===""?"":targetOOS}
-              placeholder="0.0"
-              onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
-              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={_adjInputInner()}/>
-            {_adjUnit("mm")}
-          </div>
-        </div>
-      </div>
+    <div style={{display:"flex",flexDirection:"column",gap:16}}>
 
-      {/* Validation */}
-      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
-      {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
-          ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
+      {/* Step 1 — Distance */}
+      <AdjStep number={1} title="Distance to Front Scale"
+        description="Measure the distance from the front measuring scale to the laser and enter in metres.">
+        <AdjInputCard label="Distance to Front Scale" unitText="metres (front scale to laser)">
+          <DistancePicker value={distFront} onChange={setDistFront}/>
+        </AdjInputCard>
+        {df>0&&D>0&&df>=D&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
+            ⚠ Cannot exceed full distance ({fullDistance}m)
+          </div>
+        )}
+        {D===0&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above first.</div>
+        )}
+      </AdjStep>
 
-      {/* Axle diagram + wheel boxes */}
+      {/* Step 2 — Target OOS */}
+      <AdjStep number={2} title="Enter Target OOS"
+        description="Enter the target out-of-square (OOS) value for this axle. Use 0 for square.">
+        <AdjInputCard label="Target OOS" borderColor="rgba(22,163,74,0.45)" unitText="mm">
+          <input type="number" step="0.1" className="no-spin"
+            key={targetOOS}
+            defaultValue={targetOOS===""?"":targetOOS}
+            placeholder="0.0"
+            onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
+            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
+            style={{width:"100%",background:"transparent",border:"none",outline:"none",
+              padding:"8px 10px",color:"#050505",fontFamily:FM,fontSize:16,fontWeight:"600",
+              textAlign:"center",boxSizing:"border-box"}}/>
+        </AdjInputCard>
+      </AdjStep>
+
+      {/* Steps 3 & 4 — only when inputs are valid */}
       {distFrontValid&&(
         <>
-          <div style={{display:"flex",justifyContent:"center"}}>
-            <WheelPair
-              toeLeft={toeL!==null?String(toeL):""}
-              toeRight={toeR!==null?String(toeR):""}
-              size={220}
-              dual={diagAxle?.dual||false}
-              axleType={diagAxle?.type||"fixed"}
-              driveSide={diagAxle?.driveSide||"RHD"}/>
-          </div>
-          {/* Connector arrows */}
-          <div style={{display:"flex",justifyContent:"space-between",padding:"0 12%",marginTop:-6,marginBottom:-4}}>
-            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
-            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
-            <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
-          </div>
+          <AdjStep number={3} title="Adjust Left Wheel"
+            description={`With laser pointing to ${farScaleSide.toUpperCase()} scale, move left wheel until green figure is reached.`}>
+            <WheelBox header="Left Wheel" subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+              current={farL} target={leftTarget}/>
+          </AdjStep>
+          <AdjStep number={4} title="Adjust Right Wheel"
+            description={`With laser pointing to ${farScaleSide.toUpperCase()} scale, adjust track rod until target figure is reached. Monitor left side — if moved, readjust.`}>
+            <WheelBox header="Right Wheel" subHeader={`Aim laser to ${farScaleSide.toUpperCase()} scale`}
+              current={farR} target={rightTarget}/>
+          </AdjStep>
         </>
       )}
     </div>
