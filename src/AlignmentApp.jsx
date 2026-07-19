@@ -167,6 +167,24 @@ async function upsertCompanyRemote(company, userId) {
   }
 }
 
+async function upsertPrefsRemote(prefs, userId) {
+  if (!userId || !navigator.onLine) return false;
+  const row = { user_id: userId, measure_mode: prefs.measureMode, show_adj_calc: prefs.showAdjCalc };
+  try {
+    const { data, error: updateError } = await supabase
+      .from("company_settings").update(row).eq("user_id", userId).select("user_id");
+    if (updateError) throw updateError;
+    if (!data || data.length===0) {
+      const { error: insertError } = await supabase.from("company_settings").insert({ ...row, updated_at: new Date().toISOString() });
+      if (insertError) throw insertError;
+    }
+    return true;
+  } catch(e) {
+    console.error("Prefs sync failed:", e?.message, e);
+    return false;
+  }
+}
+
 const DEFAULT_LOGO = "/default-logo.png";
 
 
@@ -4651,6 +4669,10 @@ function AuthenticatedApp({ session }) {
   useEffect(()=>{ saveJobs(jobs, userId); },[jobs, userId]);
   useEffect(()=>{ saveMode(measureMode, userId); },[measureMode, userId]);
   useEffect(()=>{ saveAdjCalc(showAdjCalc, userId); },[showAdjCalc, userId]);
+  useEffect(()=>{
+    if (!userId) return;
+    upsertPrefsRemote({ measureMode, showAdjCalc }, userId);
+  },[measureMode, showAdjCalc, userId]);
   useEffect(()=>{ saveConfigs(configs, userId); },[configs, userId]);
   useEffect(()=>{ saveCompany(company, userId); },[company, userId]);
 
@@ -4693,6 +4715,15 @@ function AuthenticatedApp({ session }) {
         // Logo from Supabase always wins — never let stale localStorage overwrite it
         return { ...merged, logo: remote.logo || merged.logo };
       });
+      // Sync user preferences stored alongside company settings
+      if (companyRes.data.measure_mode != null) {
+        setMeasureMode(companyRes.data.measure_mode);
+        saveMode(companyRes.data.measure_mode, userId);
+      }
+      if (companyRes.data.show_adj_calc != null) {
+        setShowAdjCalc(companyRes.data.show_adj_calc);
+        saveAdjCalc(companyRes.data.show_adj_calc, userId);
+      }
     }
   }, [userId]);
 
