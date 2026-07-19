@@ -2077,8 +2077,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   const diagAxle = axle || afterAxle;
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
 
+  const scaleTargetsLabel = farScaleSide === "front" ? "Front Scale Targets" : "Rear Scale Targets";
+
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
 
       <SectionHead>Adjustment Inputs</SectionHead>
       {/* Distance + Target toe — 2 columns */}
@@ -2124,7 +2126,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
       {/* Wheel boxes */}
       {distFrontValid&&(
         <>
-          <SectionHead>Rear/Front Scale Targets</SectionHead>
+          <div style={{marginTop:16}}><SectionHead>{scaleTargetsLabel}</SectionHead></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             {boxes.map((b,i)=>(
               <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
@@ -2194,9 +2196,10 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   if (!beforeAxle) return null;
 
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
+  const scaleTargetsLabel = farScaleSide === "front" ? "Front Scale Targets" : "Rear Scale Targets";
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:24}}>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
 
       <SectionHead>Adjustment Inputs</SectionHead>
       {/* Distance + Target OOS — 2 columns */}
@@ -2242,7 +2245,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
       {/* Wheel boxes */}
       {distFrontValid&&(
         <>
-          <SectionHead>Rear/Front Scale Targets</SectionHead>
+          <div style={{marginTop:16}}><SectionHead>{scaleTargetsLabel}</SectionHead></div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
             <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
