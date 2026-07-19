@@ -2826,7 +2826,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 cursor:isAfterPanel?"default":"text"}}/>
             <span style={{fontSize:9,fontFamily:FM,padding:"2px 8px",borderRadius:"0.3rem",
               background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>{axle.type}</span>
-            {!isAfterPanel&&axles.length>1&&(
+            {!isAfterPanel&&(
               <button onClick={()=>removeAxle(axle.id)}
                 style={{background:"none",border:"none",color:"rgba(5,5,5,0.25)",cursor:"pointer",fontSize:16,padding:"0 4px",lineHeight:1}}
                 onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
@@ -2878,11 +2878,25 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
         </div>
       ))}
 {!isAfterPanel&&(
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-        <Btn variant="ghost" small onClick={()=>addAxle("steering")}>+ Steer Axle</Btn>
-        <Btn variant="ghost" small onClick={()=>addAxle("rear-steer")}>+ Rear Steer</Btn>
-        <Btn variant="ghost" small onClick={()=>addAxle("fixed")}>+ Non Steer</Btn>
-      </div>
+      <>
+        {axles.length===0&&(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
+            padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
+            background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
+              No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
+            </div>
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+          <Btn variant="ghost" small onClick={()=>addAxle("steering")}>+ Steer Axle</Btn>
+          <Btn variant="ghost" small onClick={()=>addAxle("rear-steer")}>+ Rear Steer</Btn>
+          <Btn variant="ghost" small onClick={()=>addAxle("fixed")}>+ Non Steer</Btn>
+        </div>
+      </>
       )}
     </>
   );
