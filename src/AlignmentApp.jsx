@@ -1907,14 +1907,6 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange }) {
           <div key={side} style={{display:"flex",flexDirection:"column",gap:6,minWidth:0}}>
             <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
               textTransform:"uppercase",letterSpacing:"0.06em"}}>{side}</div>
-            {current!==null&&(
-              <div style={{background:"#efefef",borderRadius:"0.3rem",padding:"5px 8px"}}>
-                <div style={{fontSize:8,color:"rgba(5,5,5,0.4)",fontFamily:FB,textTransform:"uppercase"}}>Before</div>
-                <div style={{fontFamily:FM,fontSize:13,color:"#050505",fontWeight:"600"}}>
-                  {current>=0?"+":""}{current.toFixed(1)} mm
-                </div>
-              </div>
-            )}
             <div style={{display:"flex",flexDirection:"column",gap:3}}>
               <label style={{fontSize:9,color:"#050505",fontFamily:FB,
                 textTransform:"uppercase",letterSpacing:"0.06em"}}>Target Toe</label>
@@ -2046,16 +2038,6 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
         )}
       </div>
 
-      {/* Current OOS */}
-      {currentOOS!==null&&(
-        <div style={{background:"#efefef",borderRadius:"0.3rem",padding:"8px 12px",textAlign:"center"}}>
-          <div style={{fontSize:9,color:"rgba(5,5,5,0.5)",fontFamily:FB,textTransform:"uppercase",
-            letterSpacing:"0.06em",marginBottom:3}}>Current Out of Square</div>
-          <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-            {fmtV1(currentOOS)} mm
-          </div>
-        </div>
-      )}
 
       {/* Target OOS input */}
       <div style={{display:"flex",flexDirection:"column",gap:3}}>
