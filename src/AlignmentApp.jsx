@@ -28,6 +28,7 @@ const hasVal = v  => v!==null && v!=="" && !isNaN(parseFloat(v));
 /* ── LocalStorage persistence ────────────────────────────────── */
 const LS_KEY = "trackalign_jobs_v2";
 const LS_MODE_KEY = "trackalign_mode_v1";
+const LS_ADJ_CALC_KEY = "trackalign_adjcalc_v1";
 const LS_CONFIGS_KEY = "trackalign_configs_v1";
 const LS_COMPANY_KEY = "trackalign_company_v1";
 
@@ -265,6 +266,12 @@ function loadMode(uid) {
 }
 function saveMode(mode, uid) {
   try { localStorage.setItem(lsKey(LS_MODE_KEY, uid), mode); } catch(e) {}
+}
+function loadAdjCalc(uid) {
+  try { return localStorage.getItem(lsKey(LS_ADJ_CALC_KEY, uid)) === "yes"; } catch(e) { return false; }
+}
+function saveAdjCalc(val, uid) {
+  try { localStorage.setItem(lsKey(LS_ADJ_CALC_KEY, uid), val ? "yes" : "no"); } catch(e) {}
 }
 
 function loadJobs(uid) {
@@ -2410,7 +2417,7 @@ function FixedGeoSection({ axle, up, tols=null }) {
 /* ══════════════════════════════════════════════════════════════
    AXLE PANELS
 ══════════════════════════════════════════════════════════════ */
-function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null }) {
+function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const hasToeDdata=hasVal(axle.toeLeft)||hasVal(axle.toeRight)||
     (isJosam&&(hasVal(axle.frontScaleLeft)||hasVal(axle.frontScaleRight)));
@@ -2471,7 +2478,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&isAfter&&(
+      {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex}/>
         </CollapseSection>
@@ -2480,7 +2487,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   );
 }
 
-function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null }) {
+function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
@@ -2503,7 +2510,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&isAfter&&(
+      {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
@@ -2512,7 +2519,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   );
 }
 
-function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null }) {
+function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const dual = axle.dualWheel||false;
   const geoFilled=[axle.camberLeft,axle.camberRight].filter(hasVal).length;
@@ -2534,7 +2541,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <FixedGeoSection axle={axle} up={up} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&isAfter&&(
+      {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
@@ -2928,7 +2935,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, showAdjCalc=false }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3060,21 +3067,27 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
                 showAdj={!!adjOpen[axle.id]} onToggleAdj={()=>toggleAdj(axle.id)}
                 isJosam={isJosam} fullDistance={fullDistance} isAfter={!setFullDistance}
-                beforeAxle={beforeAxles?.find(b=>b.label===axle.label)||null}
-                steerIndex={si} frontSteerSM={frontSM}/>;
+                beforeAxle={isAfterPanel
+                  ? (beforeAxles?.find(b=>b.label===axle.label)||null)
+                  : (showAdjCalc ? axle : null)}
+                steerIndex={si} frontSteerSM={frontSM} showAdjCalc={showAdjCalc}/>;
             })()}
             {axle.type==="rear-steer"&&<RearSteerAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
               showAdj={!!adjOpen[axle.id]} onToggleAdj={()=>toggleAdj(axle.id)}
               isJosam={isJosam} fullDistance={fullDistance} isAfter={!setFullDistance}
-              beforeAxle={beforeAxles?.find(b=>b.label===axle.label)||null}
-              allAxles={axles}/>}
+              beforeAxle={isAfterPanel
+                ? (beforeAxles?.find(b=>b.label===axle.label)||null)
+                : (showAdjCalc ? axle : null)}
+              allAxles={axles} showAdjCalc={showAdjCalc}/>}
             {axle.type==="fixed"&&<FixedAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
               showAdj={!!adjOpen[axle.id]} onToggleAdj={()=>toggleAdj(axle.id)}
               isJosam={isJosam} fullDistance={fullDistance} isAfter={!setFullDistance}
-              beforeAxle={beforeAxles?.find(b=>b.label===axle.label)||null}
-              allAxles={axles}/>}
+              beforeAxle={isAfterPanel
+                ? (beforeAxles?.find(b=>b.label===axle.label)||null)
+                : (showAdjCalc ? axle : null)}
+              allAxles={axles} showAdjCalc={showAdjCalc}/>}
           </div>
         </div>
       ))}
@@ -3959,7 +3972,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 }
 
 
-function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={} }) {
+function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={}, showAdjCalc=false }) {
   const [j,setJ]=useState(()=>({
     ...job,
     axles: Array.isArray(job.axles) ? job.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
@@ -4137,6 +4150,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
             isJosam={isJosam} fullDistance={j.fullDistance||""}
             setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
             jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
+            showAdjCalc={showAdjCalc}
 />
         )}
 
@@ -4215,7 +4229,7 @@ function OnboardingScreen({ onSelect }) {
 
 const LS_LAST_BACKUP_KEY = "trackalign_last_backup";
 
-function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany, userId }) {
+function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompany, userId, showAdjCalc, setShowAdjCalc }) {
   const upC = (f,v) => setCompany(p=>({...p,[f]:v,updatedAt:new Date().toISOString(),syncStatus:"local"}));
   const [saveState, setSaveState] = useState("idle");
   const [logoUploading, setLogoUploading] = useState(false);
@@ -4409,6 +4423,21 @@ function SettingsScreen({ measureMode, setMeasureMode, onBack, company, setCompa
               </button>
             ))}
           </div>
+          {measureMode==="josam"&&(
+            <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(5,5,5,0.08)"}}>
+              <div style={{fontFamily:FB,fontSize:11,fontWeight:"600",color:"#050505",marginBottom:4}}>
+                Show Adjustment Calculator
+              </div>
+              <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginBottom:10}}>
+                Shows the Adjustment Calculator on the Before readings screen.
+              </div>
+              <Toggle
+                label=""
+                options={[{label:"Yes",value:"yes"},{label:"No",value:"no"}]}
+                value={showAdjCalc?"yes":"no"}
+                onChange={v=>setShowAdjCalc(v==="yes")}/>
+            </div>
+          )}
         </div>
 
         {/* Backup & Restore */}
@@ -4615,9 +4644,11 @@ function AuthenticatedApp({ session }) {
   const [screen,setScreen]=useState(()=>hasOnboarded()?"dashboard":"onboarding");
   const [activeId,setActiveId]=useState(null);
   const [measureMode,setMeasureMode]=useState(()=>loadMode(userId));
+  const [showAdjCalc,setShowAdjCalc]=useState(()=>loadAdjCalc(userId));
 
   useEffect(()=>{ saveJobs(jobs, userId); },[jobs, userId]);
   useEffect(()=>{ saveMode(measureMode, userId); },[measureMode, userId]);
+  useEffect(()=>{ saveAdjCalc(showAdjCalc, userId); },[showAdjCalc, userId]);
   useEffect(()=>{ saveConfigs(configs, userId); },[configs, userId]);
   useEffect(()=>{ saveCompany(company, userId); },[company, userId]);
 
@@ -4838,7 +4869,8 @@ function AuthenticatedApp({ session }) {
             <div className={screen==="dashboard"&&!configScreen?"trk-dash-scroll":""} style={{flex:1,...(screen==="dashboard"&&!configScreen?{paddingTop:"calc(env(safe-area-inset-top) + 18px)",paddingLeft:"16px",paddingRight:"16px"}:{padding:"0"})}}>
               {screen==="settings"&&!configScreen&&<SettingsScreen measureMode={measureMode}
                 setMeasureMode={setMeasureMode} onBack={goHome}
-                company={company} setCompany={setCompany} userId={userId}/>}
+                company={company} setCompany={setCompany} userId={userId}
+                showAdjCalc={showAdjCalc} setShowAdjCalc={setShowAdjCalc}/>}
               {configScreen==="library"&&<ConfigLibraryScreen
                 configs={configs}
                 onSelect={c=>{
@@ -4889,7 +4921,7 @@ function AuthenticatedApp({ session }) {
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
                       onBack={goHome} initialTab={openTab}
                       onOpenConfigs={openConfigLibrary} forceTab={forceTab}
-                      company={company}/>}
+                      company={company} showAdjCalc={showAdjCalc}/>}
                 </>
               )}
             </div>
