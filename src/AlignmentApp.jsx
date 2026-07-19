@@ -4665,12 +4665,13 @@ function AuthenticatedApp({ session }) {
   const [activeId,setActiveId]=useState(null);
   const [measureMode,setMeasureMode]=useState(()=>loadMode(userId));
   const [showAdjCalc,setShowAdjCalc]=useState(()=>loadAdjCalc(userId));
+  const prefsPulled = useRef(false);
 
   useEffect(()=>{ saveJobs(jobs, userId); },[jobs, userId]);
   useEffect(()=>{ saveMode(measureMode, userId); },[measureMode, userId]);
   useEffect(()=>{ saveAdjCalc(showAdjCalc, userId); },[showAdjCalc, userId]);
   useEffect(()=>{
-    if (!userId) return;
+    if (!userId || !prefsPulled.current) return;
     upsertPrefsRemote({ measureMode, showAdjCalc }, userId);
   },[measureMode, showAdjCalc, userId]);
   useEffect(()=>{ saveConfigs(configs, userId); },[configs, userId]);
@@ -4728,6 +4729,8 @@ function AuthenticatedApp({ session }) {
         saveAdjCalc(companyRes.data.show_adj_calc, userId);
       }
     }
+    // Allow pref writes to Supabase only after the initial pull is done
+    prefsPulled.current = true;
   }, [userId]);
 
   // On login: pull latest data from Supabase and merge into localStorage
