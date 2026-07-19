@@ -2015,10 +2015,12 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   }
 
   // Solid calculations
+  // Rear steer axles move both scales in the same direction when the ram is adjusted,
+  // so the drive-side correction subtracts rather than adds vs a front steer pivot.
+  const driveAdjSign = isRearSteer ? -1 : 1;
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
   if (canCalc && !isIndependent && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
-    driveTarget = driveFar + (driveToe * adjDist);
-    // When drive side is zeroed the solid axle rotates, moving opp far scale by same drive adjustment
+    driveTarget = driveFar + driveAdjSign * (driveToe * adjDist);
     oppNow = oppFar - (driveToe * adjDist);
     const toeToMove = totalBeforeToe - tgt;
     oppTarget = oppNow + (toeToMove * adjDist);
