@@ -2080,47 +2080,49 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* Distance input */}
-      <div>
-        <SectionHead>Distance from laser to Front Scale</SectionHead>
-        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden",
-          width:"fit-content"}}>
-          <DistancePicker bare value={distFront} onChange={setDistFront}/>
-          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
-        </div>
-        {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
-        {df>0&&D>0&&df>=D&&(
-          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
-            ⚠ Cannot exceed full distance ({fullDistance}m)
+      {/* Distance + Target toe — 2 columns */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        {/* Distance input */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+          <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Distance</span>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            <DistancePicker bare value={distFront} onChange={setDistFront}/>
+            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
           </div>
-        )}
-      </div>
-
-      {/* Target toe input */}
-      <div>
-        <SectionHead>Target Total Toe</SectionHead>
-        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-          border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden",
-          width:"fit-content"}}>
-          <input type="number" step="0.1" className="no-spin"
-            key={targetTotalToe}
-            defaultValue={targetTotalToe===""?"":targetTotalToe}
-            placeholder="0.0"
-            onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
-            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
-            style={{width:90,background:"transparent",border:"none",outline:"none",
-              padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
-              fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
-          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+          {D===0&&<div style={{fontFamily:FB,fontSize:10,color:"#eb0000",textAlign:"center"}}>⚠ Set full distance above.</div>}
+          {df>0&&D>0&&df>=D&&(
+            <div style={{fontFamily:FB,fontSize:10,color:"#eb0000",fontWeight:"600",textAlign:"center"}}>
+              ⚠ Cannot exceed {fullDistance}m
+            </div>
+          )}
+        </div>
+        {/* Target toe input */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+          <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Target Total Toe</span>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            <input type="number" step="0.1" className="no-spin"
+              key={targetTotalToe}
+              defaultValue={targetTotalToe===""?"":targetTotalToe}
+              placeholder="0.0"
+              onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
+              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
+              style={{width:90,background:"transparent",border:"none",outline:"none",
+                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
+            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+          </div>
         </div>
       </div>
 
       {/* Wheel boxes */}
       {distFrontValid&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           {boxes.map((b,i)=>(
             <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
               current={b.now} target={b.target}/>
@@ -2192,47 +2194,49 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* Distance input */}
-      <div>
-        <SectionHead>Distance from laser to Front Scale</SectionHead>
-        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-          border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden",
-          width:"fit-content"}}>
-          <DistancePicker bare value={distFront} onChange={setDistFront}/>
-          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
-        </div>
-        {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
-        {df>0&&D>0&&df>=D&&(
-          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
-            ⚠ Cannot exceed full distance ({fullDistance}m)
+      {/* Distance + Target OOS — 2 columns */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        {/* Distance input */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+          <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Distance</span>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            <DistancePicker bare value={distFront} onChange={setDistFront}/>
+            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>m</span>
           </div>
-        )}
-      </div>
-
-      {/* Target OOS input */}
-      <div>
-        <SectionHead>Target OOS</SectionHead>
-        <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-          border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden",
-          width:"fit-content"}}>
-          <input type="number" step="0.1" className="no-spin"
-            key={targetOOS}
-            defaultValue={targetOOS===""?"":targetOOS}
-            placeholder="0.0"
-            onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
-            onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
-            style={{width:90,background:"transparent",border:"none",outline:"none",
-              padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
-              fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
-          <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-            borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+          {D===0&&<div style={{fontFamily:FB,fontSize:10,color:"#eb0000",textAlign:"center"}}>⚠ Set full distance above.</div>}
+          {df>0&&D>0&&df>=D&&(
+            <div style={{fontFamily:FB,fontSize:10,color:"#eb0000",fontWeight:"600",textAlign:"center"}}>
+              ⚠ Cannot exceed {fullDistance}m
+            </div>
+          )}
+        </div>
+        {/* Target OOS input */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+          <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Target OOS</span>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            <input type="number" step="0.1" className="no-spin"
+              key={targetOOS}
+              defaultValue={targetOOS===""?"":targetOOS}
+              placeholder="0.0"
+              onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
+              onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
+              style={{width:90,background:"transparent",border:"none",outline:"none",
+                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
+            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
+              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+          </div>
         </div>
       </div>
 
       {/* Wheel boxes */}
       {distFrontValid&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
           <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
           <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
         </div>
