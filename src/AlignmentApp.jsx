@@ -2080,6 +2080,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   return (
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
 
+      <SectionHead>Adjustment Inputs</SectionHead>
       {/* Distance + Target toe — 2 columns */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         {/* Distance input */}
@@ -2122,12 +2123,15 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 
       {/* Wheel boxes */}
       {distFrontValid&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-          {boxes.map((b,i)=>(
-            <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
-              current={b.now} target={b.target}/>
-          ))}
-        </div>
+        <>
+          <SectionHead>Rear/Front Scale Targets</SectionHead>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            {boxes.map((b,i)=>(
+              <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
+                current={b.now} target={b.target}/>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -2194,6 +2198,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   return (
     <div style={{display:"flex",flexDirection:"column",gap:24}}>
 
+      <SectionHead>Adjustment Inputs</SectionHead>
       {/* Distance + Target OOS — 2 columns */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         {/* Distance input */}
@@ -2236,10 +2241,13 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
 
       {/* Wheel boxes */}
       {distFrontValid&&(
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-          <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
-          <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
-        </div>
+        <>
+          <SectionHead>Rear/Front Scale Targets</SectionHead>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
+            <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
+            <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
+          </div>
+        </>
       )}
     </div>
   );
