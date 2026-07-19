@@ -2014,29 +2014,31 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     oppHeader   = `Adjust to Target — ${oppSideStr} WHEEL`;
   }
 
-  // Solid calculations
-  // Rear steer axles move both scales in the same direction when the ram is adjusted,
-  // so the drive-side correction subtracts rather than adds vs a front steer pivot.
-  const driveAdjSign = isRearSteer ? -1 : 1;
+  // Rear steer behaves like independent: both sides (ram + trackbar) are adjusted independently.
+  // Sign is inverted vs independent because rear steer correction subtracts rather than adds.
+  const useIndepPath = isIndependent || isRearSteer;
+  const rearSteerSign = isRearSteer ? -1 : 1;
+
+  // Solid (non-rear-steer) two-step calculations
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
-  if (canCalc && !isIndependent && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
-    driveTarget = driveFar + driveAdjSign * (driveToe * adjDist);
+  if (canCalc && !useIndepPath && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
+    driveTarget = driveFar + (driveToe * adjDist);
     oppNow = oppFar - (driveToe * adjDist);
     const toeToMove = totalBeforeToe - tgt;
     oppTarget = oppNow + (toeToMove * adjDist);
   }
 
-  // Independent calculations
+  // Independent / rear-steer per-wheel calculations
   let leftTarget=null, rightTarget=null;
-  if (canCalc && isIndependent && farL!==null && farR!==null && toeL!==null && toeR!==null) {
+  if (canCalc && useIndepPath && farL!==null && farR!==null && toeL!==null && toeR!==null) {
     const tpw = tgt / 2;
-    leftTarget  = farL + ((toeL - tpw) * adjDist);
-    rightTarget = farR + ((toeR - tpw) * adjDist);
+    leftTarget  = farL + rearSteerSign * ((toeL - tpw) * adjDist);
+    rightTarget = farR + rearSteerSign * ((toeR - tpw) * adjDist);
   }
 
   // Build LEFT/RIGHT display boxes (always Left col = left wheel, Right col = right wheel)
   let boxes;
-  if (isIndependent) {
+  if (useIndepPath) {
     boxes = [
       { header:"Left Wheel",  now:farL, target:leftTarget  },
       { header:"Right Wheel", now:farR, target:rightTarget },
@@ -2053,14 +2055,13 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     ];
   }
 
-  const hasResults = isIndependent
+  const hasResults = useIndepPath
     ? (leftTarget!==null || rightTarget!==null)
     : (driveTarget!==null || oppTarget!==null);
 
   const fmtToe = v => v!==null ? `${v>=0?"+":""}${v.toFixed(1)} mm` : "—";
 
-  const driveSideLabel = isRearSteer ? "Ram side" : isSecondSteer ? "Drag link" : "Drive side";
-  const summaryItems = isIndependent
+  const summaryItems = useIndepPath
     ? [
         {label:"Before total", value:fmtToe(totalBeforeToe)},
         {label:"Target total", value:hasTarget?fmtToe(tgt):"—"},
@@ -2070,7 +2071,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     : [
         {label:"Before total", value:fmtToe(totalBeforeToe)},
         {label:"Target total", value:hasTarget?fmtToe(tgt):"—"},
-        {label:driveSideLabel, value:`${driveSideStr} (${driveSide})`},
+        {label:isSecondSteer?"Drag link":"Drive side", value:`${driveSideStr} (${driveSide})`},
         {label:"Far scale",    value:distFrontValid?`${farScaleSide.toUpperCase()} (${adjDist.toFixed(1)}m)`:"—"},
       ];
 
