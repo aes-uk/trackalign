@@ -2252,7 +2252,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        <Toggle label="Drive Side" options={[{label:"RHD",value:"RHD"},{label:"LHD",value:"LHD"}]}
+        <Toggle label={steerIndex>=1?"Draglink Side":"Drive Side"} options={[{label:"RHD",value:"RHD"},{label:"LHD",value:"LHD"}]}
           value={axle.driveSide} onChange={v=>up("driveSide",v)} disabled={isAfter}/>
         <Toggle label="Suspension" options={[{label:"Solid",value:"solid"},{label:"Indep.",value:"independent"}]}
           value={axle.suspType} onChange={v=>up("suspType",v)} disabled={isAfter}/>
