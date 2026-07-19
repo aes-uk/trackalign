@@ -1675,7 +1675,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {/* Scale readings */}
-      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:4,alignItems:"start",overflow:"hidden"}}>
+      <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) auto minmax(0,1fr)",gap:4,alignItems:"center",overflow:"hidden"}}>
         {/* Left */}
         <div style={{display:"flex",flexDirection:"column",gap:8,alignItems:"center",minWidth:0}}>
           <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
@@ -1698,7 +1698,7 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }
         </div>
 
         {/* Centre wheel visual — same diagram as direct method */}
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,paddingTop:14}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
           <WheelPair
             toeLeft={toeL!==null?toeL.toFixed(1):""}
             toeRight={toeR!==null?toeR.toFixed(1):""}
