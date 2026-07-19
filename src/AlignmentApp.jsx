@@ -2036,20 +2036,18 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   let boxes;
   if (isIndependent) {
     boxes = [
-      { header:"LEFT WHEEL",  now:farL, target:leftTarget  },
-      { header:"RIGHT WHEEL", now:farR, target:rightTarget },
+      { header:"Left Wheel",  now:farL, target:leftTarget  },
+      { header:"Right Wheel", now:farR, target:rightTarget },
     ];
   } else if (isDriveRight) {
-    // LEFT column = opposite, RIGHT column = drive
     boxes = [
-      { header:oppHeader,   now:oppNow,  target:oppTarget   },
-      { header:driveHeader, now:driveNow, target:driveTarget },
+      { header:"Left Wheel",  now:oppNow,  target:oppTarget   },
+      { header:"Right Wheel", now:driveNow, target:driveTarget },
     ];
   } else {
-    // LEFT column = drive, RIGHT column = opposite
     boxes = [
-      { header:driveHeader, now:driveNow, target:driveTarget },
-      { header:oppHeader,   now:oppNow,   target:oppTarget   },
+      { header:"Left Wheel",  now:driveNow, target:driveTarget },
+      { header:"Right Wheel", now:oppNow,   target:oppTarget   },
     ];
   }
 
