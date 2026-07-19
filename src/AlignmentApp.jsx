@@ -1896,54 +1896,31 @@ function _adjUnit(label) {
       flexShrink:0,background:"#e5e5e5"}}>{label}</span>
   );
 }
-function AdjMiniDiagram() {
-  return (
-    <div style={{display:"flex",justifyContent:"center",margin:"4px 0 0"}}>
-      <svg width="180" height="56" viewBox="0 0 180 56" style={{overflow:"visible"}}>
-        {/* Beam */}
-        <rect x="36" y="24" width="108" height="5" rx="1" fill="#ccc" stroke="#bbb" strokeWidth="0.5"/>
-        {/* Left tyre */}
-        <rect x="10" y="10" width="22" height="28" rx="3.5" fill="#1a1a1a" stroke="#eb0000" strokeWidth="2"/>
-        {/* Right tyre */}
-        <rect x="148" y="10" width="22" height="28" rx="3.5" fill="#1a1a1a" stroke="#eb0000" strokeWidth="2"/>
-        {/* Dashed direction lines through tyres */}
-        <line x1="21" y1="0" x2="21" y2="10" stroke="#eb0000" strokeWidth="1.3" strokeDasharray="4 2.5"/>
-        <line x1="21" y1="38" x2="21" y2="56" stroke="#eb0000" strokeWidth="1.3" strokeDasharray="4 2.5"/>
-        <line x1="159" y1="0" x2="159" y2="10" stroke="#eb0000" strokeWidth="1.3" strokeDasharray="4 2.5"/>
-        <line x1="159" y1="38" x2="159" y2="56" stroke="#eb0000" strokeWidth="1.3" strokeDasharray="4 2.5"/>
-        {/* Labels */}
-        <text x="21" y="8" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="7.5"
-          fontWeight="700" fill="#050505" letterSpacing="0.5">LEFT</text>
-        <text x="159" y="8" textAnchor="middle" fontFamily="Arial,sans-serif" fontSize="7.5"
-          fontWeight="700" fill="#050505" letterSpacing="0.5">RIGHT</text>
-        {/* Down arrows */}
-        <polygon points="17,51 21,56 25,51" fill="#eb0000"/>
-        <polygon points="155,51 159,56 163,51" fill="#eb0000"/>
-      </svg>
-    </div>
-  );
-}
-function WheelBox({ header, scaleLabel, now, target }) {
+function WheelBox({ header, subHeader, current, target }) {
   const hasResult = target !== null && target !== undefined;
+  const hasCurrent = current !== null && current !== undefined;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:5,
       border:"1.5px solid rgba(5,5,5,0.11)",borderRadius:"0.5rem",
       padding:"9px 9px",background:"rgba(5,5,5,0.01)",minWidth:0}}>
-      <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:8.5,fontWeight:"700",
-        color:"#050505",textTransform:"uppercase",letterSpacing:"0.06em",lineHeight:1.3,
-        minHeight:26,display:"flex",alignItems:"flex-start"}}>{header}</div>
-      <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7.5,
-        color:"rgba(5,5,5,0.4)",textTransform:"uppercase",letterSpacing:"0.06em",
-        marginBottom:2}}>{scaleLabel}</div>
+      <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:9,fontWeight:"700",
+        color:"#050505",textTransform:"uppercase",letterSpacing:"0.06em",lineHeight:1.3}}>
+        {header}
+      </div>
+      {subHeader&&(
+        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7.5,
+          color:"rgba(5,5,5,0.4)",textTransform:"uppercase",letterSpacing:"0.06em",
+          marginBottom:2}}>{subHeader}</div>
+      )}
       <div style={{display:"flex",alignItems:"center",gap:5}}>
-        {/* NOW */}
+        {/* CURRENT */}
         <div style={{flex:1,background:"rgba(235,0,0,0.09)",border:"1px solid rgba(235,0,0,0.22)",
           borderRadius:"0.3rem",padding:"5px 4px",textAlign:"center",minWidth:0}}>
           <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7,color:"#eb0000",
-            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>NOW</div>
+            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>Current</div>
           <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:17,color:"#eb0000",
             fontWeight:"700",lineHeight:1}}>
-            {now !== null && now !== undefined ? Math.round(now) : "—"}
+            {hasCurrent ? Math.round(current) : "—"}
           </div>
         </div>
         <span style={{color:"rgba(5,5,5,0.35)",fontSize:13,flexShrink:0}}>→</span>
@@ -1953,7 +1930,7 @@ function WheelBox({ header, scaleLabel, now, target }) {
           borderRadius:"0.3rem",padding:"5px 4px",textAlign:"center",minWidth:0}}>
           <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7,
             color:hasResult?"#16a34a":"rgba(5,5,5,0.3)",
-            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>TARGET</div>
+            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:1}}>Target</div>
           <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:17,
             color:hasResult?"#16a34a":"rgba(5,5,5,0.2)",fontWeight:"700",lineHeight:1}}>
             {hasResult ? Math.round(target) : "—"}
@@ -1963,23 +1940,8 @@ function WheelBox({ header, scaleLabel, now, target }) {
     </div>
   );
 }
-function AdjSummaryBar({ items }) {
-  return (
-    <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.11)",borderRadius:"0.5rem",
-      padding:"9px 12px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px 10px"}}>
-      {items.map((it,i)=>(
-        <div key={i}>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:7.5,
-            color:"rgba(5,5,5,0.4)",textTransform:"uppercase",letterSpacing:"0.06em"}}>{it.label}</div>
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:12,
-            color:"#050505",fontWeight:"600"}}>{it.value}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
-function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0 }) {
+function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null }) {
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2111,12 +2073,15 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 
   if (!beforeAxle) return null;
 
+  const diagAxle = axle || afterAxle;
+  const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
+
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {/* Two inputs side by side */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:"'DM Mono',monospace,sans-serif",
+          <label style={{fontSize:9,color:"#050505",fontFamily:FB,
             textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
             Distance to Front Scale
           </label>
@@ -2126,11 +2091,11 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:"'DM Mono',monospace,sans-serif",
+          <label style={{fontSize:9,color:"#16a34a",fontFamily:FB,
             textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
             Target Total Toe
           </label>
-          <div style={_adjInputStyle()}>
+          <div style={{..._adjInputStyle(),border:"1.5px solid rgba(22,163,74,0.4)"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetTotalToe}
               defaultValue={targetTotalToe===""?"":targetTotalToe}
@@ -2144,31 +2109,37 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
       </div>
 
       {/* Validation */}
-      {D===0&&<div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:11,color:"#eb0000"}}>⚠ Set full distance in Before tab.</div>}
+      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
       {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:11,color:"#eb0000",fontWeight:"600"}}>
+        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
           ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
-
-      {/* Far scale detection hint */}
-      {distFrontValid&&(
-        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:10.5,color:"rgba(5,5,5,0.45)"}}>
-          Far scale: {farScaleSide.toUpperCase()} ({adjDist.toFixed(1)}m)
         </div>
       )}
 
       {/* Axle diagram + wheel boxes */}
       {distFrontValid&&(
         <>
-          <AdjMiniDiagram/>
+          <div style={{display:"flex",justifyContent:"center"}}>
+            <WheelPair
+              toeLeft={toeL!==null?String(toeL):""}
+              toeRight={toeR!==null?String(toeR):""}
+              size={220}
+              dual={diagAxle?.dual||false}
+              axleType={diagAxle?.type||"fixed"}
+              driveSide={diagAxle?.driveSide||"RHD"}
+              steerIndex={steerIndex}/>
+          </div>
+          {/* Connector arrows */}
+          <div style={{display:"flex",justifyContent:"space-between",padding:"0 12%",marginTop:-6,marginBottom:-4}}>
+            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
+            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
+          </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             {boxes.map((b,i)=>(
-              <WheelBox key={i} header={b.header} scaleLabel={farScaleLabel}
-                now={b.now} target={b.target}/>
+              <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
+                current={b.now} target={b.target}/>
             ))}
           </div>
-          {hasResults&&<AdjSummaryBar items={summaryItems}/>}
         </>
       )}
     </div>
@@ -2176,7 +2147,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 }
 
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
-function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange }) {
+function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null }) {
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2229,16 +2200,17 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
     rightTarget = farR + ((newRightToe - toeR) * adjDist);
   }
 
-  const fmtToe = v => v!==null ? `${v>=0?"+":""}${v.toFixed(1)} mm` : "—";
-
   if (!beforeAxle) return null;
+
+  const diagAxle = axle || afterAxle;
+  const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {/* Two inputs side by side */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:"'DM Mono',monospace,sans-serif",
+          <label style={{fontSize:9,color:"#050505",fontFamily:FB,
             textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
             Distance to Front Scale
           </label>
@@ -2248,11 +2220,11 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:4}}>
-          <label style={{fontSize:9,color:"#050505",fontFamily:"'DM Mono',monospace,sans-serif",
+          <label style={{fontSize:9,color:"#16a34a",fontFamily:FB,
             textTransform:"uppercase",letterSpacing:"0.07em",fontWeight:"600"}}>
             Target OOS
           </label>
-          <div style={_adjInputStyle()}>
+          <div style={{..._adjInputStyle(),border:"1.5px solid rgba(22,163,74,0.4)"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetOOS}
               defaultValue={targetOOS===""?"":targetOOS}
@@ -2266,50 +2238,34 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
       </div>
 
       {/* Validation */}
-      {D===0&&<div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:11,color:"#eb0000"}}>⚠ Set full distance in Before tab.</div>}
+      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
       {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:11,color:"#eb0000",fontWeight:"600"}}>
+        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
           ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
-
-      {/* Far scale detection hint */}
-      {distFrontValid&&(
-        <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:10.5,color:"rgba(5,5,5,0.45)"}}>
-          Far scale: {farScaleSide.toUpperCase()} ({adjDist.toFixed(1)}m)
         </div>
       )}
 
       {/* Axle diagram + wheel boxes */}
       {distFrontValid&&(
         <>
-          <AdjMiniDiagram/>
+          <div style={{display:"flex",justifyContent:"center"}}>
+            <WheelPair
+              toeLeft={toeL!==null?String(toeL):""}
+              toeRight={toeR!==null?String(toeR):""}
+              size={220}
+              dual={diagAxle?.dual||false}
+              axleType={diagAxle?.type||"fixed"}
+              driveSide={diagAxle?.driveSide||"RHD"}/>
+          </div>
+          {/* Connector arrows */}
+          <div style={{display:"flex",justifyContent:"space-between",padding:"0 12%",marginTop:-6,marginBottom:-4}}>
+            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
+            <svg width="16" height="14" viewBox="0 0 16 14"><polygon points="4,0 12,0 8,14" fill="rgba(5,5,5,0.18)"/></svg>
+          </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <WheelBox header="LEFT WHEEL"  scaleLabel={farScaleLabel} now={farL} target={leftTarget}/>
-            <WheelBox header="RIGHT WHEEL" scaleLabel={farScaleLabel} now={farR} target={rightTarget}/>
+            <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
+            <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
           </div>
-
-          {/* Info below boxes */}
-          {currentOOS!==null&&(
-            <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:10.5,
-              color:"rgba(5,5,5,0.45)",lineHeight:1.6}}>
-              Current OOS: {fmtToe(currentOOS)} · Target OOS: {hasTarget?fmtToe(tgtOOS):"—"}
-              {totalBeforeToe!==null&&` · Total toe unchanged: ${fmtToe(totalBeforeToe)}`}
-            </div>
-          )}
-          <div style={{fontFamily:"'DM Mono',monospace,sans-serif",fontSize:10,
-            color:"rgba(5,5,5,0.38)",lineHeight:1.5,fontStyle:"italic"}}>
-            Technician determines which side to adjust based on axle position and tie rod configuration.
-          </div>
-
-          {canCalc&&(leftTarget!==null||rightTarget!==null)&&(
-            <AdjSummaryBar items={[
-              {label:"Current OOS", value:fmtToe(currentOOS)},
-              {label:"Target OOS",  value:hasTarget?fmtToe(tgtOOS):"—"},
-              {label:"Total toe",   value:fmtToe(totalBeforeToe)},
-              {label:"Far scale",   value:`${farScaleSide.toUpperCase()} (${adjDist.toFixed(1)}m)`},
-            ]}/>
-          )}
         </>
       )}
     </div>
@@ -2500,7 +2456,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex} axle={axle}/>
         </CollapseSection>
       )}
     </div>
@@ -2532,7 +2488,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
         </CollapseSection>
       )}
     </div>
@@ -2563,7 +2519,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
+          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
         </CollapseSection>
       )}
     </div>
