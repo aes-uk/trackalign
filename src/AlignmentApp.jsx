@@ -1818,7 +1818,7 @@ function ToeCalcBoxes({ axle, fullDistance="", tols=null, allAxles=null }) {
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
         <StatBox label="Out of Square" value={fmtV1(calc.outOfSquare)} unit="mm"
           tl={trafficLight(String(calc.outOfSquare), tols?.outOfSquare)}/>
-        <StatBox label="Rolling Direction" value={calc.oosLeft?"◀ LEFT":"RIGHT ▶"} color="#050505"/>
+        <StatBox label="Rolling Direction" value={calc.outOfSquare===0?"STRAIGHT":calc.oosLeft?"◀ LEFT":"RIGHT ▶"} color="#050505"/>
         {para&&(
           <div style={{gridColumn:"1 / -1"}}>
             <StatBox label="Parallelism" value={para.value.toFixed(1)} unit="mm"
