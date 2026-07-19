@@ -2045,8 +2045,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   let leftTarget=null, rightTarget=null;
   if (canCalc && isIndependent && farL!==null && farR!==null && toeL!==null && toeR!==null) {
     const tpw = tgt / 2;
-    leftTarget  = farL + ((tpw - toeL) * adjDist);
-    rightTarget = farR + ((tpw - toeR) * adjDist);
+    leftTarget  = farL + ((toeL - tpw) * adjDist);
+    rightTarget = farR + ((toeR - tpw) * adjDist);
   }
 
   // Build LEFT/RIGHT display boxes (always Left col = left wheel, Right col = right wheel)
