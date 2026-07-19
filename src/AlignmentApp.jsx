@@ -4719,6 +4719,9 @@ function AuthenticatedApp({ session }) {
       if (companyRes.data.measure_mode != null) {
         setMeasureMode(companyRes.data.measure_mode);
         saveMode(companyRes.data.measure_mode, userId);
+        // If onboarding is showing because localStorage was empty, skip it now
+        setOnboarded();
+        setScreen(prev => prev === "onboarding" ? "dashboard" : prev);
       }
       if (companyRes.data.show_adj_calc != null) {
         setShowAdjCalc(companyRes.data.show_adj_calc);
