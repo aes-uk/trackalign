@@ -1579,7 +1579,7 @@ function Btn({ children, onClick, variant="primary", small=false }) {
 function CollapseSection({ label, open, onToggle, children, badge="", variant="default" }) {
   const styles = {
     default:     { bg:"#efefef",                     bgHover:"#e5e5e5",                    border:`1px solid ${T.border}`,              icon:null },
-    geometry:    { bg:"rgba(100,116,139,0.07)",       bgHover:"rgba(100,116,139,0.14)",      border:"1px solid rgba(100,116,139,0.30)",    icon:"📐" },
+    geometry:    { bg:"#efefef",                       bgHover:"#e5e5e5",                     border:"1px solid rgba(100,116,139,0.40)",    icon:"📐" },
     calculator:  { bg:"rgba(22,163,74,0.07)",         bgHover:"rgba(22,163,74,0.13)",        border:"1px solid rgba(22,163,74,0.28)",      icon:"🔧" },
   };
   const s = styles[variant] || styles.default;
