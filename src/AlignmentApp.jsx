@@ -2076,59 +2076,44 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   const diagAxle = axle || afterAxle;
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
 
-  const borderGreen = "1px solid rgba(22,163,74,0.35)";
-  const borderDefault = "1px solid rgba(5,5,5,0.13)";
-
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* Two equal-width input cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-
-        {/* Distance card */}
-        <div style={{border:borderDefault,borderRadius:"0.3rem",overflow:"hidden"}}>
-          <div style={{padding:"6px 10px",borderBottom:borderDefault,
-            fontFamily:FB,fontSize:11,fontWeight:"600",color:"#050505"}}>
-            Distance to Front Scale
-          </div>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5"}}>
-            <DistancePicker value={distFront} onChange={setDistFront}/>
-            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0,whiteSpace:"nowrap"}}>
-              metres (front scale to laser)
-            </span>
-          </div>
+      {/* Distance input */}
+      <div>
+        <SectionHead>Distance from laser to Front Scale</SectionHead>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <DistancePicker value={distFront} onChange={setDistFront}/>
+          <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>metres</span>
         </div>
-
-        {/* Target toe card */}
-        <div style={{border:borderGreen,borderRadius:"0.3rem",overflow:"hidden"}}>
-          <div style={{padding:"6px 10px",borderBottom:borderGreen,
-            fontFamily:FB,fontSize:11,fontWeight:"600",color:"#16a34a"}}>
-            Target Total Toe
+        {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
+        {df>0&&D>0&&df>=D&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
+            ⚠ Cannot exceed full distance ({fullDistance}m)
           </div>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5"}}>
+        )}
+      </div>
+
+      {/* Target toe input */}
+      <div>
+        <SectionHead>Target Total Toe</SectionHead>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetTotalToe}
               defaultValue={targetTotalToe===""?"":targetTotalToe}
               placeholder="0.0"
               onBlur={e=>{const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}
               onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetTotalToe(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
-                padding:"8px 10px",color:"#050505",fontFamily:FM,fontSize:16,
-                fontWeight:"600",textAlign:"center"}}/>
+              style={{width:90,background:"transparent",border:"none",outline:"none",
+                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
             <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
               borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
           </div>
         </div>
       </div>
-
-      {/* Validation */}
-      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
-      {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
-          ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
 
       {/* Wheel boxes */}
       {distFrontValid&&(
@@ -2200,59 +2185,45 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   if (!beforeAxle) return null;
 
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
-  const borderGreen = "1px solid rgba(22,163,74,0.35)";
-  const borderDefault = "1px solid rgba(5,5,5,0.13)";
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-      {/* Two equal-width input cards */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-
-        {/* Distance card */}
-        <div style={{border:borderDefault,borderRadius:"0.3rem",overflow:"hidden"}}>
-          <div style={{padding:"6px 10px",borderBottom:borderDefault,
-            fontFamily:FB,fontSize:11,fontWeight:"600",color:"#050505"}}>
-            Distance to Front Scale
-          </div>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5"}}>
-            <DistancePicker value={distFront} onChange={setDistFront}/>
-            <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
-              borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0,whiteSpace:"nowrap"}}>
-              metres (front scale to laser)
-            </span>
-          </div>
+      {/* Distance input */}
+      <div>
+        <SectionHead>Distance from laser to Front Scale</SectionHead>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <DistancePicker value={distFront} onChange={setDistFront}/>
+          <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>metres</span>
         </div>
-
-        {/* Target OOS card */}
-        <div style={{border:borderGreen,borderRadius:"0.3rem",overflow:"hidden"}}>
-          <div style={{padding:"6px 10px",borderBottom:borderGreen,
-            fontFamily:FB,fontSize:11,fontWeight:"600",color:"#16a34a"}}>
-            Target OOS
+        {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5}}>⚠ Set full distance above.</div>}
+        {df>0&&D>0&&df>=D&&(
+          <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:5,fontWeight:"600"}}>
+            ⚠ Cannot exceed full distance ({fullDistance}m)
           </div>
-          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5"}}>
+        )}
+      </div>
+
+      {/* Target OOS input */}
+      <div>
+        <SectionHead>Target OOS</SectionHead>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetOOS}
               defaultValue={targetOOS===""?"":targetOOS}
               placeholder="0.0"
               onBlur={e=>{const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}
               onKeyDown={e=>{if(e.key==="Enter"||e.key==="Tab"){const v=e.target.value;setTargetOOS(v===""?"":parseFloat(v).toFixed(1));}}}
-              style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
-                padding:"8px 10px",color:"#050505",fontFamily:FM,fontSize:16,
-                fontWeight:"600",textAlign:"center"}}/>
+              style={{width:90,background:"transparent",border:"none",outline:"none",
+                padding:"7px 6px",color:"#050505",fontFamily:FM,fontSize:16,
+                fontWeight:"600",textAlign:"center",boxSizing:"border-box"}}/>
             <span style={{padding:"0 8px",fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",
               borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
           </div>
         </div>
       </div>
-
-      {/* Validation */}
-      {D===0&&<div style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>⚠ Set full distance above.</div>}
-      {df>0&&D>0&&df>=D&&(
-        <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",fontWeight:"600"}}>
-          ⚠ Distance to front scale cannot exceed full distance ({fullDistance}m)
-        </div>
-      )}
 
       {/* Wheel boxes */}
       {distFrontValid&&(
