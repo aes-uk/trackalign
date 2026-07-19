@@ -3756,7 +3756,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   // Sync axle config fields from before to after when before changes
   useEffect(() => {
     if (!j.afterAxles) return;
-    const configKeys = ["dualWheel","type","driveSide","suspType"];
+    const configKeys = ["dualWheel","type","driveSide","suspType","label"];
     let anyChanged = false;
     const synced = j.afterAxles.map((aAxle, i) => {
       const bAxle = j.axles[i];
