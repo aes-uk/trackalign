@@ -3443,7 +3443,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
         const subject = `Wheel Alignment Report${reg?" - "+reg:""}`;
         const body = `Wheel Alignment Report${reg?" - "+reg:""}${dateStr?" - "+dateStr:""}${company?.name?" by "+company.name:""}`;
         try {
-          await navigator.share({ files: [file], title: subject, text: body });
+          await navigator.share({ files: [file], text: body });
         } catch(e) {
           if (e?.name !== "AbortError") openBlobInNewTab(blob);
         }
@@ -3472,7 +3472,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
     const subject = `Wheel Alignment Report${reg?" - "+reg:""}`;
     const body = `Wheel Alignment Report${reg?" - "+reg:""}${dateStr?" - "+dateStr:""}${coName?" by "+coName:""}`;
     try {
-      await navigator.share({ files: [file], title: subject, text: body });
+      await navigator.share({ files: [file], text: body });
     } catch(e) {
       if (e?.name !== "AbortError") openBlobInNewTab(blob); // last-resort fallback
     }
