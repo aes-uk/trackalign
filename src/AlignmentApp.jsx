@@ -2035,8 +2035,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
   if (canCalc && !isIndependent && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
     driveTarget = driveFar + (driveToe * adjDist);
-    oppNow      = oppFar   + ((totalBeforeToe - oppToe) * adjDist);
-    oppTarget   = oppNow   + ((tgt - totalBeforeToe) * adjDist);
+    // When drive side is zeroed the solid axle rotates, moving opp far scale by same drive adjustment
+    oppNow = oppFar - (driveToe * adjDist);
+    const toeToMove = totalBeforeToe - tgt;
+    oppTarget = oppNow + (toeToMove > 0 ? -(Math.abs(toeToMove) * adjDist) : Math.abs(toeToMove) * adjDist);
   }
 
   // Independent calculations
