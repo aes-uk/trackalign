@@ -2730,6 +2730,7 @@ function cloneAxlesEmpty(axles) {
 }
 
 function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null }) {
+  const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
   const toggleGeo = id => setGeoOpen(prev => ({...prev, [id]: !prev[id]}));
@@ -2806,12 +2807,14 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{width:28,height:28,borderRadius:"0.3rem",flexShrink:0,
               background:"#eb0000",display:"flex",alignItems:"center",justifyContent:"center",
               fontSize:11,fontWeight:"700",fontFamily:FM,color:"#ffffff"}}>{idx+1}</div>
-            <input value={axle.label} onChange={e=>relabel(axle.id,e.target.value)}
+            <input value={axle.label} onChange={e=>!isAfterPanel&&relabel(axle.id,e.target.value)}
+              readOnly={isAfterPanel}
               style={{flex:1,background:"transparent",border:"none",outline:"none",
-                fontFamily:FD,fontSize:15,color:"#050505",letterSpacing:"0.04em",fontWeight:"600"}}/>
+                fontFamily:FD,fontSize:15,color:"#050505",letterSpacing:"0.04em",fontWeight:"600",
+                cursor:isAfterPanel?"default":"text"}}/>
             <span style={{fontSize:9,fontFamily:FM,padding:"2px 8px",borderRadius:"0.3rem",
               background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>{axle.type}</span>
-            {axles.length>1&&(
+            {!isAfterPanel&&axles.length>1&&(
               <button onClick={()=>removeAxle(axle.id)}
                 style={{background:"none",border:"none",color:"rgba(5,5,5,0.25)",cursor:"pointer",fontSize:16,padding:"0 4px",lineHeight:1}}
                 onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
@@ -2862,11 +2865,13 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           </div>
         </div>
       ))}
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+{!isAfterPanel&&(
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
         <Btn variant="ghost" small onClick={()=>addAxle("steering")}>+ Steer Axle</Btn>
         <Btn variant="ghost" small onClick={()=>addAxle("rear-steer")}>+ Rear Steer</Btn>
         <Btn variant="ghost" small onClick={()=>addAxle("fixed")}>+ Non Steer</Btn>
       </div>
+      )}
     </>
   );
 }
