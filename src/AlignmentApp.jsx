@@ -2318,6 +2318,12 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
     axle.tootRight,axle.tootLeft2].filter(hasVal).length;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+        <Toggle label="Hyd. Ram Side" options={[{label:"RHD",value:"RHD"},{label:"LHD",value:"LHD"}]}
+          value={axle.driveSide||"RHD"} onChange={v=>up("driveSide",v)} disabled={isAfter}/>
+        <Toggle label="Suspension" options={[{label:"Solid",value:"solid"},{label:"Indep.",value:"independent"}]}
+          value={axle.suspType||"solid"} onChange={v=>up("suspType",v)} disabled={isAfter}/>
+      </div>
       {isJosam
         ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter}/>
         : <ToeRow toeLeft={axle.toeLeft} toeRight={axle.toeRight}
