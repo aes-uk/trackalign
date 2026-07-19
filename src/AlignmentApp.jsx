@@ -2085,7 +2085,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         {/* Distance input */}
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
           <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
-            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Distance</span>
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Front scale to laser</span>
           <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
             border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <DistancePicker bare value={distFront} onChange={setDistFront}/>
@@ -2104,7 +2104,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
             textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Target Total Toe</span>
           <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetTotalToe}
               defaultValue={targetTotalToe===""?"":targetTotalToe}
@@ -2199,7 +2199,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
         {/* Distance input */}
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
           <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
-            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Distance</span>
+            textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Front scale to laser</span>
           <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
             border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <DistancePicker bare value={distFront} onChange={setDistFront}/>
@@ -2218,7 +2218,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
             textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>Target OOS</span>
           <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-            border:"1.5px solid rgba(22,163,74,0.45)",borderRadius:"0.3rem",overflow:"hidden"}}>
+            border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
             <input type="number" step="0.1" className="no-spin"
               key={targetOOS}
               defaultValue={targetOOS===""?"":targetOOS}
