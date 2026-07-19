@@ -2014,22 +2014,25 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     oppHeader   = `Adjust to Target — ${oppSideStr} WHEEL`;
   }
 
+  // When far scale is REAR, moving it UP reduces (frontScale-rearScale), so sign flips vs far=FRONT
+  const adjSign = farScaleSide === "front" ? 1 : -1;
+
   // Solid calculations
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
   if (canCalc && !isIndependent && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
-    driveTarget = driveFar + (driveToe * adjDist);
+    driveTarget = driveFar + adjSign * (driveToe * adjDist);
     // When drive side is zeroed the solid axle rotates, moving opp far scale by same drive adjustment
-    oppNow = oppFar - (driveToe * adjDist);
+    oppNow = oppFar - adjSign * (driveToe * adjDist);
     const toeToMove = totalBeforeToe - tgt;
-    oppTarget = oppNow + (toeToMove * adjDist);
+    oppTarget = oppNow + adjSign * (toeToMove * adjDist);
   }
 
   // Independent calculations
   let leftTarget=null, rightTarget=null;
   if (canCalc && isIndependent && farL!==null && farR!==null && toeL!==null && toeR!==null) {
     const tpw = tgt / 2;
-    leftTarget  = farL + ((toeL - tpw) * adjDist);
-    rightTarget = farR + ((toeR - tpw) * adjDist);
+    leftTarget  = farL + adjSign * ((toeL - tpw) * adjDist);
+    rightTarget = farR + adjSign * ((toeR - tpw) * adjDist);
   }
 
   // Build LEFT/RIGHT display boxes (always Left col = left wheel, Right col = right wheel)
@@ -2184,13 +2187,16 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   const hasTarget = hasVal(targetOOS) && !isNaN(tgtOOS);
   const canCalc = distFrontValid && hasTarget && totalBeforeToe!==null && farL!==null && farR!==null;
 
+  // When far scale is REAR, moving it UP reduces (frontScale-rearScale), so sign flips vs far=FRONT
+  const adjSign = farScaleSide === "front" ? 1 : -1;
+
   let leftTarget=null, rightTarget=null;
   if (canCalc) {
     const half = totalBeforeToe / 2;
     const newLeftToe  = half - tgtOOS;
     const newRightToe = half + tgtOOS;
-    leftTarget  = farL + ((newLeftToe  - toeL) * adjDist);
-    rightTarget = farR + ((newRightToe - toeR) * adjDist);
+    leftTarget  = farL + adjSign * ((newLeftToe  - toeL) * adjDist);
+    rightTarget = farR + adjSign * ((newRightToe - toeR) * adjDist);
   }
 
   if (!beforeAxle) return null;
