@@ -2038,7 +2038,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     // When drive side is zeroed the solid axle rotates, moving opp far scale by same drive adjustment
     oppNow = oppFar - (driveToe * adjDist);
     const toeToMove = totalBeforeToe - tgt;
-    oppTarget = oppNow + (toeToMove > 0 ? -(Math.abs(toeToMove) * adjDist) : Math.abs(toeToMove) * adjDist);
+    oppTarget = oppNow + (toeToMove * adjDist);
   }
 
   // Independent calculations
