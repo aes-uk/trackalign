@@ -1577,18 +1577,20 @@ function Btn({ children, onClick, variant="primary", small=false }) {
 }
 
 function CollapseSection({ label, open, onToggle, children, badge="", variant="default" }) {
-  const isCalc = variant==="calculator";
-  const bgBase = isCalc ? "rgba(235,0,0,0.07)" : "#efefef";
-  const bgHover = isCalc ? "rgba(235,0,0,0.13)" : "#e5e5e5";
-  const border = isCalc ? "1px solid rgba(235,0,0,0.25)" : `1px solid ${T.border}`;
+  const styles = {
+    default:     { bg:"#efefef",                    bgHover:"#e5e5e5",                    border:`1px solid ${T.border}`,              icon:null },
+    geometry:    { bg:"rgba(59,130,246,0.07)",       bgHover:"rgba(59,130,246,0.14)",       border:"1px solid rgba(59,130,246,0.28)",     icon:"📐" },
+    calculator:  { bg:"rgba(100,116,139,0.07)",      bgHover:"rgba(100,116,139,0.14)",      border:"1px solid rgba(100,116,139,0.30)",    icon:"🔧" },
+  };
+  const s = styles[variant] || styles.default;
   return (
-    <div style={{border, borderRadius:"0.3rem", overflow:"hidden"}}>
-      <button onClick={onToggle} style={{width:"100%",background:bgBase,border:"none",
+    <div style={{border:s.border, borderRadius:"0.3rem", overflow:"hidden"}}>
+      <button onClick={onToggle} style={{width:"100%",background:s.bg,border:"none",
         cursor:"pointer",padding:"9px 12px",display:"flex",alignItems:"center",gap:8,transition:"background 0.15s"}}
-        onMouseEnter={e=>e.currentTarget.style.background=bgHover}
-        onMouseLeave={e=>e.currentTarget.style.background=bgBase}>
-        {isCalc
-          ? <span style={{fontSize:13,lineHeight:1,flexShrink:0}}>🔧</span>
+        onMouseEnter={e=>e.currentTarget.style.background=s.bgHover}
+        onMouseLeave={e=>e.currentTarget.style.background=s.bg}>
+        {s.icon
+          ? <span style={{fontSize:13,lineHeight:1,flexShrink:0}}>{s.icon}</span>
           : <div style={{width:3,height:12,background:open?"#eb0000":"rgba(5,5,5,0.15)",borderRadius:"0.3rem",flexShrink:0,transition:"background 0.2s"}}/>
         }
         <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:open?"#eb0000":"#050505",
@@ -2283,7 +2285,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
           </div>
         )
       )}
-      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo}
+      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo} variant="geometry"
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
@@ -2309,7 +2311,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
             onLeft={v=>up("toeLeft",v)} onRight={v=>up("toeRight",v)} axleType={axle.type} driveSide={axle.driveSide||"RHD"}/>
       }
       <ToeCalcBoxes axle={axle} fullDistance={fullDistance} tols={axle.tolerances} allAxles={allAxles}/>
-      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo}
+      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo} variant="geometry"
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
@@ -2340,7 +2342,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
             onLeft={v=>up("toeLeft",v)} onRight={v=>up("toeRight",v)} dual={dual} tols={axle.tolerances} axleType={axle.type} driveSide={axle.driveSide||"RHD"}/>
       }
       <ToeCalcBoxes axle={axle} fullDistance={fullDistance} tols={axle.tolerances} allAxles={allAxles}/>
-      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo}
+      <CollapseSection label="Geometry" open={showGeo} onToggle={onToggleGeo} variant="geometry"
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <FixedGeoSection axle={axle} up={up} tols={axle.tolerances}/>
       </CollapseSection>
