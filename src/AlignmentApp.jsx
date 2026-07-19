@@ -1905,10 +1905,15 @@ function WheelBox({ header, subHeader, current, target }) {
   const hasCurrent = current !== null && current !== undefined;
   return (
     <div style={{display:"flex",flexDirection:"column",gap:6,minWidth:0}}>
-      <SectionHead>{header}</SectionHead>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+        <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+          textTransform:"uppercase",fontWeight:"600",flex:1,textAlign:"center"}}>{header}</span>
+        <div style={{height:1,background:"rgba(5,5,5,0.10)",display:"none"}}/>
+      </div>
       {subHeader&&(
         <div style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.4)",
-          textTransform:"uppercase",letterSpacing:"0.06em",marginTop:-6,marginBottom:2}}>
+          textTransform:"uppercase",letterSpacing:"0.06em",marginTop:-6,marginBottom:2,
+          textAlign:"center"}}>
           {subHeader}
         </div>
       )}
