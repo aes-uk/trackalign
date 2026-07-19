@@ -1531,14 +1531,16 @@ function ConfigPicker({ job, configs, onSelectConfig, onOpenLibrary }) {
   );
 }
 
-function Toggle({ label, options, value, onChange }) {
+function Toggle({ label, options, value, onChange, disabled=false }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:4}}>
       {label&&<label style={{fontSize:9,letterSpacing:"0.06em",color:T.textDim,fontFamily:FB,textTransform:"uppercase"}}>{label}</label>}
-      <div style={{display:"flex",borderRadius:"0.3rem",overflow:"hidden",border:"1px solid rgba(5,5,5,0.15)"}}>
+      <div style={{display:"flex",borderRadius:"0.3rem",overflow:"hidden",border:"1px solid rgba(5,5,5,0.15)",
+        opacity:disabled?0.6:1,cursor:disabled?"not-allowed":"auto"}}
+        title={disabled?"Cannot be changed on After tab":undefined}>
         {options.map(o=>(
-          <button key={o.value} onClick={()=>onChange(o.value)} style={{
-            flex:1,padding:"6px 8px",border:"none",cursor:"pointer",
+          <button key={o.value} onClick={()=>!disabled&&onChange(o.value)} style={{
+            flex:1,padding:"6px 8px",border:"none",cursor:disabled?"not-allowed":"pointer",
             fontFamily:FB,fontSize:11,fontWeight:"600",
             background:value===o.value?"#eb0000":"#efefef",
             color:value===o.value?"#ffffff":"rgba(5,5,5,0.55)",
@@ -2241,9 +2243,9 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
     <div style={{display:"flex",flexDirection:"column",gap:14}}>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
         <Toggle label="Drive Side" options={[{label:"RHD",value:"RHD"},{label:"LHD",value:"LHD"}]}
-          value={axle.driveSide} onChange={v=>up("driveSide",v)}/>
+          value={axle.driveSide} onChange={v=>up("driveSide",v)} disabled={isAfter}/>
         <Toggle label="Suspension" options={[{label:"Solid",value:"solid"},{label:"Indep.",value:"independent"}]}
-          value={axle.suspType} onChange={v=>up("suspType",v)}/>
+          value={axle.suspType} onChange={v=>up("suspType",v)} disabled={isAfter}/>
       </div>
       {isJosam
         ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter}/>
@@ -2323,7 +2325,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
         <div/>
         <Toggle label="Wheel Type"
           options={[{label:"Single",value:false},{label:"Dual",value:true}]}
-          value={dual} onChange={v=>up("dualWheel",v)}/>
+          value={dual} onChange={v=>up("dualWheel",v)} disabled={isAfter}/>
       </div>
       {isJosam
         ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} dual={dual} isAfter={isAfter}/>
