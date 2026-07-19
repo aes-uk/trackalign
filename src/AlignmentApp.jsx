@@ -1576,14 +1576,21 @@ function Btn({ children, onClick, variant="primary", small=false }) {
   );
 }
 
-function CollapseSection({ label, open, onToggle, children, badge="" }) {
+function CollapseSection({ label, open, onToggle, children, badge="", variant="default" }) {
+  const isCalc = variant==="calculator";
+  const bgBase = isCalc ? "rgba(235,0,0,0.07)" : "#efefef";
+  const bgHover = isCalc ? "rgba(235,0,0,0.13)" : "#e5e5e5";
+  const border = isCalc ? "1px solid rgba(235,0,0,0.25)" : `1px solid ${T.border}`;
   return (
-    <div style={{border:`1px solid ${T.border}`,borderRadius:"0.3rem",overflow:"hidden"}}>
-      <button onClick={onToggle} style={{width:"100%",background:"#efefef",border:"none",
+    <div style={{border, borderRadius:"0.3rem", overflow:"hidden"}}>
+      <button onClick={onToggle} style={{width:"100%",background:bgBase,border:"none",
         cursor:"pointer",padding:"9px 12px",display:"flex",alignItems:"center",gap:8,transition:"background 0.15s"}}
-        onMouseEnter={e=>e.currentTarget.style.background="#e5e5e5"}
-        onMouseLeave={e=>e.currentTarget.style.background="#efefef"}>
-        <div style={{width:3,height:12,background:open?"#eb0000":"rgba(5,5,5,0.15)",borderRadius:"0.3rem",flexShrink:0,transition:"background 0.2s"}}/>
+        onMouseEnter={e=>e.currentTarget.style.background=bgHover}
+        onMouseLeave={e=>e.currentTarget.style.background=bgBase}>
+        {isCalc
+          ? <span style={{fontSize:13,lineHeight:1,flexShrink:0}}>🔧</span>
+          : <div style={{width:3,height:12,background:open?"#eb0000":"rgba(5,5,5,0.15)",borderRadius:"0.3rem",flexShrink:0,transition:"background 0.2s"}}/>
+        }
         <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:open?"#eb0000":"#050505",
           textTransform:"uppercase",flex:1,textAlign:"left",transition:"color 0.2s"}}>{label}</span>
         {badge&&<span style={{fontSize:9,fontFamily:FM,color:T.textDim,background:"#e5e5e5",
@@ -2281,7 +2288,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
       {isJosam&&isAfter&&(
-        <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
+        <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
@@ -2307,7 +2314,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
       {isJosam&&isAfter&&(
-        <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
+        <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
@@ -2338,7 +2345,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
         <FixedGeoSection axle={axle} up={up} tols={axle.tolerances}/>
       </CollapseSection>
       {isJosam&&isAfter&&(
-        <CollapseSection label="Adjustment" open={showAdj} onToggle={onToggleAdj}>
+        <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange}/>
         </CollapseSection>
       )}
