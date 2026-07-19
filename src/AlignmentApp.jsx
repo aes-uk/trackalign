@@ -2766,28 +2766,42 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const toggleGeo = id => setGeoOpen(prev => ({...prev, [id]: !prev[id]}));
   const [adjOpen, setAdjOpen] = useState({});
   const toggleAdj = id => setAdjOpen(prev => ({...prev, [id]: !prev[id]}));
+  const [steerTypePrompt, setSteerTypePrompt] = useState(false);
 
   const updAxle = useCallback(ax =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).map(a => a.id===ax.id ? ax : a)),
   [setAxles]);
-  const addAxle = useCallback(type =>
+  const addAxle = useCallback((type, forceType) => {
+    // forceType bypasses the prompt (used after user makes a choice)
+    const resolvedType = forceType || type;
     setAxles(prev => {
       const arr = Array.isArray(prev) ? prev : [];
       let label;
-      if (type==="steering") {
+      if (resolvedType==="steering") {
         const existingSteer = arr.filter(a=>a.type==="steering").length;
         label = existingSteer===0 ? "Front Steer" : "Second Steer";
-      } else if (type==="rear-steer") {
+      } else if (resolvedType==="rear-steer") {
         label = "Rear Steer";
       } else {
         label = "Non Steer";
       }
       return [...arr,
-        type==="steering"   ? makeSteeringAxle(label)
-        : type==="rear-steer" ? makeRearSteerAxle(label)
+        resolvedType==="steering"   ? makeSteeringAxle(label)
+        : resolvedType==="rear-steer" ? makeRearSteerAxle(label)
         : makeFixedAxle(label)];
-    }),
-  [setAxles]);
+    });
+  }, [setAxles]);
+  const handleAddSteer = useCallback(() => {
+    const arr = Array.isArray(axles) ? axles : [];
+    const hasFixed = arr.some(a => a.type==="fixed");
+    const hasSteer = arr.some(a => a.type==="steering");
+    // Prompt only when there are non-steer axles already and no steer axle yet
+    if (hasFixed && !hasSteer) {
+      setSteerTypePrompt(true);
+    } else {
+      addAxle("steering");
+    }
+  }, [axles, addAxle]);
   const removeAxle = useCallback(id =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).filter(a => a.id!==id)),
   [setAxles]);
@@ -2910,11 +2924,42 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           </div>
         )}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-          <Btn variant="ghost" small onClick={()=>addAxle("steering")}>+ Steer Axle</Btn>
+          <Btn variant="ghost" small onClick={handleAddSteer}>+ Steer Axle</Btn>
           <Btn variant="ghost" small onClick={()=>addAxle("rear-steer")}>+ Rear Steer</Btn>
           <Btn variant="ghost" small onClick={()=>addAxle("fixed")}>+ Non Steer</Btn>
         </div>
       </>
+      )}
+
+      {/* Steer type prompt modal */}
+      {steerTypePrompt&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:9999,
+          display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:"#fff",borderRadius:"0.75rem",padding:28,maxWidth:320,width:"100%",
+            boxShadow:"0 8px 32px rgba(0,0,0,0.22)"}}>
+            <div style={{fontFamily:FM,fontSize:13,fontWeight:"700",color:"#050505",marginBottom:8,
+              letterSpacing:"0.04em"}}>AXLE TYPE</div>
+            <div style={{fontFamily:FB,fontSize:14,color:"#050505",marginBottom:6,lineHeight:1.5}}>
+              Non-steer axles are already present.
+            </div>
+            <div style={{fontFamily:FB,fontSize:13,color:"rgba(5,5,5,0.55)",marginBottom:20,lineHeight:1.5}}>
+              Is this a rear steer axle (e.g. a trailer or tag axle with steering), or a front steer axle?
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+              <Btn variant="primary" onClick={()=>{setSteerTypePrompt(false);addAxle("steering","steering");}}>
+                Front Steer
+              </Btn>
+              <Btn variant="ghost" onClick={()=>{setSteerTypePrompt(false);addAxle("rear-steer","rear-steer");}}>
+                Rear Steer
+              </Btn>
+            </div>
+            <button onClick={()=>setSteerTypePrompt(false)}
+              style={{marginTop:14,width:"100%",background:"none",border:"none",
+                fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.4)",cursor:"pointer",padding:4}}>
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </>
   );
