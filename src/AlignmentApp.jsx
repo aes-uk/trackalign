@@ -2078,7 +2078,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
 
       {/* Distance + Target toe — 2 columns */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
@@ -2192,7 +2192,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   const farScaleAimLabel = `Aim laser to ${farScaleSide.toUpperCase()} scale`;
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",flexDirection:"column",gap:24}}>
 
       {/* Distance + Target OOS — 2 columns */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
