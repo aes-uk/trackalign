@@ -1579,7 +1579,7 @@ function Btn({ children, onClick, variant="primary", small=false }) {
 function CollapseSection({ label, open, onToggle, children, badge="", variant="default" }) {
   const styles = {
     default:     { bg:"#efefef",                     bgHover:"#e5e5e5",                    border:`1px solid ${T.border}`,              icon:null },
-    geometry:    { bg:"#efefef",                       bgHover:"#e5e5e5",                     border:"1px solid rgba(100,116,139,0.40)",    icon:"📐" },
+    geometry:    { bg:"#efefef",                       bgHover:"#e5e5e5",                     border:"1px solid rgba(5,5,5,0.15)",         icon:"📐" },
     calculator:  { bg:"rgba(22,163,74,0.07)",         bgHover:"rgba(22,163,74,0.13)",        border:"1px solid rgba(22,163,74,0.28)",      icon:"🔧" },
   };
   const s = styles[variant] || styles.default;
@@ -1594,8 +1594,8 @@ function CollapseSection({ label, open, onToggle, children, badge="", variant="d
           : <div style={{width:3,height:12,background:open?"#050505":"rgba(5,5,5,0.15)",borderRadius:"0.3rem",flexShrink:0,transition:"background 0.2s"}}/>
         }
         <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",
-          color:"#050505",fontWeight:open?"700":"400",
-          textTransform:"uppercase",flex:1,textAlign:"left",transition:"font-weight 0.15s"}}>{label}</span>
+          color:"#050505",fontWeight:"700",
+          textTransform:"uppercase",flex:1,textAlign:"left"}}>{label}</span>
         {badge&&<span style={{fontSize:9,fontFamily:FM,color:T.textDim,background:"#e5e5e5",
           padding:"1px 6px",borderRadius:"0.3rem",border:"1px solid rgba(5,5,5,0.15)"}}>{badge}</span>}
         <span style={{fontSize:12,color:"#050505",display:"inline-block",
