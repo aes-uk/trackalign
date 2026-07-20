@@ -1602,7 +1602,14 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onDelete, onBac
 }
 
 /* Config picker shown at top of Before tab */
-const AXLE_TYPE_LABELS = { steering:"Front Steer", "second-steer":"Second Steer", "rear-steer":"Rear Steer", fixed:"Non Steer" };
+const AXLE_TYPE_LABELS = { "second-steer":"Second Steer", "rear-steer":"Rear Steer", fixed:"Non Steer" };
+function axleLabel(axle, allAxles) {
+  if (axle.type==="steering") {
+    const steersBefore = allAxles.slice(0, allAxles.indexOf(axle)).filter(a=>a.type==="steering").length;
+    return steersBefore===0 ? "Front Steer" : "Second Steer";
+  }
+  return AXLE_TYPE_LABELS[axle.type]||axle.type;
+}
 
 function hasAnyReadings(axles=[]) {
   const READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight","casterLeft","casterRight",
@@ -1616,7 +1623,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
   const hasAxles = (job.axles||[]).length > 0;
   const readingsEntered = hasAnyReadings(job.axles);
   const showReset = (hasConfig || hasAxles) && !readingsEntered;
-  const showCreate = !hasConfig && !readingsEntered;
+  const showCreate = !hasConfig && !hasAxles && !readingsEntered;
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
@@ -1635,7 +1642,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
                 <span key={i} style={{fontFamily:FB,fontSize:11,fontWeight:"600",
                   background:"rgba(5,5,5,0.08)",borderRadius:"0.25rem",
                   padding:"3px 8px",color:"#050505"}}>
-                  {AXLE_TYPE_LABELS[a.type]||a.type}
+                  {axleLabel(a, job.axles)}
                 </span>
               ))}
             </div>
@@ -1664,7 +1671,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           )}
         </div>
       </div>
-      {!job.configName&&!readingsEntered&&configs.length>0&&onSelectConfig&&(
+      {!job.configName&&!hasAxles&&!readingsEntered&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
             letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
