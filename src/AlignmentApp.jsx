@@ -3012,9 +3012,15 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               const D = parseFloat(fullDistance)||0;
               const si = axles.slice(0,idx).filter(a=>a.type==="steering").length;
               // Get front steer axle SM value for twinsteer calc
+              // In the after panel, fall back to before-axle data if after front steer has no readings
               let frontSM = null;
               if (si>=1) {
-                const frontAxle = axles.find(a=>a.type==="steering");
+                let frontAxle = axles.find(a=>a.type==="steering");
+                if (frontAxle && isAfterPanel) {
+                  const hasAfterData = hasVal(frontAxle.toeLeft)||hasVal(frontAxle.toeRight)||
+                    hasVal(frontAxle.frontScaleLeft)||hasVal(frontAxle.frontScaleRight);
+                  if (!hasAfterData) frontAxle = beforeAxles?.find(a=>a.type==="steering") || frontAxle;
+                }
                 if (frontAxle) {
                   let ftL = frontAxle.toeLeft, ftR = frontAxle.toeRight;
                   if (isJosam && D>0) {
@@ -3885,6 +3891,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                   if (fsm) frontSMAfter = normaliseSMForTwinsteer(fAxleA, fsm.value);
                 }
               }
+              // Fall back to before front steer SM if after has no readings
+              if (frontSMAfter===null) frontSMAfter = frontSM;
             }
 
             return (
