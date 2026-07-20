@@ -1650,7 +1650,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             </div>
           ) : (
             <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-              {configs.length>0?"Select configuration or create new. Or, add axles manually.":"Create new configuration, or add axles manually."}
+              {configs.length>0?"Select a configuration, create a new one or select axles manually.":"Create a new configuration or select axles manually."}
             </div>
           )}
         </div>
@@ -1678,7 +1678,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {showSelectors&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
-            Select a Saved Configuration
+            Select a Configuration
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             {configs.map(c=>(
@@ -4124,7 +4124,16 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   const isJosam = j.measureMethod==="josam";
 
   const setBeforeAxles = useCallback(updater =>
-    setJ(p => ({ ...p, axles: typeof updater === "function" ? updater(p.axles) : updater })),
+    setJ(p => {
+      const newAxles = typeof updater === "function" ? updater(p.axles) : updater;
+      // If an axle was removed while a config is selected, drop the config name so pills show
+      const configCleared = p.configName && newAxles.length < (p.axles||[]).length;
+      return {
+        ...p,
+        axles: newAxles,
+        ...(configCleared ? { configId: null, configName: "" } : {}),
+      };
+    }),
   []);
   const setAfterAxles = useCallback(updater =>
     setJ(p => ({ ...p, afterAxles: typeof updater === "function" ? updater(p.afterAxles) : updater })),
