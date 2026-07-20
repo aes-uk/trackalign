@@ -483,7 +483,7 @@ function makeJob(measureMethod="direct") {
   return { id:uid(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     customer:{ company:"", name:"", phone:"", email:"" },
     vehicle:{ reg:"", make:"", model:"", year:"", mileage:"" },
-    axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
+    axles:[],
     afterAxles:null, fullDistance:"",
     configId:null, configName:null,
     measureMethod,
@@ -2901,7 +2901,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, showAdjCalc=false }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, showAdjCalc=false, configs=[], onApplyConfig=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3066,15 +3066,40 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
 {!isAfterPanel&&(
       <>
         {axles.length===0&&(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
-            padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
-            background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
-              No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
+              padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
+              background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
+                No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
+              </div>
             </div>
+            {configs.length>0&&onApplyConfig&&(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
+                  letterSpacing:"0.08em",textAlign:"center"}}>Select an existing configuration</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  {configs.map(c=>(
+                    <button key={c.id} onClick={()=>onApplyConfig(c)} style={{
+                      background:"#f0f0f0",border:"1.5px solid rgba(5,5,5,0.1)",borderRadius:"0.3rem",
+                      padding:"10px 12px",cursor:"pointer",textAlign:"center",
+                      transition:"all 0.15s",
+                    }}
+                    onMouseEnter={e=>{e.currentTarget.style.background="#e8e8e8";e.currentTarget.style.borderColor="rgba(5,5,5,0.25)"}}
+                    onMouseLeave={e=>{e.currentTarget.style.background="#f0f0f0";e.currentTarget.style.borderColor="rgba(5,5,5,0.1)"}}>
+                      <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",
+                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
+                      <div style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.45)",marginTop:2}}>
+                        {c.axles?.length||0} axle{(c.axles?.length||0)!==1?"s":""}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
@@ -3946,10 +3971,10 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 }
 
 
-function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={}, showAdjCalc=false }) {
+function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={}, showAdjCalc=false, configs=[] }) {
   const [j,setJ]=useState(()=>({
     ...job,
-    axles: Array.isArray(job.axles) ? job.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
+    axles: Array.isArray(job.axles) ? job.axles : [],
     afterAxles: job.afterAxles && Array.isArray(job.afterAxles) ? job.afterAxles : null,
     measureMethod: job.measureMethod || "direct",
   }));
@@ -4125,6 +4150,17 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
             setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
             jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
             showAdjCalc={showAdjCalc}
+            configs={configs}
+            onApplyConfig={c=>{
+              const newAxles = c.axles.map(ca=>({
+                ...makeAxleForType(ca.type, ca.label),
+                tolerances: JSON.parse(JSON.stringify(ca.tolerances||{})),
+                dualWheel: ca.dualWheel||false,
+                driveSide: ca.driveSide||"RHD",
+                suspType:  ca.suspType||"solid",
+              }));
+              setJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}));
+            }}
 />
         )}
 
@@ -4914,7 +4950,7 @@ function AuthenticatedApp({ session }) {
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
                       onBack={goHome} initialTab={openTab}
                       onOpenConfigs={openConfigLibrary} forceTab={forceTab}
-                      company={company} showAdjCalc={showAdjCalc}/>}
+                      company={company} showAdjCalc={showAdjCalc} configs={configs}/>}
                 </>
               )}
             </div>
