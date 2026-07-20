@@ -1614,27 +1614,27 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
-          <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+          <div style={{fontFamily:FB,fontSize:12,color:job.configName?"#050505":"rgba(5,5,5,0.5)",fontWeight:job.configName?"600":"400",fontSize:job.configName?14:12}}>
             {job.configName||"Select configuration or create new. Or, add axles manually."}
           </div>
         </div>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0}}>
+        <div style={{display:"flex",flexDirection:"row",alignItems:"center",gap:8,flexShrink:0}}>
+          {showReset&&onReset&&(
+            <button onClick={onReset} style={{
+              background:"none",border:"1px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",
+              padding:"8px 14px",color:"rgba(5,5,5,0.45)",fontFamily:FB,fontWeight:"600",
+              fontSize:12,cursor:"pointer",whiteSpace:"nowrap"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(235,0,0,0.5)";e.currentTarget.style.color="#eb0000";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(5,5,5,0.18)";e.currentTarget.style.color="rgba(5,5,5,0.45)";}}>
+              Reset
+            </button>
+          )}
           <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
             background:"#eb0000",border:"none",borderRadius:"0.3rem",
             padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
             fontSize:12,cursor:"pointer",whiteSpace:"nowrap"}}>
             {hasConfig?"Change":"Create"}
           </button>
-          {showReset&&onReset&&(
-            <button onClick={onReset} style={{
-              background:"none",border:"1px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",
-              padding:"4px 10px",color:"rgba(5,5,5,0.45)",fontFamily:FB,fontWeight:"500",
-              fontSize:10,cursor:"pointer",whiteSpace:"nowrap",letterSpacing:"0.04em"}}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(235,0,0,0.5)";e.currentTarget.style.color="#eb0000";}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(5,5,5,0.18)";e.currentTarget.style.color="rgba(5,5,5,0.45)";}}>
-              Reset
-            </button>
-          )}
         </div>
       </div>
       {!job.configName&&configs.length>0&&onSelectConfig&&(
