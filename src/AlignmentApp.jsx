@@ -1543,10 +1543,10 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
 }
 
 /* Config picker shown at top of Before tab */
-function ConfigPicker({ job, configs, onSelectConfig, onOpenLibrary }) {
+function ConfigPicker({ job, configs=[], onSelectConfig, onOpenLibrary }) {
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-      borderRadius:"0.3rem",padding:"12px 14px"}}>
+      borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
@@ -1561,9 +1561,30 @@ function ConfigPicker({ job, configs, onSelectConfig, onOpenLibrary }) {
           background:"#eb0000",border:"none",borderRadius:"0.3rem",
           padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
           fontSize:12,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>
-          {job.configName?"Change":"Select / Create"}
+          {job.configName?"Change":"Create"}
         </button>
       </div>
+      {configs.length>0&&onSelectConfig&&(
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
+            letterSpacing:"0.08em",color:"rgba(5,5,5,0.45)"}}>Select a Configuration</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            {configs.map(c=>(
+              <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
+                background:"#16a34a",border:"none",borderRadius:"0.3rem",
+                padding:"5px 12px",cursor:"pointer",
+                fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
+                letterSpacing:"0.04em",transition:"opacity 0.15s",
+                whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
+              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2957,7 +2978,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
     <>
       {/* Config picker */}
       {onConfigClick&&(
-        <ConfigPicker job={jobRef} configs={[]} onSelectConfig={onConfigClick} onOpenLibrary={onConfigClick}/>
+        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onOpenLibrary={onConfigClick}/>
       )}
       {/* Full distance input — Josam mode only, on Before tab */}
       {isJosam && setFullDistance && (
@@ -3066,36 +3087,14 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
 {!isAfterPanel&&(
       <>
         {axles.length===0&&(
-          <div style={{display:"flex",flexDirection:"column",gap:14}}>
-            {configs.length>0&&onApplyConfig&&(
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
-                  letterSpacing:"0.08em",textAlign:"center"}}>Select an existing configuration</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-                  {configs.map(c=>(
-                    <button key={c.id} onClick={()=>onApplyConfig(c)} style={{
-                      background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
-                      padding:"5px 12px",borderRadius:"0.3rem",cursor:"pointer",
-                      fontFamily:FB,fontWeight:"600",fontSize:11,letterSpacing:"0.04em",
-                      transition:"opacity 0.15s",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-                    }}
-                    onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
-                    onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
-              padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
-              background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
-                No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
-              </div>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
+            padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
+            background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
+              No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
             </div>
           </div>
         )}
