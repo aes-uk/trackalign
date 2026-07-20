@@ -5014,6 +5014,7 @@ function AuthenticatedApp({ session }) {
                 }}
                 onNew={newConfig}
                 onEdit={editConfig}
+                onDelete={deleteConfig}
                 onBack={goHome}/>}
               {configScreen==="editor"&&editingConfig&&<ConfigEditorScreen
                 config={editingConfig}
