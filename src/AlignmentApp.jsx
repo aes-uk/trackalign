@@ -1614,18 +1614,16 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
-          <div style={{fontFamily:FB,fontSize:job.configName?14:12,color:job.configName?"#16a34a":"rgba(5,5,5,0.5)",fontWeight:job.configName?"600":"400"}}>
+          <div style={{fontFamily:FB,fontSize:job.configName?18:12,color:job.configName?"#16a34a":"rgba(5,5,5,0.5)",fontWeight:job.configName?"600":"400"}}>
             {job.configName||"Select configuration or create new. Or, add axles manually."}
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"row",alignItems:"center",gap:8,flexShrink:0}}>
           {showReset&&onReset&&(
             <button onClick={onReset} style={{
-              background:"none",border:"1px solid rgba(235,0,0,0.5)",borderRadius:"0.3rem",
-              padding:"8px 14px",color:"rgba(5,5,5,0.45)",fontFamily:FB,fontWeight:"600",
-              fontSize:12,cursor:"pointer",whiteSpace:"nowrap"}}
-              onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
-              onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.45)"}>
+              background:"none",border:"1px solid #050505",borderRadius:"0.3rem",
+              padding:"8px 14px",color:"#050505",fontFamily:FB,fontWeight:"600",
+              fontSize:12,cursor:"pointer",whiteSpace:"nowrap"}}>
               Reset
             </button>
           )}
@@ -5039,7 +5037,7 @@ function AuthenticatedApp({ session }) {
                 config={editingConfig}
                 onSave={saveConfig}
                 onDelete={deleteConfig}
-                onBack={configSource==="job"?()=>{setPendingJ(null);setConfigScreen(null);setScreen("job");}:goHome}/>}
+                onBack={configSource==="job"?()=>{setPendingJ(null);setConfigScreen(null);setScreen("job");setOpenTab("before");setForceTab("before");setTimeout(()=>setForceTab(null),100);}:goHome}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
                   {screen==="dashboard"&&<Dashboard jobs={sortNewestFirst(jobs)} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
