@@ -1615,7 +1615,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             Axle Configuration
           </div>
           <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-            {job.configName||"Select configuration or create new. Or, add axles manually below by clicking +."}
+            {job.configName||"Select configuration or create new. Or, add axles manually."}
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0}}>
@@ -1638,6 +1638,9 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
         </div>
       </div>
       {!job.configName&&configs.length>0&&onSelectConfig&&(
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
+            letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
           {configs.map(c=>(
             <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
@@ -1652,6 +1655,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
               {c.name}
             </button>
           ))}
+        </div>
         </div>
       )}
     </div>
