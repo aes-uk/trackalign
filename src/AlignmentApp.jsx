@@ -3067,6 +3067,26 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       <>
         {axles.length===0&&(
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {configs.length>0&&onApplyConfig&&(
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
+                  letterSpacing:"0.08em",textAlign:"center"}}>Select an existing configuration</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                  {configs.map(c=>(
+                    <button key={c.id} onClick={()=>onApplyConfig(c)} style={{
+                      background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+                      padding:"5px 12px",borderRadius:"0.3rem",cursor:"pointer",
+                      fontFamily:FB,fontWeight:"600",fontSize:11,letterSpacing:"0.04em",
+                      transition:"opacity 0.15s",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+                    }}
+                    onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
+                    onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
               padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
               background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
@@ -3077,29 +3097,6 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
               </div>
             </div>
-            {configs.length>0&&onApplyConfig&&(
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
-                  letterSpacing:"0.08em",textAlign:"center"}}>Select an existing configuration</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                  {configs.map(c=>(
-                    <button key={c.id} onClick={()=>onApplyConfig(c)} style={{
-                      background:"#f0f0f0",border:"1.5px solid rgba(5,5,5,0.1)",borderRadius:"0.3rem",
-                      padding:"10px 12px",cursor:"pointer",textAlign:"center",
-                      transition:"all 0.15s",
-                    }}
-                    onMouseEnter={e=>{e.currentTarget.style.background="#e8e8e8";e.currentTarget.style.borderColor="rgba(5,5,5,0.25)"}}
-                    onMouseLeave={e=>{e.currentTarget.style.background="#f0f0f0";e.currentTarget.style.borderColor="rgba(5,5,5,0.1)"}}>
-                      <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",
-                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
-                      <div style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.45)",marginTop:2}}>
-                        {c.axles?.length||0} axle{(c.axles?.length||0)!==1?"s":""}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
