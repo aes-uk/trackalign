@@ -3073,9 +3073,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const handleAddSteer = useCallback(() => {
     const arr = Array.isArray(axles) ? axles : [];
     const hasFixed = arr.some(a => a.type==="fixed");
-    const hasSteer = arr.some(a => a.type==="steering");
-    // Prompt only when there are non-steer axles already and no steer axle yet
-    if (hasFixed && !hasSteer) {
+    // Prompt whenever non-steer axles are present, so user picks front or rear steer
+    if (hasFixed) {
       setSteerTypePrompt(true);
     } else {
       addAxle("steering");
