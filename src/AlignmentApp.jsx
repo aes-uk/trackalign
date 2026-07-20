@@ -4126,8 +4126,8 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   const setBeforeAxles = useCallback(updater =>
     setJ(p => {
       const newAxles = typeof updater === "function" ? updater(p.axles) : updater;
-      // If an axle was removed while a config is selected, drop the config name so pills show
-      const configCleared = p.configName && newAxles.length < (p.axles||[]).length;
+      // If axles change (add or remove) while a config is selected, drop the config name so pills show
+      const configCleared = p.configName && newAxles.length !== (p.axles||[]).length;
       return {
         ...p,
         axles: newAxles,
