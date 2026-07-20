@@ -1678,7 +1678,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {showSelectors&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
-            Select a Configuration
+            Select a Saved Configuration
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             {configs.map(c=>(
@@ -5093,7 +5093,7 @@ function AuthenticatedApp({ session }) {
                 config={editingConfig}
                 onSave={saveConfig}
                 onDelete={deleteConfig}
-                onBack={configSource==="job"?()=>{setPendingJ(null);setConfigScreen(null);setScreen("job");setOpenTab("before");setForceTab("before");setTimeout(()=>setForceTab(null),100);}:goHome}/>}
+                onBack={configSource==="job"?()=>{setPendingJ(null);setConfigScreen(null);setScreen("job");setOpenTab("before");setForceTab("before");setTimeout(()=>setForceTab(null),100);}:()=>setConfigScreen("library")}/>}
               {(screen==="dashboard"||screen==="job")&&!configScreen&&(
                 <>
                   {screen==="dashboard"&&<Dashboard jobs={sortNewestFirst(jobs)} onNew={newJob} onOpen={openJob} onDelete={deleteJob}
