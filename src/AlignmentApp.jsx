@@ -1609,12 +1609,11 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"rgba(5,5,5,0.5)",marginBottom:3}}>
+          <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
-          <div style={{fontFamily:FD,fontSize:14,color:"#050505",fontWeight:"600"}}>
-            {job.configName||<span style={{color:"rgba(5,5,5,0.35)",fontWeight:"400",fontSize:11}}>No configuration selected</span>}
+          <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+            {job.configName||"Select configuration or create new. Or, add axles manually."}
           </div>
         </div>
         <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
@@ -1627,7 +1626,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {!job.configName&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"rgba(5,5,5,0.45)"}}>Select a Configuration</div>
+            letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
             {configs.map(c=>(
               <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
