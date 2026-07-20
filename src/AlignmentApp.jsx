@@ -275,7 +275,7 @@ function makeConfigAxle(type, label) {
 function makeConfig(name="New Configuration") {
   return {
     id:uid(), name, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
-    axles:[makeConfigAxle("steering","Front Steer"), makeConfigAxle("fixed","Non Steer")],
+    axles:[],
   };
 }
 
@@ -2922,7 +2922,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, showAdjCalc=false, configs=[], onApplyConfig=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -2978,7 +2978,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
     <>
       {/* Config picker */}
       {onConfigClick&&(
-        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onOpenLibrary={onConfigClick}/>
+        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onOpenLibrary={onCreateConfig||onConfigClick}/>
       )}
       {/* Full distance input — Josam mode only, on Before tab */}
       {isJosam && setFullDistance && (
@@ -3967,7 +3967,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 }
 
 
-function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={}, showAdjCalc=false, configs=[] }) {
+function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onCreateConfig, onApplyConfig, forceTab=null, company={}, showAdjCalc=false, configs=[] }) {
   const [j,setJ]=useState(()=>({
     ...job,
     axles: Array.isArray(job.axles) ? job.axles : [],
@@ -4145,6 +4145,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
             isJosam={isJosam} fullDistance={j.fullDistance||""}
             setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
             jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
+            onCreateConfig={()=>onCreateConfig&&onCreateConfig(setJ,j)}
             showAdjCalc={showAdjCalc}
             configs={configs}
             onApplyConfig={c=>{
@@ -4815,12 +4816,34 @@ function AuthenticatedApp({ session }) {
   const [pendingJ, setPendingJ] = useState(null); // unsaved job snapshot when opening library from within a job
   const [configSource, setConfigSource] = useState("footer"); // "footer" | "job"
   function openConfigLibrary(setJFn, currentJ) { setPendingSetJ(()=>setJFn); setPendingJ(currentJ||null); setConfigSource("job"); setConfigScreen("library"); }
-  function newConfig() { setEditingConfig(makeConfig()); setConfigScreen("editor"); }
+  function openConfigEditor(setJFn, currentJ) { setPendingSetJ(()=>setJFn); setPendingJ(currentJ||null); setConfigSource("job"); setEditingConfig(makeConfig()); setConfigScreen("editor"); }
+  function newConfig() { setConfigSource("footer"); setEditingConfig(makeConfig()); setConfigScreen("editor"); }
   function editConfig(c) { setEditingConfig(c); setConfigScreen("editor"); }
   function saveConfig(c) {
     const stamped = {...c, updatedAt:new Date().toISOString(), syncStatus:"local"};
     setConfigs(p => p.find(x=>x.id===stamped.id) ? p.map(x=>x.id===stamped.id?stamped:x) : [stamped,...p]);
-    setConfigScreen("library");
+    if (configSource==="job" && activeId) {
+      // Apply the newly created config to the current job and go to Before tab
+      const newAxles = stamped.axles.map(ca=>({
+        ...makeAxleForType(ca.type, ca.label),
+        tolerances: JSON.parse(JSON.stringify(ca.tolerances||{})),
+        dualWheel: ca.dualWheel||false,
+        driveSide: ca.driveSide||"RHD",
+        suspType:  ca.suspType||"solid",
+      }));
+      const stamp = {updatedAt:new Date().toISOString(), syncStatus:"local"};
+      setJobs(prev=>prev.map(j=>j.id===activeId
+        ? {...(pendingJ||j), axles:newAxles, configId:stamped.id, configName:stamped.name, afterAxles:null, ...stamp}
+        : j));
+      setPendingJ(null);
+      setConfigScreen(null);
+      setScreen("job");
+      setOpenTab("before");
+      setForceTab("before");
+      setTimeout(()=>setForceTab(null), 100);
+    } else {
+      setConfigScreen("library");
+    }
   }
   function deleteConfig(id) {
     setConfigs(p=>p.filter(c=>c.id!==id));
@@ -4945,7 +4968,7 @@ function AuthenticatedApp({ session }) {
                   {screen==="job"&&activeJob&&
                     <JobEditor job={activeJob} allJobs={jobs} onSave={saveJob}
                       onBack={goHome} initialTab={openTab}
-                      onOpenConfigs={openConfigLibrary} forceTab={forceTab}
+                      onOpenConfigs={openConfigLibrary} onCreateConfig={openConfigEditor} forceTab={forceTab}
                       company={company} showAdjCalc={showAdjCalc} configs={configs}/>}
                 </>
               )}
