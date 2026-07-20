@@ -2654,10 +2654,12 @@ function JobDetailsTab({ j, setJ, allJobs }) {
             placeholder="Company or individual name"/>
           <Field label="Contact Name" value={j.customer.name}
             onChange={v=>updC("name",v)} placeholder="Person's name"/>
-          <Field label="Phone" value={j.customer.phone}
-            onChange={v=>updC("phone",v)} placeholder="04xx xxx xxx"/>
-          <Field label="Email" value={j.customer.email}
-            onChange={v=>updC("email",v)} placeholder="name@email.com"/>
+          <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,overflow:"hidden"}}>
+            <Field label="Phone" value={j.customer.phone}
+              onChange={v=>updC("phone",v)} placeholder="04xx xxx xxx"/>
+            <Field label="Email" value={j.customer.email}
+              onChange={v=>updC("email",v)} placeholder="name@email.com"/>
+          </div>
         </div>
       </div>
 
@@ -2675,18 +2677,19 @@ function JobDetailsTab({ j, setJ, allJobs }) {
               onChange={v=>updV("reg",v.toUpperCase())}
               onBlur={v=>applyAxlesForReg(v)}
               placeholder="ABC 123"/>
-            <Field label="Year" value={j.vehicle.year} onChange={v=>updV("year",v)} placeholder="2024"/>
+            <Field label="Mileage" value={j.vehicle.mileage||""} onChange={v=>updV("mileage",v)} placeholder="e.g. 124500"/>
           </div>
-          <AutoField label="Make" value={j.vehicle.make}
-            onChange={v=>{ updV("make",v); updV("model",""); }}
-            onSelect={selectMake}
-            suggestions={makes}
-            placeholder="e.g. Toyota"/>
-          <AutoField label="Model" value={j.vehicle.model}
-            onChange={v=>updV("model",v)}
-            suggestions={models}
-            placeholder={j.vehicle.make ? `e.g. ${models[0]||"HiLux"}` : "Select make first"}/>
-          <Field label="Mileage" value={j.vehicle.mileage||""} onChange={v=>updV("mileage",v)} placeholder="e.g. 124500"/>
+          <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,overflow:"hidden"}}>
+            <AutoField label="Make" value={j.vehicle.make}
+              onChange={v=>{ updV("make",v); updV("model",""); }}
+              onSelect={selectMake}
+              suggestions={makes}
+              placeholder="e.g. Toyota"/>
+            <AutoField label="Model" value={j.vehicle.model}
+              onChange={v=>updV("model",v)}
+              suggestions={models}
+              placeholder={j.vehicle.make ? `e.g. ${models[0]||"HiLux"}` : "Select make first"}/>
+          </div>
         </div>
       </div>
 
