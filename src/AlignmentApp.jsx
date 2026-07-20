@@ -1615,7 +1615,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             Axle Configuration
           </div>
           <div style={{fontFamily:FB,fontSize:job.configName?18:12,color:job.configName?"#16a34a":"rgba(5,5,5,0.5)",fontWeight:job.configName?"600":"400"}}>
-            {job.configName||"Select configuration or create new. Or, add axles manually."}
+            {job.configName||(configs.length>0?"Select configuration or create new. Or, add axles manually.":"Create new configuration, or add axles manually.")}
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"row",alignItems:"center",gap:8,flexShrink:0}}>
