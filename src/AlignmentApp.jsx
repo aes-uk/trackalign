@@ -1625,6 +1625,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
   const showReset = (hasConfig || hasAxles) && !readingsEntered;
   const showCreate = !hasConfig && !hasAxles && !readingsEntered;
   const showSelectors = !hasConfig && !hasAxles && !readingsEntered;
+  const showAxleButtons = !hasConfig && !readingsEntered;
   const pillStyle = {fontFamily:FB,fontSize:11,fontWeight:"600",borderRadius:"0.25rem",padding:"3px 8px",whiteSpace:"nowrap"};
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
@@ -1698,7 +1699,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       )}
 
       {/* Select Axle (manual build) */}
-      {showSelectors&&onAddAxle&&(
+      {showAxleButtons&&onAddAxle&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
             Select Axle
