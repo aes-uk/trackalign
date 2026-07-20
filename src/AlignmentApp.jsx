@@ -681,8 +681,8 @@ function AxleDiagramNew({ axleType="fixed", dual=false, toeLeft=0, toeRight=0,
   //   Right wheel toe-in: top leans LEFT = negative SVG rotate
   const toeRot = v => {
     const ab = Math.min(Math.abs(v), 15); // cap at 15mm
-    if (ab<=2) return 0;
-    const deg = (ab-2)*2; // up to 26° at 15mm
+    if (ab<=1.5) return 0;
+    const deg = (ab-1.5)*2; // up to 27° at 15mm
     return v<0 ? -deg : deg;
   };
   const rotL =  toeRot(toeLeft);  // positive toe = lean in (right)
