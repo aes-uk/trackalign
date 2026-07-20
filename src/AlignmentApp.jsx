@@ -1485,7 +1485,83 @@ function ConfigEditorScreen({ config, onSave, onBack, onDelete }) {
 }
 
 /* Config library screen */
-function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
+function ConfigCard({ c, onSelect, onEdit, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onClickOut(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOut);
+    document.addEventListener("touchstart", onClickOut);
+    return () => { document.removeEventListener("mousedown", onClickOut); document.removeEventListener("touchstart", onClickOut); };
+  }, [menuOpen]);
+
+  if (deleting) {
+    return (
+      <div style={{background:"#ffffff",borderRadius:"0.4rem",borderLeft:"4px solid #eb0000",
+        boxShadow:"0 1px 4px rgba(0,0,0,0.10)",padding:"14px 16px"}}>
+        <div style={{fontFamily:FB,fontSize:13,color:"#050505",marginBottom:6,fontWeight:"600"}}>Delete this configuration?</div>
+        <div style={{fontFamily:FB,fontSize:12,color:"#888",marginBottom:14}}>{c.name}</div>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={e=>{e.stopPropagation();onDelete(c.id);}} style={{flex:1,background:"#eb0000",border:"none",
+            borderRadius:"0.3rem",padding:"10px",color:"#fff",fontFamily:FB,fontWeight:"600",
+            fontSize:13,cursor:"pointer"}}>Delete</button>
+          <button onClick={e=>{e.stopPropagation();setDeleting(false);}} style={{flex:1,background:"#efefef",border:"none",
+            borderRadius:"0.3rem",padding:"10px",color:"#050505",fontFamily:FB,fontWeight:"600",
+            fontSize:13,cursor:"pointer"}}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",overflow:"visible"}}>
+      <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontFamily:FD,fontSize:15,color:"#050505",fontWeight:"600",
+            whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</div>
+          <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginTop:3}}>
+            {c.axles.map(a=>a.label).join(" · ")}
+          </div>
+        </div>
+        <button onClick={()=>onEdit(c)} style={{background:"none",border:"none",
+          color:"rgba(5,5,5,0.4)",cursor:"pointer",fontFamily:FB,fontSize:12,padding:"4px 8px",flexShrink:0}}
+          onMouseEnter={e=>e.currentTarget.style.color="#050505"}
+          onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.4)"}>Edit</button>
+        {onSelect&&<button onClick={()=>onSelect(c)} style={{
+          background:"#eb0000",border:"none",borderRadius:"0.3rem",
+          padding:"6px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
+          fontSize:12,cursor:"pointer",flexShrink:0}}>Use</button>}
+        <div ref={menuRef} style={{position:"relative",flexShrink:0}}>
+          <button onClick={e=>{e.stopPropagation();setMenuOpen(o=>!o);}}
+            style={{background:"none",border:"none",cursor:"pointer",padding:"2px 6px",
+              fontSize:20,color:"#bbb",lineHeight:1,borderRadius:"0.25rem",
+              display:"flex",alignItems:"center"}}
+            onMouseEnter={e=>e.currentTarget.style.color="#555"}
+            onMouseLeave={e=>e.currentTarget.style.color="#bbb"}>⋮</button>
+          {menuOpen&&(
+            <div style={{position:"absolute",right:0,top:"110%",zIndex:300,
+              background:"#fff",border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.35rem",
+              boxShadow:"0 4px 16px rgba(0,0,0,0.14)",minWidth:160,overflow:"hidden"}}>
+              <button onClick={e=>{e.stopPropagation();setMenuOpen(false);setDeleting(true);}}
+                style={{display:"block",width:"100%",padding:"10px 14px",textAlign:"left",
+                  background:"none",border:"none",cursor:"pointer",fontFamily:FB,fontSize:13,
+                  fontWeight:"600",color:"#eb0000"}}
+                onMouseEnter={e=>e.currentTarget.style.background="#fef2f2"}
+                onMouseLeave={e=>e.currentTarget.style.background="none"}>Delete configuration</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onDelete, onBack }) {
   const [q,setQ]=useState("");
   useEffect(()=>{ window.scrollTo(0,0); }, []);
   const filtered=configs.filter(c=>c.name.toLowerCase().includes(q.toLowerCase()));
@@ -1518,24 +1594,7 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
           </div>
         )}
         {filtered.map(c=>(
-          <div key={c.id} style={{background:"#fff",border:"1px solid rgba(5,5,5,0.10)",
-            borderRadius:"0.3rem",overflow:"hidden"}}>
-            <div style={{padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
-              <div style={{flex:1}}>
-                <div style={{fontFamily:FD,fontSize:15,color:"#050505",fontWeight:"600"}}>{c.name}</div>
-                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",marginTop:3}}>
-                  {c.axles.map(a=>a.label).join(" · ")}
-                </div>
-              </div>
-              <button onClick={()=>onEdit(c)} style={{background:"none",border:"none",
-                color:"rgba(5,5,5,0.4)",cursor:"pointer",fontFamily:FB,fontSize:12,padding:"4px 8px"}}
-                onMouseEnter={e=>e.currentTarget.style.color="#050505"}
-                onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.4)"}>Edit</button>
-              {onSelect&&<button onClick={()=>onSelect(c)} style={{
-                background:"#eb0000",border:"none",borderRadius:"0.3rem",
-                padding:"6px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
-                fontSize:12,cursor:"pointer"}}>Use</button>}            </div>
-          </div>
+          <ConfigCard key={c.id} c={c} onSelect={onSelect} onEdit={onEdit} onDelete={onDelete}/>
         ))}
       </div>
     </div>
