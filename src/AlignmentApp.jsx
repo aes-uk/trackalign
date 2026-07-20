@@ -1609,12 +1609,12 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"rgba(5,5,5,0.5)",marginBottom:3}}>
-            Axle Configuration
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+            <div style={{width:3,height:13,background:"#050505",borderRadius:"0.3rem",flexShrink:0}}/>
+            <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",textTransform:"uppercase",fontWeight:"600"}}>Axle Configuration</span>
           </div>
           <div style={{fontFamily:FD,fontSize:14,color:"#050505",fontWeight:"600"}}>
-            {job.configName||<span style={{color:"rgba(5,5,5,0.35)",fontWeight:"400",fontSize:11}}>No configuration selected</span>}
+            {job.configName||<span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)",fontWeight:"400"}}>Select configuration from below or create new.</span>}
           </div>
         </div>
         <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
@@ -1627,7 +1627,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {!job.configName&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"rgba(5,5,5,0.45)"}}>Select a Configuration</div>
+            letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
             {configs.map(c=>(
               <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
@@ -2643,6 +2643,36 @@ function JobDetailsTab({ j, setJ, allJobs }) {
 
   return (
     <div style={{display:"flex",flexDirection:"column",gap:20}}>
+      {/* Vehicle */}
+      <div>
+        <SectionHead>Vehicle</SectionHead>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,overflow:"hidden"}}>
+            <Field label="REG" value={j.vehicle.reg.toUpperCase()}
+              onChange={v=>updV("reg",v.toUpperCase())}
+              onBlur={v=>applyAxlesForReg(v)}
+              placeholder="ABC 123"/>
+            <Field label="Mileage" value={j.vehicle.mileage||""} onChange={v=>updV("mileage",v)} placeholder="e.g. 124500"/>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,overflow:"hidden"}}>
+            <AutoField label="Make" value={j.vehicle.make}
+              onChange={v=>{ updV("make",v); updV("model",""); }}
+              onSelect={selectMake}
+              suggestions={makes}
+              placeholder="e.g. Toyota"/>
+            <AutoField label="Model" value={j.vehicle.model}
+              onChange={v=>updV("model",v)}
+              suggestions={models}
+              placeholder={j.vehicle.make ? `e.g. ${models[0]||"HiLux"}` : "Select make first"}/>
+          </div>
+        </div>
+      </div>
+
+      {/* Previous vehicles for this company */}
+      {prevVehicles.length>0&&(
+        <VehiclePicker vehicles={prevVehicles} onSelect={selectVehicle}/>
+      )}
+
       {/* Customer */}
       <div>
         <SectionHead>Customer</SectionHead>
@@ -2654,39 +2684,12 @@ function JobDetailsTab({ j, setJ, allJobs }) {
             placeholder="Company or individual name"/>
           <Field label="Contact Name" value={j.customer.name}
             onChange={v=>updC("name",v)} placeholder="Person's name"/>
-          <Field label="Phone" value={j.customer.phone}
-            onChange={v=>updC("phone",v)} placeholder="04xx xxx xxx"/>
-          <Field label="Email" value={j.customer.email}
-            onChange={v=>updC("email",v)} placeholder="name@email.com"/>
-        </div>
-      </div>
-
-      {/* Previous vehicles for this company */}
-      {prevVehicles.length>0&&(
-        <VehiclePicker vehicles={prevVehicles} onSelect={selectVehicle}/>
-      )}
-
-      {/* Vehicle */}
-      <div>
-        <SectionHead>Vehicle</SectionHead>
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10,overflow:"hidden"}}>
-            <Field label="REG"  value={j.vehicle.reg.toUpperCase()}
-              onChange={v=>updV("reg",v.toUpperCase())}
-              onBlur={v=>applyAxlesForReg(v)}
-              placeholder="ABC 123"/>
-            <Field label="Year" value={j.vehicle.year} onChange={v=>updV("year",v)} placeholder="2024"/>
+            <Field label="Phone" value={j.customer.phone}
+              onChange={v=>updC("phone",v)} placeholder="04xx xxx xxx"/>
+            <Field label="Email" value={j.customer.email}
+              onChange={v=>updC("email",v)} placeholder="name@email.com"/>
           </div>
-          <AutoField label="Make" value={j.vehicle.make}
-            onChange={v=>{ updV("make",v); updV("model",""); }}
-            onSelect={selectMake}
-            suggestions={makes}
-            placeholder="e.g. Toyota"/>
-          <AutoField label="Model" value={j.vehicle.model}
-            onChange={v=>updV("model",v)}
-            suggestions={models}
-            placeholder={j.vehicle.make ? `e.g. ${models[0]||"HiLux"}` : "Select make first"}/>
-          <Field label="Mileage" value={j.vehicle.mileage||""} onChange={v=>updV("mileage",v)} placeholder="e.g. 124500"/>
         </div>
       </div>
 
