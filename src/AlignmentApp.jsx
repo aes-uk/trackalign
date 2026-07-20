@@ -1602,46 +1602,56 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onDelete, onBac
 }
 
 /* Config picker shown at top of Before tab */
-function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary }) {
+function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary, onReset }) {
   const hasConfig = !!job.configName;
+  const hasAxles = (job.axles||[]).length > 0;
+  const showReset = hasConfig || hasAxles;
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
-        <div>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10}}>
+        <div style={{flex:1,minWidth:0}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
           <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-            {job.configName||"Select configuration or create new. Or, add axles manually."}
+            {job.configName||"Select configuration or create new. Or, add axles manually below by clicking +."}
           </div>
         </div>
-        <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
-          background:"#eb0000",border:"none",borderRadius:"0.3rem",
-          padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
-          fontSize:12,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>
-          {hasConfig?"Change":"Create"}
-        </button>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0}}>
+          <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
+            background:"#eb0000",border:"none",borderRadius:"0.3rem",
+            padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
+            fontSize:12,cursor:"pointer",whiteSpace:"nowrap"}}>
+            {hasConfig?"Change":"Create"}
+          </button>
+          {showReset&&onReset&&(
+            <button onClick={onReset} style={{
+              background:"none",border:"1px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",
+              padding:"4px 10px",color:"rgba(5,5,5,0.45)",fontFamily:FB,fontWeight:"500",
+              fontSize:10,cursor:"pointer",whiteSpace:"nowrap",letterSpacing:"0.04em"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(235,0,0,0.5)";e.currentTarget.style.color="#eb0000";}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(5,5,5,0.18)";e.currentTarget.style.color="rgba(5,5,5,0.45)";}}>
+              Reset
+            </button>
+          )}
+        </div>
       </div>
       {!job.configName&&configs.length>0&&onSelectConfig&&(
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-            {configs.map(c=>(
-              <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
-                background:"#16a34a",border:"none",borderRadius:"0.3rem",
-                padding:"5px 12px",cursor:"pointer",
-                fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
-                letterSpacing:"0.04em",transition:"opacity 0.15s",
-                whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-              }}
-              onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
-              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                {c.name}
-              </button>
-            ))}
-          </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+          {configs.map(c=>(
+            <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
+              background:"#16a34a",border:"none",borderRadius:"0.3rem",
+              padding:"5px 12px",cursor:"pointer",
+              fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
+              letterSpacing:"0.04em",transition:"opacity 0.15s",
+              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+            }}
+            onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
+            onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+              {c.name}
+            </button>
+          ))}
         </div>
       )}
     </div>
@@ -2984,7 +2994,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3040,7 +3050,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
     <>
       {/* Config picker */}
       {onConfigClick&&(
-        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick}/>
+        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig}/>
       )}
       {/* Full distance input — Josam mode only, on Before tab */}
       {isJosam && setFullDistance && (
@@ -4220,6 +4230,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
               }));
               setJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}));
             }}
+            onResetConfig={()=>setJ(p=>({...p, axles:[], configId:null, configName:"", afterAxles:null}))}
 />
         )}
 
