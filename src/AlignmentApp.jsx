@@ -483,7 +483,7 @@ function makeJob(measureMethod="direct") {
   return { id:uid(), createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     customer:{ company:"", name:"", phone:"", email:"" },
     vehicle:{ reg:"", make:"", model:"", year:"", mileage:"" },
-    axles:[makeSteeringAxle("Front Steer"), makeFixedAxle("Non Steer")],
+    axles:[],
     afterAxles:null, fullDistance:"",
     configId:null, configName:null,
     measureMethod,
@@ -3946,10 +3946,72 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
 }
 
 
+function AxleEmptyState({ onSelectConfig, onAddManually, isAfter=false }) {
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      gap:20,padding:"40px 24px",textAlign:"center",flex:1}}>
+      {/* Vehicle icon */}
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="72" height="72" rx="36" fill="rgba(235,0,0,0.08)"/>
+        <g transform="translate(12,18)">
+          {/* Body */}
+          <rect x="2" y="14" width="44" height="16" rx="3" fill="none" stroke="rgba(5,5,5,0.25)" strokeWidth="2"/>
+          {/* Cab */}
+          <path d="M8 14 L13 6 L33 6 L38 14" fill="none" stroke="rgba(5,5,5,0.25)" strokeWidth="2" strokeLinejoin="round"/>
+          {/* Wheels */}
+          <circle cx="13" cy="30" r="5" fill="none" stroke="#eb0000" strokeWidth="2"/>
+          <circle cx="13" cy="30" r="2" fill="#eb0000" opacity="0.4"/>
+          <circle cx="35" cy="30" r="5" fill="none" stroke="#eb0000" strokeWidth="2"/>
+          <circle cx="35" cy="30" r="2" fill="#eb0000" opacity="0.4"/>
+          {/* Windscreen */}
+          <path d="M14 13 L17 7 L30 7 L33 13" fill="rgba(5,5,5,0.06)" stroke="rgba(5,5,5,0.15)" strokeWidth="1"/>
+        </g>
+      </svg>
+
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        <div style={{fontFamily:FM,fontSize:17,fontWeight:"700",color:"#050505",
+          letterSpacing:"0.03em",textTransform:"uppercase"}}>
+          No configuration selected
+        </div>
+        <div style={{fontFamily:FB,fontSize:13,color:"rgba(5,5,5,0.5)",lineHeight:1.5,maxWidth:260,margin:"0 auto"}}>
+          {isAfter
+            ? "Configure the Before tab first, then return here to enter after readings."
+            : "Select a saved configuration or add axles manually to begin measuring."}
+        </div>
+      </div>
+
+      {!isAfter&&(
+        <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:280}}>
+          <button onClick={onSelectConfig} style={{
+            background:"#eb0000",border:"none",borderRadius:"0.3rem",
+            padding:"14px 20px",cursor:"pointer",
+            fontFamily:FB,fontWeight:"600",fontSize:14,color:"#ffffff",
+            letterSpacing:"0.04em",transition:"opacity 0.15s",
+          }}
+          onMouseEnter={e=>e.currentTarget.style.opacity="0.88"}
+          onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+            Select Configuration
+          </button>
+          <button onClick={onAddManually} style={{
+            background:"none",border:"1.5px solid rgba(5,5,5,0.2)",borderRadius:"0.3rem",
+            padding:"13px 20px",cursor:"pointer",
+            fontFamily:FB,fontWeight:"600",fontSize:14,color:"#050505",
+            letterSpacing:"0.04em",transition:"all 0.15s",
+          }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(5,5,5,0.5)";e.currentTarget.style.background="rgba(5,5,5,0.04)"}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(5,5,5,0.2)";e.currentTarget.style.background="none"}}>
+            Add Axles Manually
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfigs, onApplyConfig, forceTab=null, company={}, showAdjCalc=false }) {
   const [j,setJ]=useState(()=>({
     ...job,
-    axles: Array.isArray(job.axles) ? job.axles : [makeSteeringAxle("Front"), makeFixedAxle("Rear")],
+    axles: Array.isArray(job.axles) ? job.axles : [],
     afterAxles: job.afterAxles && Array.isArray(job.afterAxles) ? job.afterAxles : null,
     measureMethod: job.measureMethod || "direct",
   }));
@@ -4120,20 +4182,39 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
         )}
 
         {tab==="before"&&(
-          <ReadingsPanel axles={j.axles} setAxles={setBeforeAxles}
-            isJosam={isJosam} fullDistance={j.fullDistance||""}
-            setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
-            jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
-            showAdjCalc={showAdjCalc}
-/>
+          j.axles.length===0
+            ? <AxleEmptyState
+                onSelectConfig={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
+                onAddManually={()=>{
+                  // Add a steering axle to kick off manual build
+                  setBeforeAxles([makeSteeringAxle("Front Steer")]);
+                }}
+              />
+            : <ReadingsPanel axles={j.axles} setAxles={setBeforeAxles}
+                isJosam={isJosam} fullDistance={j.fullDistance||""}
+                setFullDistance={v=>setJ(p=>({...p,fullDistance:v}))}
+                jobRef={j} onConfigClick={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
+                showAdjCalc={showAdjCalc}
+              />
         )}
 
-        {tab==="after"&&j.afterAxles&&(
-          <ReadingsPanel axles={j.afterAxles} setAxles={setAfterAxles}
-            isJosam={isJosam} fullDistance={j.fullDistance||""}
-            setFullDistance={null}
-            beforeAxles={j.axles}
-/>
+        {tab==="after"&&(
+          j.axles.length===0
+            ? <AxleEmptyState
+                onSelectConfig={()=>onOpenConfigs&&onOpenConfigs(setJ,j)}
+                onAddManually={()=>{
+                  setBeforeAxles([makeSteeringAxle("Front Steer")]);
+                  setTab("before");
+                }}
+                isAfter
+              />
+            : j.afterAxles&&(
+                <ReadingsPanel axles={j.afterAxles} setAxles={setAfterAxles}
+                  isJosam={isJosam} fullDistance={j.fullDistance||""}
+                  setFullDistance={null}
+                  beforeAxles={j.axles}
+                />
+              )
         )}
 
         {tab==="report"&&beforeHasData&&(
