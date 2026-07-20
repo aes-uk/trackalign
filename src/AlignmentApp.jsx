@@ -272,7 +272,7 @@ function emptyAxleTolerance(type) {
 function makeConfigAxle(type, label) {
   return { id:uid(), label, type, dualWheel:false, tolerances:emptyAxleTolerance(type) };
 }
-function makeConfig(name="New Configuration") {
+function makeConfig(name="") {
   return {
     id:uid(), name, createdAt:new Date().toISOString(), updatedAt:new Date().toISOString(), syncStatus:"local",
     axles:[],
@@ -1698,32 +1698,6 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
         </div>
       )}
 
-      {/* Select Axle (manual build) */}
-      {showAxleButtons&&onAddAxle&&(
-        <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
-            Select Axle
-          </div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-            {[
-              {label:"+ Steer Axle",   type:"steering"},
-              {label:"+ Rear Steer",   type:"rear-steer"},
-              {label:"+ Non Steer",    type:"fixed"},
-            ].map(({label,type})=>(
-              <button key={type} onClick={()=>onAddAxle(type)} style={{
-                background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
-                borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
-                fontFamily:FB,fontWeight:"600",fontSize:11,
-                whiteSpace:"nowrap",transition:"opacity 0.15s",
-              }}
-              onMouseEnter={e=>e.currentTarget.style.opacity="0.7"}
-              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -3122,8 +3096,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {onConfigClick&&(
         <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig} onAddAxle={onAddAxleFromPicker}/>
       )}
-      {/* Full distance input — Josam mode only, on Before tab */}
-      {isJosam && setFullDistance && (
+      {/* Full distance input — Josam mode only, on Before tab, hidden until config/axle selected */}
+      {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (
         <div style={{background:"rgba(235,0,0,0.06)",border:"1px solid rgba(235,0,0,0.15)",
           borderRadius:"0.3rem",padding:"12px 14px"}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:6}}>
@@ -3227,25 +3201,32 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
         </div>
       ))}
 {!isAfterPanel&&(
-      <>
-        {axles.length===0&&(
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,
-            padding:"24px 16px",border:"1.5px dashed rgba(5,5,5,0.18)",borderRadius:"0.3rem",
-            background:"rgba(5,5,5,0.02)",textAlign:"center"}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(5,5,5,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.45)",lineHeight:1.5}}>
-              No axles added yet.<br/>Use the buttons below to build the vehicle configuration.
-            </div>
-          </div>
-        )}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-          <Btn variant="ghost" small onClick={handleAddSteer}>+ Steer Axle</Btn>
-          <Btn variant="ghost" small onClick={()=>addAxle("rear-steer")}>+ Rear Steer</Btn>
-          <Btn variant="ghost" small onClick={()=>addAxle("fixed")}>+ Non Steer</Btn>
+      <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
+        borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
+          Quick Layout
         </div>
-      </>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          <button onClick={handleAddSteer} style={{
+            background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+            borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+            fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+            + Steer Axle
+          </button>
+          <button onClick={()=>addAxle("rear-steer")} style={{
+            background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+            borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+            fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+            + Rear Steer
+          </button>
+          <button onClick={()=>addAxle("fixed")} style={{
+            background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+            borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+            fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+            + Non Steer
+          </button>
+        </div>
+      </div>
       )}
 
       {/* Steer type prompt modal */}
