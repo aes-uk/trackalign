@@ -1602,10 +1602,21 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onDelete, onBac
 }
 
 /* Config picker shown at top of Before tab */
+const AXLE_TYPE_LABELS = { steering:"Front Steer", "second-steer":"Second Steer", "rear-steer":"Rear Steer", fixed:"Non Steer" };
+
+function hasAnyReadings(axles=[]) {
+  const READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight","casterLeft","casterRight",
+    "kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","frontScaleLeft","frontScaleRight",
+    "rearScaleLeft","rearScaleRight"];
+  return axles.some(a => READING_FIELDS.some(f => a[f]!=null && a[f]!==""));
+}
+
 function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary, onReset }) {
   const hasConfig = !!job.configName;
   const hasAxles = (job.axles||[]).length > 0;
-  const showReset = hasConfig || hasAxles;
+  const readingsEntered = hasAnyReadings(job.axles);
+  const showReset = (hasConfig || hasAxles) && !readingsEntered;
+  const showCreate = !hasConfig && !readingsEntered;
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
@@ -1614,9 +1625,25 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
-          <div style={{fontFamily:FB,fontSize:job.configName?18:12,color:job.configName?"#16a34a":"rgba(5,5,5,0.5)",fontWeight:job.configName?"600":"400"}}>
-            {job.configName||(configs.length>0?"Select configuration or create new. Or, add axles manually.":"Create new configuration, or add axles manually.")}
-          </div>
+          {hasConfig ? (
+            <div style={{fontFamily:FB,fontSize:18,color:"#16a34a",fontWeight:"600"}}>
+              {job.configName}
+            </div>
+          ) : hasAxles ? (
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
+              {(job.axles||[]).map((a,i)=>(
+                <span key={i} style={{fontFamily:FB,fontSize:11,fontWeight:"600",
+                  background:"rgba(5,5,5,0.08)",borderRadius:"0.25rem",
+                  padding:"3px 8px",color:"#050505"}}>
+                  {AXLE_TYPE_LABELS[a.type]||a.type}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+              {configs.length>0?"Select configuration or create new. Or, add axles manually.":"Create new configuration, or add axles manually."}
+            </div>
+          )}
         </div>
         <div style={{display:"flex",flexDirection:"row",alignItems:"center",gap:8,flexShrink:0}}>
           {showReset&&onReset&&(
@@ -1627,7 +1654,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
               Reset
             </button>
           )}
-          {!hasConfig&&(
+          {showCreate&&(
             <button onClick={onCreateConfig} style={{
               background:"#eb0000",border:"none",borderRadius:"0.3rem",
               padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
@@ -1637,25 +1664,25 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           )}
         </div>
       </div>
-      {!job.configName&&configs.length>0&&onSelectConfig&&(
+      {!job.configName&&!readingsEntered&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
             letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-          {configs.map(c=>(
-            <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
-              background:"#16a34a",border:"none",borderRadius:"0.3rem",
-              padding:"5px 12px",cursor:"pointer",
-              fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
-              letterSpacing:"0.04em",transition:"opacity 0.15s",
-              whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
-            }}
-            onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
-            onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-              {c.name}
-            </button>
-          ))}
-        </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            {configs.map(c=>(
+              <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
+                background:"#16a34a",border:"none",borderRadius:"0.3rem",
+                padding:"5px 12px",cursor:"pointer",
+                fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
+                letterSpacing:"0.04em",transition:"opacity 0.15s",
+                whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
+              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                {c.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
