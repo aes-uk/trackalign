@@ -1633,8 +1633,12 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             Axle Configuration
           </div>
           {hasConfig ? (
-            <div style={{fontFamily:FB,fontSize:18,color:"#16a34a",fontWeight:"600"}}>
-              {job.configName}
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
+              <span style={{fontFamily:FB,fontSize:11,fontWeight:"600",
+                background:"#16a34a",borderRadius:"0.25rem",
+                padding:"3px 8px",color:"#ffffff"}}>
+                {job.configName}
+              </span>
             </div>
           ) : hasAxles ? (
             <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
