@@ -1543,7 +1543,8 @@ function ConfigLibraryScreen({ configs, onSelect, onNew, onEdit, onBack }) {
 }
 
 /* Config picker shown at top of Before tab */
-function ConfigPicker({ job, configs=[], onSelectConfig, onOpenLibrary }) {
+function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary }) {
+  const hasConfig = !!job.configName;
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
@@ -1557,11 +1558,11 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onOpenLibrary }) {
             {job.configName||<span style={{color:"rgba(5,5,5,0.35)",fontWeight:"400",fontSize:11}}>No configuration selected</span>}
           </div>
         </div>
-        <button onClick={onOpenLibrary} style={{
+        <button onClick={hasConfig ? onOpenLibrary : onCreateConfig} style={{
           background:"#eb0000",border:"none",borderRadius:"0.3rem",
           padding:"8px 14px",color:"#fff",fontFamily:FB,fontWeight:"600",
           fontSize:12,cursor:"pointer",flexShrink:0,whiteSpace:"nowrap"}}>
-          {job.configName?"Change":"Create"}
+          {hasConfig?"Change":"Create"}
         </button>
       </div>
       {!job.configName&&configs.length>0&&onSelectConfig&&(
@@ -2978,7 +2979,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
     <>
       {/* Config picker */}
       {onConfigClick&&(
-        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onOpenLibrary={onCreateConfig||onConfigClick}/>
+        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick}/>
       )}
       {/* Full distance input — Josam mode only, on Before tab */}
       {isJosam && setFullDistance && (
