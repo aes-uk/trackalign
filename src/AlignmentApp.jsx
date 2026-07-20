@@ -1633,7 +1633,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {/* Header row: text left, buttons right, vertically centred */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
+          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:"#050505",fontWeight:"700",textTransform:"uppercase",marginBottom:4}}>
             Axle Configuration
           </div>
           {hasConfig ? (
@@ -1677,7 +1677,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {/* Select a Configuration */}
       {showSelectors&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
+          <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
             Select a Saved Configuration
           </div>
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
@@ -3203,7 +3203,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
 {!isAfterPanel&&(
       <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
         borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-        <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505"}}>
+        <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:"#050505",fontWeight:"700",textTransform:"uppercase"}}>
           Quick Layout
         </div>
         <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
