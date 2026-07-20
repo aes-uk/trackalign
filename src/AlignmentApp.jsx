@@ -1554,7 +1554,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onOpenLibrary }) {
             Axle Configuration
           </div>
           <div style={{fontFamily:FD,fontSize:14,color:"#050505",fontWeight:"600"}}>
-            {job.configName||<span style={{color:"rgba(5,5,5,0.35)",fontWeight:"400"}}>No configuration selected</span>}
+            {job.configName||<span style={{color:"rgba(5,5,5,0.35)",fontWeight:"400",fontSize:11}}>No configuration selected</span>}
           </div>
         </div>
         <button onClick={onOpenLibrary} style={{
@@ -1564,7 +1564,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onOpenLibrary }) {
           {job.configName?"Change":"Create"}
         </button>
       </div>
-      {configs.length>0&&onSelectConfig&&(
+      {!job.configName&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
           <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
             letterSpacing:"0.08em",color:"rgba(5,5,5,0.45)"}}>Select a Configuration</div>
