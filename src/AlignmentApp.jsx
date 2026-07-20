@@ -1618,34 +1618,31 @@ function hasAnyReadings(axles=[]) {
   return axles.some(a => READING_FIELDS.some(f => a[f]!=null && a[f]!==""));
 }
 
-function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary, onReset }) {
+function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenLibrary, onReset, onAddAxle }) {
   const hasConfig = !!job.configName;
   const hasAxles = (job.axles||[]).length > 0;
   const readingsEntered = hasAnyReadings(job.axles);
   const showReset = (hasConfig || hasAxles) && !readingsEntered;
   const showCreate = !hasConfig && !hasAxles && !readingsEntered;
+  const showSelectors = !hasConfig && !hasAxles && !readingsEntered;
+  const pillStyle = {fontFamily:FB,fontSize:11,fontWeight:"600",borderRadius:"0.25rem",padding:"3px 8px",whiteSpace:"nowrap"};
   return (
     <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
       borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:10}}>
+      {/* Header row: text left, buttons right, vertically centred */}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:4}}>
             Axle Configuration
           </div>
           {hasConfig ? (
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
-              <span style={{fontFamily:FB,fontSize:11,fontWeight:"600",
-                background:"#16a34a",borderRadius:"0.25rem",
-                padding:"3px 8px",color:"#ffffff"}}>
-                {job.configName}
-              </span>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+              <span style={{...pillStyle,background:"#16a34a",color:"#fff"}}>{job.configName}</span>
             </div>
           ) : hasAxles ? (
-            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:2}}>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
               {(job.axles||[]).map((a,i)=>(
-                <span key={i} style={{fontFamily:FB,fontSize:11,fontWeight:"600",
-                  background:"rgba(5,5,5,0.08)",borderRadius:"0.25rem",
-                  padding:"3px 8px",color:"#050505"}}>
+                <span key={i} style={{...pillStyle,background:"rgba(5,5,5,0.08)",color:"#050505"}}>
                   {axleLabel(a, job.axles)}
                 </span>
               ))}
@@ -1675,22 +1672,52 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
           )}
         </div>
       </div>
-      {!job.configName&&!hasAxles&&!readingsEntered&&configs.length>0&&onSelectConfig&&(
+
+      {/* Select a Configuration */}
+      {showSelectors&&configs.length>0&&onSelectConfig&&(
         <div style={{display:"flex",flexDirection:"column",gap:6}}>
-          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",
-            letterSpacing:"0.08em",color:"#050505"}}>Select a Configuration</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
+            Select a Configuration
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             {configs.map(c=>(
               <button key={c.id} onClick={()=>onSelectConfig(c)} style={{
                 background:"#16a34a",border:"none",borderRadius:"0.3rem",
                 padding:"5px 12px",cursor:"pointer",
-                fontFamily:FB,fontWeight:"600",fontSize:11,color:"#ffffff",
+                fontFamily:FB,fontWeight:"600",fontSize:11,color:"#fff",
                 letterSpacing:"0.04em",transition:"opacity 0.15s",
-                whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",
+                whiteSpace:"nowrap",
               }}
               onMouseEnter={e=>e.currentTarget.style.opacity="0.8"}
               onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
                 {c.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Select Axle (manual build) */}
+      {showSelectors&&onAddAxle&&(
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          <div style={{fontFamily:FB,fontSize:10,textTransform:"uppercase",letterSpacing:"0.08em",color:"#050505"}}>
+            Select Axle
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {[
+              {label:"+ Steer Axle",   type:"steering"},
+              {label:"+ Rear Steer",   type:"rear-steer"},
+              {label:"+ Non Steer",    type:"fixed"},
+            ].map(({label,type})=>(
+              <button key={type} onClick={()=>onAddAxle(type)} style={{
+                background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+                borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+                fontFamily:FB,fontWeight:"600",fontSize:11,
+                whiteSpace:"nowrap",transition:"opacity 0.15s",
+              }}
+              onMouseEnter={e=>e.currentTarget.style.opacity="0.7"}
+              onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                {label}
               </button>
             ))}
           </div>
@@ -3036,7 +3063,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null, onAddAxleFromPicker=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3092,7 +3119,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
     <>
       {/* Config picker */}
       {onConfigClick&&(
-        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig}/>
+        <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig} onAddAxle={onAddAxleFromPicker}/>
       )}
       {/* Full distance input — Josam mode only, on Before tab */}
       {isJosam && setFullDistance && (
@@ -4273,6 +4300,15 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
               setJ(p=>({...p, axles:newAxles, configId:c.id, configName:c.name, afterAxles:null}));
             }}
             onResetConfig={()=>setJ(p=>({...p, axles:[], configId:null, configName:"", afterAxles:null}))}
+            onAddAxleFromPicker={type=>setBeforeAxles(prev=>{
+              const arr=Array.isArray(prev)?prev:[];
+              let label;
+              if(type==="steering"){const n=arr.filter(a=>a.type==="steering").length;label=n===0?"Front Steer":"Second Steer";}
+              else if(type==="rear-steer"){label="Rear Steer";}
+              else{label="Non Steer";}
+              const newAxle=type==="steering"?makeSteeringAxle(label):type==="rear-steer"?makeRearSteerAxle(label):makeFixedAxle(label);
+              return [...arr,newAxle];
+            })}
 />
         )}
 
