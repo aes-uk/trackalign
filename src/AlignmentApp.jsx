@@ -1633,7 +1633,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
       {/* Header row: text left, buttons right, vertically centred */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:"#050505",fontWeight:"700",textTransform:"uppercase",marginBottom:4}}>
+          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:4}}>
             Axle Configuration
           </div>
           {hasConfig ? (
@@ -3101,8 +3101,22 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {!isAfterPanel&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.14em",color:"#050505",fontWeight:"700",textTransform:"uppercase"}}>
-            Quick Layout
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+            <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
+              Quick Layout - Add Axles
+            </div>
+            {undoAxles!==null&&(
+              <button onClick={()=>{setAxles(undoAxles);setUndoAxles(null);}} style={{
+                background:"none",border:"none",cursor:"pointer",
+                padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
+                color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}
+                title="Undo last axle change">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7v6h6"/><path d="M3 13C5.5 7 11 4 17 6.5S22 15 17.5 19"/>
+                </svg>
+                Undo
+              </button>
+            )}
           </div>
           <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:8}}>
             <button onClick={()=>{saveUndo();handleAddSteer();}} style={{
@@ -3123,18 +3137,6 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
               + Non Steer
             </button>
-            {undoAxles!==null&&(
-              <button onClick={()=>{setAxles(undoAxles);setUndoAxles(null);}} style={{
-                marginLeft:"auto",background:"none",border:"none",cursor:"pointer",
-                padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
-                color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600"}}
-                title="Undo last axle change">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 7v6h6"/><path d="M3 13C5.5 7 11 4 17 6.5S22 15 17.5 19"/>
-                </svg>
-                Undo
-              </button>
-            )}
           </div>
         </div>
       )}
