@@ -3106,7 +3106,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&(
+            {undoStack.length>0&&!hasAnyReadings(axles)&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
@@ -3291,7 +3291,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&(
+            {undoStack.length>0&&!hasAnyReadings(axles)&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
@@ -4220,8 +4220,8 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   }
   const [tab,setTab]=useState(initialTab);
   const contentRef = useRef(null);
-  const scrollTop = () => { if(contentRef.current) contentRef.current.scrollTop=0; window.scrollTo({top:0,behavior:"smooth"}); };
-  useEffect(()=>{ if(forceTab) { setTab(forceTab); scrollTop(); } },[forceTab]);
+  useEffect(()=>{ if(contentRef.current) contentRef.current.scrollTop=0; window.scrollTo(0,0); },[tab]);
+  useEffect(()=>{ if(forceTab) setTab(forceTab); },[forceTab]);
   const isJosam = j.measureMethod==="josam";
 
   const setBeforeAxles = useCallback(updater =>
@@ -4268,7 +4268,6 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       setJ(p=>({...p, afterAxles: cloneAxlesEmpty(p.axles)}));
     }
     setTab(id);
-    scrollTop();
   }
 
   const TABS = [
@@ -4353,7 +4352,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       </div>
 
       {/* Content — paddingTop clears the unified fixed chrome (header + tab bar) */}
-      <div ref={contentRef} style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",borderRadius:"0.3rem"}}>
+      <div ref={contentRef} style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",overflowY:"auto",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
