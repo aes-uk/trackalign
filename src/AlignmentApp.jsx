@@ -3098,8 +3098,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {onConfigClick&&(
         <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig} onAddAxle={onAddAxleFromPicker}/>
       )}
-      {/* Quick Layout — before tab only, above axles when no config selected */}
-      {!isAfterPanel&&!jobRef?.configName&&(
+      {/* Quick Layout — before tab only, above axles when no config selected, hidden if after readings exist */}
+      {!isAfterPanel&&!jobRef?.configName&&!hasAnyReadings(jobRef?.afterAxles)&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
@@ -3283,8 +3283,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
         </div>
         );
       })}
-      {/* Quick Layout — below axles when config is selected */}
-      {!isAfterPanel&&jobRef?.configName&&(
+      {/* Quick Layout — below axles when config is selected, hidden if after readings exist */}
+      {!isAfterPanel&&jobRef?.configName&&!hasAnyReadings(jobRef?.afterAxles)&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
