@@ -3046,8 +3046,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const [adjOpen, setAdjOpen] = useState({});
   const toggleAdj = id => setAdjOpen(prev => ({...prev, [id]: !prev[id]}));
   const [steerTypePrompt, setSteerTypePrompt] = useState(false);
-  const [undoAxles, setUndoAxles] = useState(null);
-  const saveUndo = useCallback(() => setUndoAxles(axles.slice()), [axles]);
+  const [undoStack, setUndoStack] = useState([]);
+  const saveUndo = useCallback(() => setUndoStack(prev => [...prev, axles.slice()]), [axles]);
 
   const updAxle = useCallback(ax =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).map(a => a.id===ax.id ? ax : a)),
@@ -3105,8 +3105,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoAxles!==null&&(
-              <button onClick={()=>{setAxles(undoAxles);setUndoAxles(null);}} style={{
+            {undoStack.length>0&&(
+              <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
                 color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}
@@ -3261,10 +3261,10 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               Is this a rear steer axle (e.g. a trailer or tag axle with steering), or a front steer axle? Choose below to confirm.
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-              <Btn variant="primary" onClick={()=>{setSteerTypePrompt(false);addAxle("steering","steering");}}>
+              <Btn variant="ghost" onClick={()=>{setSteerTypePrompt(false);addAxle("steering","steering");}}>
                 Front Steer
               </Btn>
-              <Btn variant="ghost" onClick={()=>{setSteerTypePrompt(false);addAxle("rear-steer","rear-steer");}}>
+              <Btn variant="primary" onClick={()=>{setSteerTypePrompt(false);addAxle("rear-steer","rear-steer");}}>
                 Rear Steer
               </Btn>
             </div>
