@@ -2328,7 +2328,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                     <div key={label} style={{display:"flex",flexDirection:"column",gap:4}}>
                       <span style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.45)",
                         textTransform:"uppercase",letterSpacing:"0.06em",textAlign:"center"}}>
-                        {label} — actual
+                        {label} — actual {farScaleSide} scale
                       </span>
                       <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
                         border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
@@ -2351,7 +2351,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                   {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Enter actual readings above to override target — verify with laser after adjustment
+                  Enter actual {farScaleSide} scale above — {farScaleSide==="rear"?"front":"rear"} scale estimated from toe
                 </div>
               </div>
             );
@@ -2516,7 +2516,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                     <div key={label} style={{display:"flex",flexDirection:"column",gap:4}}>
                       <span style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.45)",
                         textTransform:"uppercase",letterSpacing:"0.06em",textAlign:"center"}}>
-                        {label} — actual
+                        {label} — actual {farScaleSide} scale
                       </span>
                       <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
                         border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
@@ -2539,7 +2539,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                   {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Enter actual readings above to override target — verify with laser after adjustment
+                  Enter actual {farScaleSide} scale above — {farScaleSide==="rear"?"front":"rear"} scale estimated from toe
                 </div>
               </div>
             );
