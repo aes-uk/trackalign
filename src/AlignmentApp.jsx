@@ -3141,28 +3141,39 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
         </div>
       )}
       {/* Full distance input — Josam mode only, on Before tab, hidden until config/axle selected */}
-      {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (
-        <div style={{background:"rgba(235,0,0,0.06)",border:"1px solid rgba(235,0,0,0.15)",
-          borderRadius:"0.3rem",padding:"12px 14px"}}>
-          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:8}}>
-            Josam AM — Full Scale Distance
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
-            <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-              metres (front scale to rear scale)
-            </span>
-          </div>
-          {(!fullDistance||parseFloat(fullDistance)===0)&&(
-            <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eb0000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-              Enter full distance to enable toe calculation
+      {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (()=>{
+        const hasD = fullDistance && parseFloat(fullDistance)>0;
+        return (
+          <div style={{background:hasD?"rgba(22,163,74,0.06)":"rgba(235,0,0,0.06)",
+            border:`1px solid ${hasD?"rgba(22,163,74,0.5)":"rgba(235,0,0,0.4)"}`,
+            borderRadius:"0.3rem",padding:"12px 14px",transition:"background 0.2s,border-color 0.2s"}}>
+            <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:8}}>
+              Josam AM — Full Scale Distance
             </div>
-          )}
-        </div>
-      )}
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
+              <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+                metres (front scale to rear scale)
+              </span>
+            </div>
+            {hasD ? (
+              <div style={{fontFamily:FB,fontSize:11,color:"#16a34a",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Distance set — toe calculation enabled
+              </div>
+            ) : (
+              <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eb0000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                Enter full distance to enable toe calculation
+              </div>
+            )}
+          </div>
+        );
+      })()}
       {isJosam && !setFullDistance && fullDistance && (
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"8px 14px",display:"flex",alignItems:"center",gap:8}}>
@@ -3170,8 +3181,11 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           <span style={{fontFamily:FM,fontSize:13,color:"#050505",fontWeight:"600"}}>{fullDistance}m</span>
         </div>
       )}
-      {axles.map((axle,idx)=>(
-        <div key={axle.id} style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem"}}>
+      {axles.map((axle,idx)=>{
+        const josamNoD = isJosam && setFullDistance && !(fullDistance && parseFloat(fullDistance)>0);
+        return (
+        <div key={axle.id} style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
+          opacity:josamNoD?0.45:1,pointerEvents:josamNoD?"none":"auto",transition:"opacity 0.2s"}}>
           <div style={{background:"#efefef",borderBottom:"1px solid rgba(5,5,5,0.10)",
             padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:28,height:28,borderRadius:"0.3rem",flexShrink:0,
@@ -3246,7 +3260,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               allAxles={axles} showAdjCalc={showAdjCalc}/>}
           </div>
         </div>
-      ))}
+        );
+      })}
       {/* Quick Layout — below axles when config is selected */}
       {!isAfterPanel&&jobRef?.configName&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
