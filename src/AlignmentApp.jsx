@@ -3048,6 +3048,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const [steerTypePrompt, setSteerTypePrompt] = useState(false);
   const [undoStack, setUndoStack] = useState([]);
   const saveUndo = useCallback(() => setUndoStack(prev => [...prev, axles.slice()]), [axles]);
+  const [distanceEditing, setDistanceEditing] = useState(true);
 
   const updAxle = useCallback(ax =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).map(a => a.id===ax.id ? ax : a)),
@@ -3143,6 +3144,26 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {/* Full distance input — Josam mode only, on Before tab, hidden until config/axle selected */}
       {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (()=>{
         const hasD = fullDistance && parseFloat(fullDistance)>0;
+        const collapsed = hasD && !distanceEditing;
+        if (collapsed) {
+          return (
+            <div style={{background:"rgba(22,163,74,0.06)",border:"1px solid rgba(22,163,74,0.5)",
+              borderRadius:"0.3rem",padding:"8px 14px",display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.5)",flexShrink:0}}>Full distance (D):</span>
+              <span style={{fontFamily:FM,fontSize:13,color:"#050505",fontWeight:"600",flex:1}}>{fullDistance}m</span>
+              <button onClick={()=>setDistanceEditing(true)} style={{
+                background:"none",border:"none",cursor:"pointer",padding:"2px 4px",
+                display:"flex",alignItems:"center",gap:4,
+                color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Change
+              </button>
+            </div>
+          );
+        }
         return (
           <div style={{background:hasD?"rgba(22,163,74,0.06)":"rgba(235,0,0,0.06)",
             border:`1px solid ${hasD?"rgba(22,163,74,0.5)":"rgba(235,0,0,0.4)"}`,
@@ -3151,7 +3172,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               Josam AM — Full Scale Distance
             </div>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
+              <DistancePicker value={fullDistance} onChange={v=>{setFullDistance(v);if(v&&parseFloat(v)>0)setDistanceEditing(false);}}/>
               <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
                 metres (front scale to rear scale)
               </span>
