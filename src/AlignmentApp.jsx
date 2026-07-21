@@ -3222,7 +3222,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           "casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight",
           "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
         const axleHasReadings = ALL_READING_FIELDS.some(f => axle[f]!=null && axle[f]!=="");
-        if (!isAfterPanel && axleDeleting[axle.id]) {
+        if (!isAfterPanel && axleDeleting[axle.id] && !hasAnyReadings(jobRef?.afterAxles)) {
           return (
             <div key={axle.id} style={{background:"#ffffff",borderRadius:"0.4rem",borderLeft:"4px solid #eb0000",
               boxShadow:"0 1px 4px rgba(0,0,0,0.10)",padding:"14px 16px"}}>
@@ -3258,7 +3258,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 cursor:isAfterPanel?"default":"text"}}/>
             <span style={{fontSize:9,fontFamily:FM,padding:"2px 8px",borderRadius:"0.3rem",
               background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>{axle.type}</span>
-            {!isAfterPanel&&(axleHasReadings ? (
+            {!isAfterPanel&&!hasAnyReadings(jobRef?.afterAxles)&&(axleHasReadings ? (
               <button onClick={()=>{
                 const cleared = {};
                 ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
