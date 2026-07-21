@@ -3247,6 +3247,49 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           </div>
         </div>
       ))}
+      {/* Quick Layout — below axles when config is selected */}
+      {!isAfterPanel&&jobRef?.configName&&(
+        <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
+          borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+            <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
+              Quick Layout - Add Axles
+            </div>
+            {undoStack.length>0&&(
+              <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
+                background:"none",border:"none",cursor:"pointer",
+                padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
+                color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}
+                title="Undo last axle change">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7v6h6"/><path d="M3 13C5.5 7 11 4 17 6.5S22 15 17.5 19"/>
+                </svg>
+                Undo
+              </button>
+            )}
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:8}}>
+            <button onClick={()=>{saveUndo();handleAddSteer();}} style={{
+              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+              + Steer Axle
+            </button>
+            <button onClick={()=>{saveUndo();addAxle("rear-steer");}} style={{
+              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+              + Rear Steer
+            </button>
+            <button onClick={()=>{saveUndo();addAxle("fixed");}} style={{
+              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
+              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
+              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
+              + Non Steer
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Steer type prompt modal */}
       {steerTypePrompt&&(
@@ -3396,49 +3439,6 @@ function AdjustmentPanel({ beforeAxles, fullDistance }) {
           </div>
         );
       })}
-      {/* Quick Layout — below axles when config is selected */}
-      {!isAfterPanel&&jobRef?.configName&&(
-        <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
-          borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-            <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
-              Quick Layout - Add Axles
-            </div>
-            {undoStack.length>0&&(
-              <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
-                background:"none",border:"none",cursor:"pointer",
-                padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
-                color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}
-                title="Undo last axle change">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 7v6h6"/><path d="M3 13C5.5 7 11 4 17 6.5S22 15 17.5 19"/>
-                </svg>
-                Undo
-              </button>
-            )}
-          </div>
-          <div style={{display:"flex",flexWrap:"wrap",alignItems:"center",gap:8}}>
-            <button onClick={()=>{saveUndo();handleAddSteer();}} style={{
-              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
-              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
-              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
-              + Steer Axle
-            </button>
-            <button onClick={()=>{saveUndo();addAxle("rear-steer");}} style={{
-              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
-              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
-              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
-              + Rear Steer
-            </button>
-            <button onClick={()=>{saveUndo();addAxle("fixed");}} style={{
-              background:"#e5e5e5",color:"#050505",border:"1px solid rgba(5,5,5,0.15)",
-              borderRadius:"0.3rem",padding:"5px 12px",cursor:"pointer",
-              fontFamily:FB,fontWeight:"600",fontSize:11,whiteSpace:"nowrap"}}>
-              + Non Steer
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
