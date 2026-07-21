@@ -2345,18 +2345,14 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                     </div>
                     <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
                     {/* Actual input (right) */}
-                    <div style={{flex:1,display:"flex",flexDirection:"column",gap:0,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-                        border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",overflow:"hidden"}}>
-                        <input type="number" placeholder="Actual" value={actual}
-                          onChange={e=>setActual(e.target.value)}
-                          className="no-spin"
-                          style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
-                            padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
-                            fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
-                        <span style={{padding:"0 5px",fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.4)",
-                          borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-                      </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <input type="number" placeholder="Actual" value={actual}
+                        onChange={e=>setActual(e.target.value)}
+                        className="no-spin"
+                        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+                          border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",outline:"none",
+                          padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
+                          fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
                     </div>
                   </div>
                   {/* Est. front + actual toe */}
@@ -2585,17 +2581,13 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                     <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
                     {/* Actual input (right) */}
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-                        border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",overflow:"hidden"}}>
-                        <input type="number" placeholder="Actual" value={actual}
-                          onChange={e=>setActual(e.target.value)}
-                          className="no-spin"
-                          style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
-                            padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
-                            fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
-                        <span style={{padding:"0 5px",fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.4)",
-                          borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-                      </div>
+                      <input type="number" placeholder="Actual" value={actual}
+                        onChange={e=>setActual(e.target.value)}
+                        className="no-spin"
+                        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
+                          border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",outline:"none",
+                          padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
+                          fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
                     </div>
                   </div>
                   {/* Est. front + actual toe */}
