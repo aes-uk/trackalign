@@ -1008,6 +1008,12 @@ function VehiclePicker({ vehicles, onSelect }) {
 }
 
 function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
+  const [local, setLocal] = useState(value===undefined||value===null||value===""?"":String(value));
+  useEffect(()=>{ setLocal(value===undefined||value===null||value===""?"":String(value)); }, [value]);
+  const commit = v => {
+    const n = parseFloat(v);
+    onChange(isNaN(n)?"":n.toFixed(1));
+  };
   const tl = tol ? trafficLight(value, tol) : "none";
   const borderCol = (tl!=="none" && hasVal(value)) ? TL_BORDER[tl] : "rgba(5,5,5,0.15)";
   const textCol   = (tl!=="none" && hasVal(value)) ? TL_COLOR[tl] : "#050505";
@@ -1017,18 +1023,19 @@ function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
         textTransform:"uppercase",textAlign:"center",whiteSpace:"nowrap"}}>{label}</label>
       <div style={{position:"relative",width}}>
         <input
-          type="number"
-          step="0.1"
-          key={value}
-          defaultValue={value===undefined||value===null||value===""?"":value}
-          onBlur={e=>{ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); }}
-          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } if(e.key==="Tab"){ const v=e.target.value; onChange(v===""?"":parseFloat(v).toFixed(1)); } }}
+          type="text"
+          inputMode="decimal"
+          enterKeyHint="done"
+          value={local}
+          onChange={e=>setLocal(e.target.value.replace(/[^0-9.\-]/g,""))}
+          onBlur={e=>commit(e.target.value)}
+          onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab"){ commit(e.target.value); } }}
           placeholder="0.0"
           className="no-spin"
           style={{width:"100%",boxSizing:"border-box",
             background: unit==="mm"?"#f7f7f7":"#e5e5e5",
             border:`1.5px solid ${borderCol}`,borderRadius:"0.3rem",outline:"none",
-            padding:"6px 8px",color:hasVal(value)?textCol:"rgba(5,5,5,0.35)",
+            padding:"6px 8px",color:local===""?"rgba(5,5,5,0.35)":textCol,
             fontFamily:FM,fontSize:13,fontWeight:"600",textAlign:"center"}}/>
         {unit&&<span style={{position:"absolute",right:5,top:"50%",transform:"translateY(-50%)",
           fontSize:9,color:"rgba(5,5,5,0.45)",fontFamily:FM,pointerEvents:"none"}}>{unit}</span>}
