@@ -3251,13 +3251,14 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
           <div style={{background:"#fff",borderRadius:"0.75rem",padding:28,maxWidth:320,width:"100%",
             boxShadow:"0 8px 32px rgba(0,0,0,0.22)"}}>
-            <div style={{fontFamily:FM,fontSize:13,fontWeight:"700",color:"#050505",marginBottom:8,
-              letterSpacing:"0.04em"}}>AXLE TYPE</div>
-            <div style={{fontFamily:FB,fontSize:14,color:"#050505",marginBottom:6,lineHeight:1.5}}>
-              Non-steer axles are already present.
+            <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:12}}>
+              Steer Axle Type
+            </div>
+            <div style={{fontFamily:FB,fontSize:14,color:"#050505",marginBottom:8,lineHeight:1.5}}>
+              You have selected a steer axle to follow a non-steer axle.
             </div>
             <div style={{fontFamily:FB,fontSize:13,color:"rgba(5,5,5,0.55)",marginBottom:20,lineHeight:1.5}}>
-              Is this a rear steer axle (e.g. a trailer or tag axle with steering), or a front steer axle?
+              Is this a rear steer axle (e.g. a trailer or tag axle with steering), or a front steer axle? Choose below to confirm.
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               <Btn variant="primary" onClick={()=>{setSteerTypePrompt(false);addAxle("steering","steering");}}>
