@@ -3046,7 +3046,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null, onAddAxleFromPicker=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null, onAddAxleFromPicker=null, onClearAfterAxle=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3263,6 +3263,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 const cleared = {};
                 ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
                 updAxle({...axle,...cleared});
+                onClearAfterAxle&&onClearAfterAxle(axle.id);
               }} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
                 cursor:"pointer",fontFamily:FB,fontSize:11,color:"#050505",fontWeight:"600",
                 padding:"2px 4px",lineHeight:1}}>
@@ -4467,6 +4468,15 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
               else{label="Non Steer";}
               const newAxle=type==="steering"?makeSteeringAxle(label):type==="rear-steer"?makeRearSteerAxle(label):makeFixedAxle(label);
               return [...arr,newAxle];
+            })}
+            onClearAfterAxle={id=>setAfterAxles(prev=>{
+              if (!Array.isArray(prev)) return prev;
+              const ALL_READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight",
+                "casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight",
+                "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
+              const cleared = {};
+              ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
+              return prev.map(a => a.id===id ? {...a,...cleared} : a);
             })}
 />
         )}
