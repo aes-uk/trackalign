@@ -2088,6 +2088,8 @@ function WheelBox({ header, subHeader, current, target }) {
 
 function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null, onApplyToAfter=null }) {
   const [applied, setApplied] = useState(false);
+  const [actualL, setActualL] = useState("");
+  const [actualR, setActualR] = useState("");
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2270,48 +2272,117 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
       </div>
 
       {/* Wheel boxes + Apply button */}
-      {distFrontValid&&(
-        <>
-          <div style={{marginTop:16}}><SectionHead>{scaleTargetsLabel}</SectionHead></div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-            {boxes.map((b,i)=>(
-              <WheelBox key={i} header={b.header} subHeader={farScaleAimLabel}
-                current={b.now} target={b.target}/>
-            ))}
-          </div>
-          {onApplyToAfter&&hasResults&&(()=>{
-            // Compute per-wheel target toe and both scale values
-            const getScales = (targetToeWheel, farTarget) => {
-              if (farTarget===null) return null;
-              if (farScaleSide==="rear") {
-                return { rear: farTarget, front: farTarget + targetToeWheel * D };
-              } else {
-                return { front: farTarget, rear: farTarget - targetToeWheel * D };
-              }
-            };
-            let lToe, rToe;
-            if (useIndepPath) {
-              lToe = tgt / 2;
-              rToe = tgt / 2;
-            } else {
-              lToe = isDriveRight ? tgt : 0;
-              rToe = isDriveRight ? 0   : tgt;
-            }
-            const lScales = getScales(lToe, useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget));
-            const rScales = getScales(rToe, useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget));
-            const apply = () => {
-              if (!lScales || !rScales) return;
-              onApplyToAfter({
-                frontScaleLeft:  String(Math.round(lScales.front)),
-                rearScaleLeft:   String(Math.round(lScales.rear)),
-                frontScaleRight: String(Math.round(rScales.front)),
-                rearScaleRight:  String(Math.round(rScales.rear)),
-              });
-              setApplied(true);
-              setTimeout(()=>setApplied(false), 2500);
-            };
-            return (
-              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
+      {distFrontValid&&(()=>{
+        const sf = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+        const origRearL  = sf(beforeAxle?.rearScaleLeft);
+        const origFrontL = sf(beforeAxle?.frontScaleLeft);
+        const origRearR  = sf(beforeAxle?.rearScaleRight);
+        const origFrontR = sf(beforeAxle?.frontScaleRight);
+
+        const computeActual = (actualStr, origRear, origFront) => {
+          const aRear = actualStr !== "" ? sf(actualStr) : null;
+          if (aRear === null || origRear === null || origFront === null || D === 0) return { aRear, estFront: null, actualToe: null };
+          const rearMov  = aRear - origRear;
+          const frontMov = rearMov * (df / D);
+          const estFront = origFront - frontMov;
+          const actualToe = (estFront - aRear) / D;
+          return { aRear, estFront, actualToe };
+        };
+
+        const wL = computeActual(actualL, origRearL, origFrontL);
+        const wR = computeActual(actualR, origRearR, origFrontR);
+
+        const wheelCards = [
+          { header: boxes[0].header, target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL },
+          { header: boxes[1].header, target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR },
+        ];
+
+        const apply = () => {
+          if (!onApplyToAfter || !hasResults) return;
+          const getScales = (targetToeWheel, farTarget) => {
+            if (farTarget===null) return null;
+            return farScaleSide==="rear"
+              ? { rear: farTarget, front: farTarget + targetToeWheel * D }
+              : { front: farTarget, rear: farTarget - targetToeWheel * D };
+          };
+          let lToe = useIndepPath ? tgt/2 : (isDriveRight ? tgt : 0);
+          let rToe = useIndepPath ? tgt/2 : (isDriveRight ? 0   : tgt);
+          const lFarTarget = useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget);
+          const rFarTarget = useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget);
+          // Use actual inputs when entered, otherwise fall back to target-based
+          const lFront = wL.estFront !== null ? Math.round(wL.estFront) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
+          const lRear  = wL.aRear   !== null ? Math.round(wL.aRear)    : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
+          const rFront = wR.estFront !== null ? Math.round(wR.estFront) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
+          const rRear  = wR.aRear   !== null ? Math.round(wR.aRear)    : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
+          if (lFront==null||lRear==null||rFront==null||rRear==null) return;
+          onApplyToAfter({
+            frontScaleLeft:  String(lFront),
+            rearScaleLeft:   String(lRear),
+            frontScaleRight: String(rFront),
+            rearScaleRight:  String(rRear),
+          });
+          setApplied(true);
+          setTimeout(()=>setApplied(false), 2500);
+        };
+
+        return (
+          <>
+            <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {wheelCards.map(({header,target,actual,setActual,w})=>(
+                <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+                    textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
+                  <div style={{display:"flex",alignItems:"stretch",gap:6}}>
+                    {/* Target (left) */}
+                    <div style={{flex:1,background:"rgba(22,163,74,0.09)",border:"1px solid rgba(22,163,74,0.28)",
+                      borderRadius:"0.3rem",padding:"6px 4px",textAlign:"center",minWidth:0}}>
+                      <div style={{fontFamily:FB,fontSize:7,color:"#16a34a",textTransform:"uppercase",
+                        letterSpacing:"0.05em",marginBottom:2}}>Target</div>
+                      <div style={{fontFamily:FM,fontSize:17,color:"#16a34a",fontWeight:"700",lineHeight:1}}>
+                        {target!==null ? Math.round(target) : "—"}
+                      </div>
+                    </div>
+                    <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
+                    {/* Actual input (right) */}
+                    <div style={{flex:1,display:"flex",flexDirection:"column",gap:0,minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+                        border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",overflow:"hidden"}}>
+                        <input type="number" placeholder="Actual" value={actual}
+                          onChange={e=>setActual(e.target.value)}
+                          className="no-spin"
+                          style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
+                            padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
+                            fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
+                        <span style={{padding:"0 5px",fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.4)",
+                          borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Est. front + actual toe */}
+                  <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
+                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Est. front scale</span>
+                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
+                        color:w.estFront!==null?"#050505":"rgba(5,5,5,0.25)"}}>
+                        {w.estFront!==null ? w.estFront.toFixed(1) : "—"}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
+                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Actual toe</span>
+                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
+                        color:w.actualToe!==null?"#050505":"rgba(5,5,5,0.25)"}}>
+                        {w.actualToe!==null ? `${w.actualToe.toFixed(2)} mm` : "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {onApplyToAfter&&hasResults&&(
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
                 <button onClick={apply}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
                     borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
@@ -2319,16 +2390,16 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                     transition:"opacity 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
                   onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
+                  {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Predicted values — verify with laser after adjustment
+                  Enter actual rear scale readings above — front scale estimated from movement
                 </div>
               </div>
-            );
-          })()}
-        </>
-      )}
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
@@ -2336,6 +2407,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
 function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null, onApplyToAfter=null }) {
   const [applied, setApplied] = useState(false);
+  const [actualL, setActualL] = useState("");
+  const [actualR, setActualR] = useState("");
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2441,38 +2514,114 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
       </div>
 
       {/* Wheel boxes */}
-      {distFrontValid&&(
-        <>
-          <div style={{marginTop:16}}><SectionHead>{scaleTargetsLabel}</SectionHead></div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-            <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
-            <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
-          </div>
-          {onApplyToAfter&&leftTarget!==null&&rightTarget!==null&&(()=>{
+      {distFrontValid&&(()=>{
+        const sf = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+        const origRearL  = sf(beforeAxle?.rearScaleLeft);
+        const origFrontL = sf(beforeAxle?.frontScaleLeft);
+        const origRearR  = sf(beforeAxle?.rearScaleRight);
+        const origFrontR = sf(beforeAxle?.frontScaleRight);
+
+        const computeActual = (actualStr, origRear, origFront) => {
+          const aRear = actualStr !== "" ? sf(actualStr) : null;
+          if (aRear === null || origRear === null || origFront === null || D === 0) return { aRear, estFront: null, actualToe: null };
+          const rearMov  = aRear - origRear;
+          const frontMov = rearMov * (df / D);
+          const estFront = origFront - frontMov;
+          const actualToe = (estFront - aRear) / D;
+          return { aRear, estFront, actualToe };
+        };
+
+        const wL = computeActual(actualL, origRearL, origFrontL);
+        const wR = computeActual(actualR, origRearR, origFrontR);
+
+        const wheelCards = [
+          { header:"Left Wheel",  target:leftTarget,  actual:actualL, setActual:setActualL, w:wL },
+          { header:"Right Wheel", target:rightTarget, actual:actualR, setActual:setActualR, w:wR },
+        ];
+
+        const apply = () => {
+          if (!onApplyToAfter || leftTarget===null || rightTarget===null) return;
+          const getScales = (targetToeWheel, farTarget) => {
+            if (farTarget===null) return null;
             const half = totalBeforeToe / 2;
-            const lToe = half - tgtOOS;
-            const rToe = half + tgtOOS;
-            const getScales = (targetToeWheel, farTarget) => {
-              if (farScaleSide==="rear") {
-                return { rear: farTarget, front: farTarget + targetToeWheel * D };
-              } else {
-                return { front: farTarget, rear: farTarget - targetToeWheel * D };
-              }
-            };
-            const lScales = getScales(lToe, leftTarget);
-            const rScales = getScales(rToe, rightTarget);
-            const apply = () => {
-              onApplyToAfter({
-                frontScaleLeft:  String(Math.round(lScales.front)),
-                rearScaleLeft:   String(Math.round(lScales.rear)),
-                frontScaleRight: String(Math.round(rScales.front)),
-                rearScaleRight:  String(Math.round(rScales.rear)),
-              });
-              setApplied(true);
-              setTimeout(()=>setApplied(false), 2500);
-            };
-            return (
-              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
+            return farScaleSide==="rear"
+              ? { rear: farTarget, front: farTarget + targetToeWheel * D }
+              : { front: farTarget, rear: farTarget - targetToeWheel * D };
+          };
+          const half = totalBeforeToe / 2;
+          const lFront = wL.estFront !== null ? Math.round(wL.estFront) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
+          const lRear  = wL.aRear   !== null ? Math.round(wL.aRear)    : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
+          const rFront = wR.estFront !== null ? Math.round(wR.estFront) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
+          const rRear  = wR.aRear   !== null ? Math.round(wR.aRear)    : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
+          if (lFront==null||lRear==null||rFront==null||rRear==null) return;
+          onApplyToAfter({
+            frontScaleLeft:  String(lFront),
+            rearScaleLeft:   String(lRear),
+            frontScaleRight: String(rFront),
+            rearScaleRight:  String(rRear),
+          });
+          setApplied(true);
+          setTimeout(()=>setApplied(false), 2500);
+        };
+
+        return (
+          <>
+            <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {wheelCards.map(({header,target,actual,setActual,w})=>(
+                <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+                    textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
+                  <div style={{display:"flex",alignItems:"stretch",gap:6}}>
+                    {/* Target (left) */}
+                    <div style={{flex:1,background:"rgba(22,163,74,0.09)",border:"1px solid rgba(22,163,74,0.28)",
+                      borderRadius:"0.3rem",padding:"6px 4px",textAlign:"center",minWidth:0}}>
+                      <div style={{fontFamily:FB,fontSize:7,color:"#16a34a",textTransform:"uppercase",
+                        letterSpacing:"0.05em",marginBottom:2}}>Target</div>
+                      <div style={{fontFamily:FM,fontSize:17,color:"#16a34a",fontWeight:"700",lineHeight:1}}>
+                        {target!==null ? Math.round(target) : "—"}
+                      </div>
+                    </div>
+                    <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
+                    {/* Actual input (right) */}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
+                        border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",overflow:"hidden"}}>
+                        <input type="number" placeholder="Actual" value={actual}
+                          onChange={e=>setActual(e.target.value)}
+                          className="no-spin"
+                          style={{flex:1,minWidth:0,background:"transparent",border:"none",outline:"none",
+                            padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
+                            fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
+                        <span style={{padding:"0 5px",fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.4)",
+                          borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Est. front + actual toe */}
+                  <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
+                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Est. front scale</span>
+                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
+                        color:w.estFront!==null?"#050505":"rgba(5,5,5,0.25)"}}>
+                        {w.estFront!==null ? w.estFront.toFixed(1) : "—"}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
+                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Actual toe</span>
+                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
+                        color:w.actualToe!==null?"#050505":"rgba(5,5,5,0.25)"}}>
+                        {w.actualToe!==null ? `${w.actualToe.toFixed(2)} mm` : "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {onApplyToAfter&&leftTarget!==null&&rightTarget!==null&&(
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
                 <button onClick={apply}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
                     borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
@@ -2480,16 +2629,16 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                     transition:"opacity 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
                   onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
+                  {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Predicted values — verify with laser after adjustment
+                  Enter actual rear scale readings above — front scale estimated from movement
                 </div>
               </div>
-            );
-          })()}
-        </>
-      )}
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
