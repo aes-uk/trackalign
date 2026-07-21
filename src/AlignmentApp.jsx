@@ -1007,9 +1007,10 @@ function VehiclePicker({ vehicles, onSelect }) {
   );
 }
 
-function RInput({ label, value, onChange, unit="mm", width=72, tol=null }) {
-  const [local, setLocal] = useState(value===undefined||value===null||value===""?"":String(value));
-  useEffect(()=>{ setLocal(value===undefined||value===null||value===""?"":String(value)); }, [value]);
+function RInput({ label, value, onChange, unit="mm", width=72, tol=null, roundDisplay=false }) {
+  const fmt = v => { if(v===undefined||v===null||v==="") return ""; const n=parseFloat(v); return isNaN(n)?"":roundDisplay?String(Math.round(n)):String(v); };
+  const [local, setLocal] = useState(fmt(value));
+  useEffect(()=>{ setLocal(fmt(value)); }, [value]);
   const commit = v => {
     const n = parseFloat(v);
     onChange(isNaN(n)?"":n.toFixed(1));
@@ -1815,8 +1816,9 @@ function DistancePicker({ value, onChange, bare=false }) {
 }
 
 function ScaleInput({label, value, onCh}) {
-  const [local, setLocal] = useState(value===undefined||value===null?"":String(value));
-  useEffect(()=>{ setLocal(value===undefined||value===null?"":String(value)); }, [value]);
+  const fmtScale = v => { if(v===undefined||v===null||v==="") return ""; const n=parseFloat(v); return isNaN(n)?"":String(Math.round(n)); };
+  const [local, setLocal] = useState(fmtScale(value));
+  useEffect(()=>{ setLocal(fmtScale(value)); }, [value]);
   const commit = v => onCh(v===""?"":String(Math.round(parseFloat(v))));
   return (
     <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"center"}}>
