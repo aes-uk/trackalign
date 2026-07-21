@@ -3259,10 +3259,10 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               }} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
                 cursor:"pointer",fontFamily:FB,fontSize:11,color:"#050505",fontWeight:"600",
                 padding:"2px 4px",lineHeight:1}}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7v6h6"/><path d="M3 13C5.5 7 11 4 17 6.5S22 15 17.5 19"/>
                 </svg>
-                Clear Entries
+                Clear
               </button>
             ) : (
               <div style={{position:"relative"}}>
