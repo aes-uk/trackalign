@@ -3211,6 +3211,31 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       )}
       {axles.map((axle,idx)=>{
         const josamNoD = isJosam && setFullDistance && !(fullDistance && parseFloat(fullDistance)>0);
+        const ALL_READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight",
+          "casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight",
+          "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
+        const axleHasReadings = ALL_READING_FIELDS.some(f => axle[f]!=null && axle[f]!=="");
+        if (!isAfterPanel && axleDeleting[axle.id]) {
+          return (
+            <div key={axle.id} style={{background:"#ffffff",borderRadius:"0.4rem",borderLeft:"4px solid #eb0000",
+              boxShadow:"0 1px 4px rgba(0,0,0,0.10)",padding:"14px 16px"}}>
+              <div style={{fontFamily:FB,fontSize:13,color:"#050505",marginBottom:6,fontWeight:"600"}}>Delete this axle?</div>
+              <div style={{fontFamily:FB,fontSize:12,color:"#888",marginBottom:14}}>
+                Deleting this axle will remove it from the configuration.
+              </div>
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={()=>{ cancelAxleDel(axle.id); saveUndo(); removeAxle(axle.id); }}
+                  style={{flex:1,background:"#eb0000",border:"none",borderRadius:"0.3rem",
+                    padding:"10px",color:"#fff",fontFamily:FB,fontWeight:"600",fontSize:13,cursor:"pointer"}}>
+                  Delete axle</button>
+                <button onClick={()=>cancelAxleDel(axle.id)}
+                  style={{flex:1,background:"#efefef",border:"none",borderRadius:"0.3rem",
+                    padding:"10px",color:"#050505",fontFamily:FB,fontWeight:"600",fontSize:13,cursor:"pointer"}}>
+                  Cancel</button>
+              </div>
+            </div>
+          );
+        }
         return (
         <div key={axle.id} style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
           opacity:josamNoD?0.45:1,pointerEvents:josamNoD?"none":"auto",transition:"opacity 0.2s"}}>
@@ -3226,64 +3251,41 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 cursor:isAfterPanel?"default":"text"}}/>
             <span style={{fontSize:9,fontFamily:FM,padding:"2px 8px",borderRadius:"0.3rem",
               background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>{axle.type}</span>
-            {!isAfterPanel&&(()=>{
-              const ALL_READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight",
-                "casterLeft","casterRight","kpiLeft","kpiRight","maxTurnLeft","maxTurnRight",
-                "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
-              const axleHasReadings = ALL_READING_FIELDS.some(f => axle[f]!=null && axle[f]!=="");
-              if (axleDeleting[axle.id]) {
-                return (
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:"auto"}}>
-                    <span style={{fontFamily:FB,fontSize:12,color:"#050505",fontWeight:"600",whiteSpace:"nowrap"}}>Delete this axle?</span>
-                    <button onClick={()=>{ cancelAxleDel(axle.id); saveUndo(); removeAxle(axle.id); }}
-                      style={{background:"#eb0000",color:"#fff",border:"none",borderRadius:"0.3rem",
-                        fontFamily:FB,fontSize:12,fontWeight:"600",padding:"4px 10px",cursor:"pointer"}}>Delete</button>
-                    <button onClick={()=>cancelAxleDel(axle.id)}
-                      style={{background:"#e5e5e5",color:"#050505",border:"none",borderRadius:"0.3rem",
-                        fontFamily:FB,fontSize:12,fontWeight:"600",padding:"4px 10px",cursor:"pointer"}}>Cancel</button>
+            {!isAfterPanel&&(axleHasReadings ? (
+              <button onClick={()=>{
+                const cleared = {};
+                ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
+                updAxle({...axle,...cleared});
+              }} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
+                cursor:"pointer",fontFamily:FB,fontSize:11,color:"#050505",fontWeight:"600",
+                padding:"2px 4px",lineHeight:1}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+                </svg>
+                Clear Entries
+              </button>
+            ) : (
+              <div style={{position:"relative"}}>
+                <button onClick={()=>openAxleMenu(axle.id)}
+                  style={{background:"none",border:"none",cursor:"pointer",padding:"2px 6px",
+                    fontSize:20,color:"#bbb",lineHeight:1,borderRadius:"0.25rem",
+                    display:"flex",alignItems:"center"}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#555"}
+                  onMouseLeave={e=>e.currentTarget.style.color="#bbb"}>⋮</button>
+                {axleMenuOpen[axle.id]&&(
+                  <div style={{position:"absolute",right:0,top:"110%",zIndex:300,
+                    background:"#fff",border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.35rem",
+                    boxShadow:"0 4px 16px rgba(0,0,0,0.14)",minWidth:130,overflow:"hidden"}}>
+                    <button onClick={()=>requestAxleDel(axle.id)}
+                      style={{display:"block",width:"100%",padding:"10px 14px",textAlign:"left",
+                        background:"none",border:"none",cursor:"pointer",fontFamily:FB,fontSize:13,
+                        fontWeight:"600",color:"#eb0000"}}
+                      onMouseEnter={e=>e.currentTarget.style.background="#fef2f2"}
+                      onMouseLeave={e=>e.currentTarget.style.background="none"}>Delete axle</button>
                   </div>
-                );
-              }
-              if (axleHasReadings) {
-                return (
-                  <button onClick={()=>{
-                    const cleared = {};
-                    ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
-                    updAxle({...axle,...cleared});
-                  }} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
-                    cursor:"pointer",fontFamily:FB,fontSize:11,color:"#050505",fontWeight:"600",
-                    padding:"2px 4px",lineHeight:1}}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-                    </svg>
-                    Clear
-                  </button>
-                );
-              }
-              return (
-                <div style={{position:"relative"}}>
-                  <button onClick={()=>openAxleMenu(axle.id)}
-                    style={{background:"none",border:"none",color:"rgba(5,5,5,0.25)",cursor:"pointer",
-                      fontSize:16,padding:"0 4px",lineHeight:1}}
-                    onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
-                    onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.25)"}>✕</button>
-                  {axleMenuOpen[axle.id]&&(
-                    <div style={{position:"absolute",right:0,top:"100%",zIndex:10,background:"#fff",
-                      border:"1px solid rgba(5,5,5,0.12)",borderRadius:"0.3rem",
-                      boxShadow:"0 2px 8px rgba(0,0,0,0.12)",minWidth:130,padding:"4px 0"}}>
-                      <button onClick={()=>requestAxleDel(axle.id)}
-                        style={{display:"block",width:"100%",background:"none",border:"none",
-                          textAlign:"left",padding:"8px 14px",fontFamily:FB,fontSize:13,
-                          color:"#eb0000",cursor:"pointer",fontWeight:"600"}}>Delete axle</button>
-                      <button onClick={()=>closeAxleMenu(axle.id)}
-                        style={{display:"block",width:"100%",background:"none",border:"none",
-                          textAlign:"left",padding:"8px 14px",fontFamily:FB,fontSize:13,
-                          color:"rgba(5,5,5,0.5)",cursor:"pointer"}}>Cancel</button>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+                )}
+              </div>
+            ))}
           </div>
           <div style={{padding:"16px 14px"}}>
             {axle.type==="steering"&&(()=>{
