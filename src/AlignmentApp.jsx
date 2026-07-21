@@ -3149,20 +3149,18 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
-            <div style={{display:"flex",flexDirection:"column",gap:2,justifyContent:"center"}}>
-              <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-                metres (front scale to rear scale)
-              </span>
-              {(!fullDistance||parseFloat(fullDistance)===0)&&(
-                <span style={{fontFamily:FB,fontSize:11,color:"#eb0000",display:"flex",alignItems:"center",gap:4}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eb0000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                  Enter full distance to enable toe calculation
-                </span>
-              )}
-            </div>
+            <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+              metres (front scale to rear scale)
+            </span>
           </div>
+          {(!fullDistance||parseFloat(fullDistance)===0)&&(
+            <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:6,display:"flex",alignItems:"center",gap:4}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eb0000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Enter full distance to enable toe calculation
+            </div>
+          )}
         </div>
       )}
       {isJosam && !setFullDistance && fullDistance && (
