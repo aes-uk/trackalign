@@ -4309,13 +4309,27 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     setJ(p => ({ ...p, afterAxles: typeof updater === "function" ? updater(p.afterAxles) : updater })),
   []);
 
-  // Sync axle config fields from before to after when before changes
+  // Sync axle config fields and count from before to after when before changes
   useEffect(() => {
     if (!j.afterAxles) return;
     const configKeys = ["dualWheel","type","driveSide","suspType","label"];
+    const beforeAxles = j.axles || [];
     let anyChanged = false;
-    const synced = j.afterAxles.map((aAxle, i) => {
-      const bAxle = j.axles[i];
+
+    // Trim or extend after axles to match before count
+    let working = j.afterAxles;
+    if (working.length !== beforeAxles.length) {
+      anyChanged = true;
+      if (working.length > beforeAxles.length) {
+        working = working.slice(0, beforeAxles.length);
+      } else {
+        const empties = cloneAxlesEmpty(beforeAxles.slice(working.length));
+        working = [...working, ...empties];
+      }
+    }
+
+    const synced = working.map((aAxle, i) => {
+      const bAxle = beforeAxles[i];
       if (!bAxle) return aAxle;
       const patch = {};
       let rowChanged = false;
