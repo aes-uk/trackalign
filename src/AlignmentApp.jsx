@@ -3057,6 +3057,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const [undoStack, setUndoStack] = useState([]);
   const saveUndo = useCallback(() => setUndoStack(prev => [...prev, axles.slice()]), [axles]);
   const [distanceEditing, setDistanceEditing] = useState(() => !(fullDistance && parseFloat(fullDistance)>0));
+  const [dismissedNoBeforeWarn, setDismissedNoBeforeWarn] = useState(new Set());
   const [axleMenuOpen, setAxleMenuOpen] = useState({});
   const [axleDeleting, setAxleDeleting] = useState({});
   const openAxleMenu   = id => setAxleMenuOpen(p=>({...p,[id]:true}));
@@ -3300,14 +3301,17 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             {isAfterPanel&&(()=>{
               const beforeAxle = Array.isArray(beforeAxles) ? beforeAxles[idx] : null;
               const beforeHasReadings = beforeAxle && ALL_READING_FIELDS.some(f=>beforeAxle[f]!=null&&beforeAxle[f]!=="");
-              if (!beforeHasReadings) return (
+              if (!beforeHasReadings && !dismissedNoBeforeWarn.has(idx)) return (
                 <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(234,179,8,0.08)",
                   border:"1px solid rgba(234,179,8,0.5)",borderRadius:"0.3rem",
                   padding:"8px 12px",marginBottom:14}}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                   </svg>
-                  <span style={{fontFamily:FB,fontSize:12,color:"#b45309",fontWeight:"600"}}>No before readings are entered for this axle.</span>
+                  <span style={{fontFamily:FB,fontSize:12,color:"#b45309",fontWeight:"600",flex:1}}>No before readings are entered for this axle.</span>
+                  <button onClick={()=>setDismissedNoBeforeWarn(prev=>{const s=new Set(prev);s.add(idx);return s;})}
+                    style={{background:"none",border:"none",cursor:"pointer",padding:"0 2px",lineHeight:1,
+                      color:"#050505",fontSize:16,display:"flex",alignItems:"center",flexShrink:0}}>✕</button>
                 </div>
               );
               return null;
