@@ -3048,7 +3048,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const [steerTypePrompt, setSteerTypePrompt] = useState(false);
   const [undoStack, setUndoStack] = useState([]);
   const saveUndo = useCallback(() => setUndoStack(prev => [...prev, axles.slice()]), [axles]);
-  const [distanceEditing, setDistanceEditing] = useState(true);
+  const [distanceEditing, setDistanceEditing] = useState(() => !(fullDistance && parseFloat(fullDistance)>0));
 
   const updAxle = useCallback(ax =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).map(a => a.id===ax.id ? ax : a)),
@@ -4219,7 +4219,9 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
     savedTickTimer.current = setTimeout(() => setSavedTick(false), 2000);
   }
   const [tab,setTab]=useState(initialTab);
-  useEffect(()=>{ if(forceTab) { setTab(forceTab); window.scrollTo({top:0,behavior:"smooth"}); } },[forceTab]);
+  const contentRef = useRef(null);
+  const scrollTop = () => { if(contentRef.current) contentRef.current.scrollTop=0; window.scrollTo({top:0,behavior:"smooth"}); };
+  useEffect(()=>{ if(forceTab) { setTab(forceTab); scrollTop(); } },[forceTab]);
   const isJosam = j.measureMethod==="josam";
 
   const setBeforeAxles = useCallback(updater =>
@@ -4266,7 +4268,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       setJ(p=>({...p, afterAxles: cloneAxlesEmpty(p.axles)}));
     }
     setTab(id);
-    window.scrollTo({top:0, behavior:"smooth"});
+    scrollTop();
   }
 
   const TABS = [
@@ -4351,7 +4353,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       </div>
 
       {/* Content — paddingTop clears the unified fixed chrome (header + tab bar) */}
-      <div style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",borderRadius:"0.3rem"}}>
+      <div ref={contentRef} style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",borderRadius:"0.3rem"}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
