@@ -2088,8 +2088,6 @@ function WheelBox({ header, subHeader, current, target }) {
 
 function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null, onApplyToAfter=null }) {
   const [applied, setApplied] = useState(false);
-  const [actualL, setActualL] = useState("");
-  const [actualR, setActualR] = useState("");
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2299,12 +2297,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
               lToe = isDriveRight ? tgt : 0;
               rToe = isDriveRight ? 0   : tgt;
             }
-            const lFarTarget = useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget);
-            const rFarTarget = useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget);
-            const lActual = actualL !== "" ? parseFloat(actualL) : null;
-            const rActual = actualR !== "" ? parseFloat(actualR) : null;
-            const lScales = getScales(lToe, lActual !== null && !isNaN(lActual) ? lActual : lFarTarget);
-            const rScales = getScales(rToe, rActual !== null && !isNaN(rActual) ? rActual : rFarTarget);
+            const lScales = getScales(lToe, useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget));
+            const rScales = getScales(rToe, useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget));
             const apply = () => {
               if (!lScales || !rScales) return;
               onApplyToAfter({
@@ -2316,31 +2310,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
               setApplied(true);
               setTimeout(()=>setApplied(false), 2500);
             };
-            const actualInputStyle = {
-              flex:1,background:"transparent",border:"none",outline:"none",
-              padding:"6px 8px",color:"#050505",fontFamily:FM,fontSize:14,
-              fontWeight:"600",textAlign:"center",width:"100%",boxSizing:"border-box"
-            };
             return (
-              <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:8}}>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  {[{label:"Left Wheel",val:actualL,set:setActualL},{label:"Right Wheel",val:actualR,set:setActualR}].map(({label,val,set})=>(
-                    <div key={label} style={{display:"flex",flexDirection:"column",gap:4}}>
-                      <span style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.45)",
-                        textTransform:"uppercase",letterSpacing:"0.06em",textAlign:"center"}}>
-                        {label} — actual {farScaleSide} scale
-                      </span>
-                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-                        border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
-                        <input type="number" placeholder="—" value={val}
-                          onChange={e=>set(e.target.value)}
-                          style={actualInputStyle}/>
-                        <span style={{padding:"0 7px",fontFamily:FB,fontSize:10,
-                          color:"rgba(5,5,5,0.4)",borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
                 <button onClick={apply}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
                     borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
@@ -2348,10 +2319,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                     transition:"opacity 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
                   onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
+                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Enter actual {farScaleSide} scale above — {farScaleSide==="rear"?"front":"rear"} scale estimated from toe
+                  Predicted values — verify with laser after adjustment
                 </div>
               </div>
             );
@@ -2365,8 +2336,6 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
 function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null, onApplyToAfter=null }) {
   const [applied, setApplied] = useState(false);
-  const [actualL, setActualL] = useState("");
-  const [actualR, setActualR] = useState("");
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2490,10 +2459,8 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                 return { front: farTarget, rear: farTarget - targetToeWheel * D };
               }
             };
-            const lActual = actualL !== "" ? parseFloat(actualL) : null;
-            const rActual = actualR !== "" ? parseFloat(actualR) : null;
-            const lScales = getScales(lToe, lActual !== null && !isNaN(lActual) ? lActual : leftTarget);
-            const rScales = getScales(rToe, rActual !== null && !isNaN(rActual) ? rActual : rightTarget);
+            const lScales = getScales(lToe, leftTarget);
+            const rScales = getScales(rToe, rightTarget);
             const apply = () => {
               onApplyToAfter({
                 frontScaleLeft:  String(Math.round(lScales.front)),
@@ -2504,31 +2471,8 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
               setApplied(true);
               setTimeout(()=>setApplied(false), 2500);
             };
-            const actualInputStyle = {
-              flex:1,background:"transparent",border:"none",outline:"none",
-              padding:"6px 8px",color:"#050505",fontFamily:FM,fontSize:14,
-              fontWeight:"600",textAlign:"center",width:"100%",boxSizing:"border-box"
-            };
             return (
-              <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:8}}>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-                  {[{label:"Left Wheel",val:actualL,set:setActualL},{label:"Right Wheel",val:actualR,set:setActualR}].map(({label,val,set})=>(
-                    <div key={label} style={{display:"flex",flexDirection:"column",gap:4}}>
-                      <span style={{fontFamily:FB,fontSize:9,color:"rgba(5,5,5,0.45)",
-                        textTransform:"uppercase",letterSpacing:"0.06em",textAlign:"center"}}>
-                        {label} — actual {farScaleSide} scale
-                      </span>
-                      <div style={{display:"flex",alignItems:"center",background:"#e5e5e5",
-                        border:"1.5px solid rgba(5,5,5,0.15)",borderRadius:"0.3rem",overflow:"hidden"}}>
-                        <input type="number" placeholder="—" value={val}
-                          onChange={e=>set(e.target.value)}
-                          style={actualInputStyle}/>
-                        <span style={{padding:"0 7px",fontFamily:FB,fontSize:10,
-                          color:"rgba(5,5,5,0.4)",borderLeft:"1px solid rgba(5,5,5,0.12)",flexShrink:0}}>mm</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
                 <button onClick={apply}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
                     borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
@@ -2536,10 +2480,10 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                     transition:"opacity 0.15s"}}
                   onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
                   onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-                  {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
+                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
-                  Enter actual {farScaleSide} scale above — {farScaleSide==="rear"?"front":"rear"} scale estimated from toe
+                  Predicted values — verify with laser after adjustment
                 </div>
               </div>
             );
