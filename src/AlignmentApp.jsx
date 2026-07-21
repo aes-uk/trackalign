@@ -2285,7 +2285,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           const rearMov  = aRear - origRear;
           const frontMov = rearMov * (df / D);
           const estFront = origFront - frontMov;
-          const actualToe = (Math.round(estFront) - aRear) / D;
+          const actualToe = (estFront - aRear) / D;
           return { aRear, estFront, actualToe };
         };
 
@@ -2310,10 +2310,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           const lFarTarget = useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget);
           const rFarTarget = useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget);
           // Use actual inputs when entered, otherwise fall back to target-based
-          const lFront = wL.estFront !== null ? Math.round(wL.estFront) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
-          const lRear  = wL.aRear   !== null ? Math.round(wL.aRear)    : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
-          const rFront = wR.estFront !== null ? Math.round(wR.estFront) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
-          const rRear  = wR.aRear   !== null ? Math.round(wR.aRear)    : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
+          const lFront = wL.estFront !== null ? parseFloat(wL.estFront.toFixed(1)) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
+          const lRear  = wL.aRear   !== null ? wL.aRear                           : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
+          const rFront = wR.estFront !== null ? parseFloat(wR.estFront.toFixed(1)) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
+          const rRear  = wR.aRear   !== null ? wR.aRear                           : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
           if (lFront==null||lRear==null||rFront==null||rRear==null) return;
           onApplyToAfter({
             frontScaleLeft:  String(lFront),
@@ -2523,7 +2523,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           const rearMov  = aRear - origRear;
           const frontMov = rearMov * (df / D);
           const estFront = origFront - frontMov;
-          const actualToe = (Math.round(estFront) - aRear) / D;
+          const actualToe = (estFront - aRear) / D;
           return { aRear, estFront, actualToe };
         };
 
@@ -2545,10 +2545,10 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
               : { front: farTarget, rear: farTarget - targetToeWheel * D };
           };
           const half = totalBeforeToe / 2;
-          const lFront = wL.estFront !== null ? Math.round(wL.estFront) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
-          const lRear  = wL.aRear   !== null ? Math.round(wL.aRear)    : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
-          const rFront = wR.estFront !== null ? Math.round(wR.estFront) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
-          const rRear  = wR.aRear   !== null ? Math.round(wR.aRear)    : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
+          const lFront = wL.estFront !== null ? parseFloat(wL.estFront.toFixed(1)) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
+          const lRear  = wL.aRear   !== null ? wL.aRear                           : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
+          const rFront = wR.estFront !== null ? parseFloat(wR.estFront.toFixed(1)) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
+          const rRear  = wR.aRear   !== null ? wR.aRear                           : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
           if (lFront==null||lRear==null||rFront==null||rRear==null) return;
           onApplyToAfter({
             frontScaleLeft:  String(lFront),
