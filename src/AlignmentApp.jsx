@@ -2370,7 +2370,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {parseFloat(w.actualToe.toFixed(1))>0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
@@ -2603,7 +2603,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {parseFloat(w.actualToe.toFixed(1))>0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
