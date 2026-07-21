@@ -1611,7 +1611,8 @@ function axleLabel(axle, allAxles) {
   return AXLE_TYPE_LABELS[axle.type]||axle.type;
 }
 
-function hasAnyReadings(axles=[]) {
+function hasAnyReadings(axles) {
+  if (!Array.isArray(axles)) return false;
   const READING_FIELDS = ["toeLeft","toeRight","camberLeft","camberRight","casterLeft","casterRight",
     "kpiLeft","kpiRight","maxTurnLeft","maxTurnRight","frontScaleLeft","frontScaleRight",
     "rearScaleLeft","rearScaleRight"];
