@@ -2586,7 +2586,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&!isAfter&&showAdjCalc&&(
+      {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex} axle={axle}/>
         </CollapseSection>
@@ -2618,7 +2618,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <SteeringGeoSection axle={axle} up={up} showTurning={true} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&!isAfter&&showAdjCalc&&(
+      {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
         </CollapseSection>
@@ -2649,7 +2649,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
         badge={geoFilled>0?`${geoFilled} values`:""}>
         <FixedGeoSection axle={axle} up={up} tols={axle.tolerances}/>
       </CollapseSection>
-      {isJosam&&!isAfter&&showAdjCalc&&(
+      {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
           <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
         </CollapseSection>
