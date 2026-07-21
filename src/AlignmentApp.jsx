@@ -3106,7 +3106,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&!hasAnyReadings(axles)&&(
+            {undoStack.length>0&&axles.length>0&&!hasAnyReadings(axles)&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
@@ -3291,7 +3291,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&!hasAnyReadings(axles)&&(
+            {undoStack.length>0&&axles.length>0&&!hasAnyReadings(axles)&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
