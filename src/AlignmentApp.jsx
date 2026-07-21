@@ -1650,7 +1650,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             </div>
           ) : (
             <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-              {configs.length>0?"Select a configuration, create a new one, or add axles manually from quick layout.":"Create a new configuration, or add axles manually from quick layout."}
+              {configs.length>0?"Select a configuration, create a new one or select axles manually.":"Create a new configuration or select axles manually."}
             </div>
           )}
         </div>
@@ -1806,7 +1806,7 @@ function DistancePicker({ value, onChange, bare=false }) {
   );
 }
 
-function ScaleInput({label, value, onCh, onFocus}) {
+function ScaleInput({label, value, onCh}) {
   const [local, setLocal] = useState(value===undefined||value===null?"":String(value));
   useEffect(()=>{ setLocal(value===undefined||value===null?"":String(value)); }, [value]);
   const commit = v => onCh(v===""?"":String(Math.round(parseFloat(v))));
@@ -1822,7 +1822,6 @@ function ScaleInput({label, value, onCh, onFocus}) {
         className="no-spin"
         value={local}
         onInput={e=>setLocal(e.target.value.replace(/[^0-9-]/g,""))}
-        onFocus={onFocus}
         onBlur={e=>commit(e.target.value)}
         onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(e.target.value); } if(e.key==="Tab") commit(e.target.value); }}
         placeholder="0"
@@ -1834,7 +1833,7 @@ function ScaleInput({label, value, onCh, onFocus}) {
   );
 }
 
-function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false, onNeedDistance=null }) {
+function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false }) {
   const D = parseFloat(fullDistance) || 0;
   const Da = parseFloat(axle.axleDistance) || 0;
   const up = (f,v) => onChange({...axle,[f]:v});
@@ -1857,9 +1856,9 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false, 
           <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
             textTransform:"uppercase",letterSpacing:"0.08em"}}>LEFT</div>
           <ScaleInput label="Front Scale" value={axle.frontScaleLeft}
-            onCh={v=>up("frontScaleLeft",v)} onFocus={D===0&&onNeedDistance?onNeedDistance:undefined}/>
+            onCh={v=>up("frontScaleLeft",v)}/>
           <ScaleInput label="Rear Scale"  value={axle.rearScaleLeft}
-            onCh={v=>up("rearScaleLeft",v)} onFocus={D===0&&onNeedDistance?onNeedDistance:undefined}/>
+            onCh={v=>up("rearScaleLeft",v)}/>
           {toeL!==null && (
             <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
               borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center",minWidth:0,width:"100%",boxSizing:"border-box"}}>
@@ -1907,9 +1906,9 @@ function JosamToeRow({ axle, fullDistance, onChange, dual=false, isAfter=false, 
           <div style={{fontFamily:FB,fontSize:10,fontWeight:"600",color:"#050505",
             textTransform:"uppercase",letterSpacing:"0.08em"}}>RIGHT</div>
           <ScaleInput label="Front Scale" value={axle.frontScaleRight}
-            onCh={v=>up("frontScaleRight",v)} onFocus={D===0&&onNeedDistance?onNeedDistance:undefined}/>
+            onCh={v=>up("frontScaleRight",v)}/>
           <ScaleInput label="Rear Scale"  value={axle.rearScaleRight}
-            onCh={v=>up("rearScaleRight",v)} onFocus={D===0&&onNeedDistance?onNeedDistance:undefined}/>
+            onCh={v=>up("rearScaleRight",v)}/>
           {toeR!==null && (
             <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
               borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center",minWidth:0,width:"100%",boxSizing:"border-box"}}>
@@ -2518,7 +2517,7 @@ function FixedGeoSection({ axle, up, tols=null }) {
 /* ══════════════════════════════════════════════════════════════
    AXLE PANELS
 ══════════════════════════════════════════════════════════════ */
-function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null, showAdjCalc=false, onNeedDistance=null }) {
+function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const hasToeDdata=hasVal(axle.toeLeft)||hasVal(axle.toeRight)||
     (isJosam&&(hasVal(axle.frontScaleLeft)||hasVal(axle.frontScaleRight)));
@@ -2547,7 +2546,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
           value={axle.suspType} onChange={v=>up("suspType",v)} disabled={isAfter}/>
       </div>
       {isJosam
-        ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter} onNeedDistance={onNeedDistance}/>
+        ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter}/>
         : <ToeRow toeLeft={axle.toeLeft} toeRight={axle.toeRight}
             onLeft={v=>up("toeLeft",v)} onRight={v=>up("toeRight",v)} tols={axle.tolerances}
             axleType={axle.type} driveSide={axle.driveSide||"RHD"} steerIndex={steerIndex||0}/>
@@ -2588,7 +2587,7 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
   );
 }
 
-function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false, onNeedDistance=null }) {
+function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
@@ -2602,7 +2601,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
           value={axle.suspType||"solid"} onChange={v=>up("suspType",v)} disabled={isAfter}/>
       </div>
       {isJosam
-        ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter} onNeedDistance={onNeedDistance}/>
+        ? <JosamToeRow axle={axle} fullDistance={fullDistance} onChange={onChange} isAfter={isAfter}/>
         : <ToeRow toeLeft={axle.toeLeft} toeRight={axle.toeRight}
             onLeft={v=>up("toeLeft",v)} onRight={v=>up("toeRight",v)} axleType={axle.type} driveSide={axle.driveSide||"RHD"}/>
       }
@@ -2620,7 +2619,7 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
   );
 }
 
-function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false, onNeedDistance=null }) {
+function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const dual = axle.dualWheel||false;
   const geoFilled=[axle.camberLeft,axle.camberRight].filter(hasVal).length;
@@ -3049,15 +3048,6 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
   const [steerTypePrompt, setSteerTypePrompt] = useState(false);
   const [undoStack, setUndoStack] = useState([]);
   const saveUndo = useCallback(() => setUndoStack(prev => [...prev, axles.slice()]), [axles]);
-  const distanceBoxRef = useRef(null);
-  const [distanceAlert, setDistanceAlert] = useState(false);
-  const handleNeedDistance = useCallback(() => {
-    if (distanceBoxRef.current) {
-      distanceBoxRef.current.scrollIntoView({ behavior:"smooth", block:"center" });
-    }
-    setDistanceAlert(true);
-    setTimeout(() => setDistanceAlert(false), 2000);
-  }, []);
 
   const updAxle = useCallback(ax =>
     setAxles(prev => (Array.isArray(prev) ? prev : []).map(a => a.id===ax.id ? ax : a)),
@@ -3115,7 +3105,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&!hasAnyReadings(axles)&&(
+            {undoStack.length>0&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
@@ -3152,8 +3142,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       )}
       {/* Full distance input — Josam mode only, on Before tab, hidden until config/axle selected */}
       {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (
-        <div ref={distanceBoxRef} style={{background:"rgba(235,0,0,0.06)",border:`1px solid ${distanceAlert?"#eb0000":"rgba(235,0,0,0.15)"}`,
-          borderRadius:"0.3rem",padding:"12px 14px",transition:"border-color 0.2s"}}>
+        <div style={{background:"rgba(235,0,0,0.06)",border:"1px solid rgba(235,0,0,0.15)",
+          borderRadius:"0.3rem",padding:"12px 14px"}}>
           <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:8}}>
             Josam AM — Full Scale Distance
           </div>
@@ -3236,8 +3226,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 beforeAxle={isAfterPanel
                   ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                   : (showAdjCalc ? axle : null)}
-                steerIndex={si} frontSteerSM={frontSM} showAdjCalc={showAdjCalc}
-                onNeedDistance={isJosam?handleNeedDistance:null}/>;
+                steerIndex={si} frontSteerSM={frontSM} showAdjCalc={showAdjCalc}/>;
             })()}
             {axle.type==="rear-steer"&&<RearSteerAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
@@ -3246,8 +3235,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               beforeAxle={isAfterPanel
                 ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                 : (showAdjCalc ? axle : null)}
-              allAxles={axles} showAdjCalc={showAdjCalc}
-              onNeedDistance={isJosam?handleNeedDistance:null}/>}
+              allAxles={axles} showAdjCalc={showAdjCalc}/>}
             {axle.type==="fixed"&&<FixedAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
               showAdj={!!adjOpen[axle.id]} onToggleAdj={()=>toggleAdj(axle.id)}
@@ -3255,8 +3243,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               beforeAxle={isAfterPanel
                 ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                 : (showAdjCalc ? axle : null)}
-              allAxles={axles} showAdjCalc={showAdjCalc}
-              onNeedDistance={isJosam?handleNeedDistance:null}/>}
+              allAxles={axles} showAdjCalc={showAdjCalc}/>}
           </div>
         </div>
       ))}
@@ -3268,7 +3255,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase"}}>
               Quick Layout - Add Axles
             </div>
-            {undoStack.length>0&&!hasAnyReadings(axles)&&(
+            {undoStack.length>0&&(
               <button onClick={()=>{const s=[...undoStack];const prev=s.pop();setAxles(prev);setUndoStack(s);}} style={{
                 background:"none",border:"none",cursor:"pointer",
                 padding:"4px 6px",display:"flex",alignItems:"center",gap:4,
