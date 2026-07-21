@@ -4476,7 +4476,9 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
                 "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
               const cleared = {};
               ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
-              return prev.map(a => a.id===id ? {...a,...cleared} : a);
+              // Match by position (after axles have different IDs from before axles)
+              const beforeIdx = (j.axles||[]).findIndex(a=>a.id===id);
+              return prev.map((a,i) => i===beforeIdx ? {...a,...cleared} : a);
             })}
 />
         )}
