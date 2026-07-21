@@ -3264,7 +3264,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
                 updAxle({...axle,...cleared});
                 onClearAfterAxle&&onClearAfterAxle(axle.id);
-              }} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
+              }} title="Clears entries for axle"
+                style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",
                 cursor:"pointer",fontFamily:FB,fontSize:11,color:"#050505",fontWeight:"600",
                 padding:"2px 4px",lineHeight:1}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -3296,6 +3297,21 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
             ))}
           </div>
           <div style={{padding:"16px 14px"}}>
+            {isAfterPanel&&(()=>{
+              const beforeAxle = Array.isArray(beforeAxles) ? beforeAxles[idx] : null;
+              const beforeHasReadings = beforeAxle && ALL_READING_FIELDS.some(f=>beforeAxle[f]!=null&&beforeAxle[f]!=="");
+              if (!beforeHasReadings) return (
+                <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(234,179,8,0.08)",
+                  border:"1px solid rgba(234,179,8,0.5)",borderRadius:"0.3rem",
+                  padding:"8px 12px",marginBottom:14}}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span style={{fontFamily:FB,fontSize:12,color:"#b45309",fontWeight:"600"}}>No before readings are entered for this axle.</span>
+                </div>
+              );
+              return null;
+            })()}
             {axle.type==="steering"&&(()=>{
               const D = parseFloat(fullDistance)||0;
               const si = axles.slice(0,idx).filter(a=>a.type==="steering").length;
