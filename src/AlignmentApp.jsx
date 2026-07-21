@@ -1650,7 +1650,7 @@ function ConfigPicker({ job, configs=[], onSelectConfig, onCreateConfig, onOpenL
             </div>
           ) : (
             <div style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-              {configs.length>0?"Select a configuration, create a new one or select axles manually.":"Create a new configuration or select axles manually."}
+              {configs.length>0?"Select a configuration, create a new one, or add axles manually from quick layout.":"Create a new configuration, or add axles manually from quick layout."}
             </div>
           )}
         </div>
