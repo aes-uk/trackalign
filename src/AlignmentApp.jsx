@@ -2295,9 +2295,12 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         const wR = computeActual(actualR, origRearR, origFrontR);
 
         const scaleLabel = farScaleSide.charAt(0).toUpperCase()+farScaleSide.slice(1)+" Scale";
+        const placeholderL = farScaleSide==="rear" ? (origRearL!==null?String(Math.round(origRearL)):"") : (origFrontL!==null?String(Math.round(origFrontL)):"");
+        const placeholderR = farScaleSide==="rear" ? (origRearR!==null?String(Math.round(origRearR)):"") : (origFrontR!==null?String(Math.round(origFrontR)):"");
+        const bothEntered = actualL!=="" && actualR!=="";
         const wheelCards = [
-          { header: `Left ${scaleLabel}`, toeLabel:"Toe Left",  target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL },
-          { header: `Right ${scaleLabel}`, toeLabel:"Toe Right", target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR },
+          { header: `Left ${scaleLabel}`, toeLabel:"Toe Left",  target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL, placeholder: placeholderL },
+          { header: `Right ${scaleLabel}`, toeLabel:"Toe Right", target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR, placeholder: placeholderR },
         ];
 
         const apply = () => {
@@ -2332,7 +2335,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           <>
             <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              {wheelCards.map(({header,toeLabel,target,actual,setActual,w})=>(
+              {wheelCards.map(({header,toeLabel,target,actual,setActual,w,placeholder})=>(
                 <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
                   <span style={{fontFamily:FD,fontSize:10,letterSpacing:"0.08em",color:"#050505",
                     textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
@@ -2352,7 +2355,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                       borderRadius:"0.3rem",padding:"4px 4px 2px",textAlign:"center",minWidth:0}}>
                       <div style={{fontFamily:FB,fontSize:7,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
                         letterSpacing:"0.05em",marginBottom:1}}>Actual</div>
-                      <input type="number" value={actual}
+                      <input type="number" value={actual} placeholder={placeholder}
                         onChange={e=>setActual(e.target.value)}
                         className="no-spin"
                         style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",
@@ -2367,7 +2370,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(2)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
@@ -2376,13 +2379,13 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
             </div>
             {onApplyToAfter&&hasResults&&(
               <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
-                <button onClick={apply}
+                <button onClick={apply} disabled={!bothEntered}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
-                    borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
+                    borderRadius:"0.3rem",padding:"12px 16px",cursor:bothEntered?"pointer":"default",
                     fontFamily:FB,fontWeight:"600",fontSize:13,letterSpacing:"0.03em",
-                    transition:"opacity 0.15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                    opacity:bothEntered?1:0.35,transition:"opacity 0.15s"}}
+                  onMouseEnter={e=>{if(bothEntered)e.currentTarget.style.opacity="0.82";}}
+                  onMouseLeave={e=>{if(bothEntered)e.currentTarget.style.opacity="1";}}>
                   {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
@@ -2528,9 +2531,12 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
         const wR = computeActual(actualR, origRearR, origFrontR);
 
         const scaleLabel = farScaleSide.charAt(0).toUpperCase()+farScaleSide.slice(1)+" Scale";
+        const placeholderL = farScaleSide==="rear" ? (origRearL!==null?String(Math.round(origRearL)):"") : (origFrontL!==null?String(Math.round(origFrontL)):"");
+        const placeholderR = farScaleSide==="rear" ? (origRearR!==null?String(Math.round(origRearR)):"") : (origFrontR!==null?String(Math.round(origFrontR)):"");
+        const bothEntered = actualL!=="" && actualR!=="";
         const wheelCards = [
-          { header:`Left ${scaleLabel}`,  toeLabel:"Toe Left",  target:leftTarget,  actual:actualL, setActual:setActualL, w:wL },
-          { header:`Right ${scaleLabel}`, toeLabel:"Toe Right", target:rightTarget, actual:actualR, setActual:setActualR, w:wR },
+          { header:`Left ${scaleLabel}`,  toeLabel:"Toe Left",  target:leftTarget,  actual:actualL, setActual:setActualL, w:wL, placeholder:placeholderL },
+          { header:`Right ${scaleLabel}`, toeLabel:"Toe Right", target:rightTarget, actual:actualR, setActual:setActualR, w:wR, placeholder:placeholderR },
         ];
 
         const apply = () => {
@@ -2562,7 +2568,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           <>
             <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              {wheelCards.map(({header,toeLabel,target,actual,setActual,w})=>(
+              {wheelCards.map(({header,toeLabel,target,actual,setActual,w,placeholder})=>(
                 <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
                   <span style={{fontFamily:FD,fontSize:10,letterSpacing:"0.08em",color:"#050505",
                     textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
@@ -2582,7 +2588,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                       borderRadius:"0.3rem",padding:"4px 4px 2px",textAlign:"center",minWidth:0}}>
                       <div style={{fontFamily:FB,fontSize:7,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
                         letterSpacing:"0.05em",marginBottom:1}}>Actual</div>
-                      <input type="number" value={actual}
+                      <input type="number" value={actual} placeholder={placeholder}
                         onChange={e=>setActual(e.target.value)}
                         className="no-spin"
                         style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",
@@ -2597,7 +2603,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(2)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
@@ -2606,13 +2612,13 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
             </div>
             {onApplyToAfter&&leftTarget!==null&&rightTarget!==null&&(
               <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:4}}>
-                <button onClick={apply}
+                <button onClick={apply} disabled={!bothEntered}
                   style={{width:"100%",background:"#050505",color:"#fff",border:"none",
-                    borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
+                    borderRadius:"0.3rem",padding:"12px 16px",cursor:bothEntered?"pointer":"default",
                     fontFamily:FB,fontWeight:"600",fontSize:13,letterSpacing:"0.03em",
-                    transition:"opacity 0.15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
-                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                    opacity:bothEntered?1:0.35,transition:"opacity 0.15s"}}
+                  onMouseEnter={e=>{if(bothEntered)e.currentTarget.style.opacity="0.82";}}
+                  onMouseLeave={e=>{if(bothEntered)e.currentTarget.style.opacity="1";}}>
                   {applied ? "✓ Applied to After tab" : "Apply to After Readings"}
                 </button>
                 <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
