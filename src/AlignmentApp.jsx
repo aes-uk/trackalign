@@ -3098,8 +3098,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {onConfigClick&&(
         <ConfigPicker job={jobRef} configs={configs} onSelectConfig={onApplyConfig} onCreateConfig={onCreateConfig} onOpenLibrary={onConfigClick} onReset={onResetConfig} onAddAxle={onAddAxleFromPicker}/>
       )}
-      {/* Quick Layout — before tab only, above axles when no config selected */}
-      {!isAfterPanel&&!jobRef?.configName&&(
+      {/* Quick Layout — before tab only, above axles when no config selected, hidden if after readings entered */}
+      {!isAfterPanel&&!jobRef?.configName&&!hasAnyReadings(jobRef?.afterAxles)&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
@@ -3219,12 +3219,32 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 cursor:isAfterPanel?"default":"text"}}/>
             <span style={{fontSize:9,fontFamily:FM,padding:"2px 8px",borderRadius:"0.3rem",
               background:"#eb0000",color:"#ffffff",border:"1px solid #eb0000"}}>{axle.type}</span>
-            {!isAfterPanel&&(
-              <button onClick={()=>removeAxle(axle.id)}
-                style={{background:"none",border:"none",color:"rgba(5,5,5,0.25)",cursor:"pointer",fontSize:16,padding:"0 4px",lineHeight:1}}
-                onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
-                onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.25)"}>✕</button>
-            )}
+            {!isAfterPanel&&(()=>{
+              const JOSAM_F = ["frontScaleLeft","rearScaleLeft","frontScaleRight","rearScaleRight"];
+              const DIRECT_F = ["toeLeft","toeRight"];
+              const readingFields = isJosam ? JOSAM_F : DIRECT_F;
+              const axleHasReadings = readingFields.some(f=>axle[f]!=null&&axle[f]!=="");
+              if (axleHasReadings) {
+                const clearAxle = () => updAxle({...axle,...Object.fromEntries(readingFields.map(f=>[f,""]))});
+                return (
+                  <button onClick={clearAxle} style={{
+                    background:"none",border:"none",cursor:"pointer",padding:"2px 4px",
+                    display:"flex",alignItems:"center",gap:4,
+                    color:"#050505",fontFamily:FB,fontSize:11,fontWeight:"600",flexShrink:0}}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#050505" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                    </svg>
+                    Clear
+                  </button>
+                );
+              }
+              return (
+                <button onClick={()=>removeAxle(axle.id)}
+                  style={{background:"none",border:"none",color:"rgba(5,5,5,0.25)",cursor:"pointer",fontSize:16,padding:"0 4px",lineHeight:1}}
+                  onMouseEnter={e=>e.currentTarget.style.color="#eb0000"}
+                  onMouseLeave={e=>e.currentTarget.style.color="rgba(5,5,5,0.25)"}>✕</button>
+              );
+            })()}
           </div>
           <div style={{padding:"16px 14px"}}>
             {axle.type==="steering"&&(()=>{
@@ -3283,8 +3303,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
         </div>
         );
       })}
-      {/* Quick Layout — below axles when config is selected */}
-      {!isAfterPanel&&jobRef?.configName&&(
+      {/* Quick Layout — below axles when config is selected, hidden if after readings entered */}
+      {!isAfterPanel&&jobRef?.configName&&!hasAnyReadings(jobRef?.afterAxles)&&(
         <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
           borderRadius:"0.3rem",padding:"12px 14px",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
@@ -4278,7 +4298,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
   ];
 
   return (
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",overflowX:"hidden"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100dvh",overflow:"hidden"}}>
       {/* Fixed chrome: header + tab bar in one block so they're always flush — no gap calculation */}
       <div style={{position:"fixed",top:0,left:0,right:0,zIndex:100,background:"#050505"}}>
         {/* Top bar */}
@@ -4352,7 +4372,7 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
       </div>
 
       {/* Content — paddingTop clears the unified fixed chrome (header + tab bar) */}
-      <div ref={contentRef} style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 auto",overflowX:"hidden",overflowY:"auto",borderRadius:"0.3rem"}}>
+      <div ref={contentRef} style={{padding:"18px 16px",paddingTop:"calc(18px + 60px + env(safe-area-inset-top) + 42px)",display:"flex",flexDirection:"column",gap:20,background:"#f7f7f7",flex:"1 1 0",overflowX:"hidden",overflowY:"auto",minHeight:0}}>
         {tab==="job"&&(
           <>
             <JobDetailsTab j={j} setJ={setJ} allJobs={allJobs} isJosam={isJosam}/>
