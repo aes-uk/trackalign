@@ -2285,7 +2285,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           const rearMov  = aRear - origRear;
           const frontMov = rearMov * (df / D);
           const estFront = origFront - frontMov;
-          const actualToe = (estFront - aRear) / D;
+          const actualToe = (Math.round(estFront) - aRear) / D;
           return { aRear, estFront, actualToe };
         };
 
@@ -2523,7 +2523,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           const rearMov  = aRear - origRear;
           const frontMov = rearMov * (df / D);
           const estFront = origFront - frontMov;
-          const actualToe = (estFront - aRear) / D;
+          const actualToe = (Math.round(estFront) - aRear) / D;
           return { aRear, estFront, actualToe };
         };
 
