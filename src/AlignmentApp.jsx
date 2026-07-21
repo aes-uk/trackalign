@@ -2087,7 +2087,7 @@ function WheelBox({ header, subHeader, current, target }) {
 }
 
 function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null, onApplyToAfter=null }) {
-  const [applied, setApplied] = React.useState(false);
+  const [applied, setApplied] = useState(false);
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2335,7 +2335,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
 function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null, onApplyToAfter=null }) {
-  const [applied, setApplied] = React.useState(false);
+  const [applied, setApplied] = useState(false);
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
