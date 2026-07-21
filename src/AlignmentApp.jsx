@@ -2086,7 +2086,8 @@ function WheelBox({ header, subHeader, current, target }) {
   );
 }
 
-function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null }) {
+function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, steerIndex=0, axle=null, onApplyToAfter=null }) {
+  const [applied, setApplied] = React.useState(false);
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2268,7 +2269,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         </div>
       </div>
 
-      {/* Wheel boxes */}
+      {/* Wheel boxes + Apply button */}
       {distFrontValid&&(
         <>
           <div style={{marginTop:16}}><SectionHead>{scaleTargetsLabel}</SectionHead></div>
@@ -2278,6 +2279,54 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                 current={b.now} target={b.target}/>
             ))}
           </div>
+          {onApplyToAfter&&hasResults&&(()=>{
+            // Compute per-wheel target toe and both scale values
+            const getScales = (targetToeWheel, farTarget) => {
+              if (farTarget===null) return null;
+              if (farScaleSide==="rear") {
+                return { rear: farTarget, front: farTarget + targetToeWheel * D };
+              } else {
+                return { front: farTarget, rear: farTarget - targetToeWheel * D };
+              }
+            };
+            let lToe, rToe;
+            if (useIndepPath) {
+              lToe = tgt / 2;
+              rToe = tgt / 2;
+            } else {
+              lToe = isDriveRight ? tgt : 0;
+              rToe = isDriveRight ? 0   : tgt;
+            }
+            const lScales = getScales(lToe, useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget));
+            const rScales = getScales(rToe, useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget));
+            const apply = () => {
+              if (!lScales || !rScales) return;
+              onApplyToAfter({
+                frontScaleLeft:  String(Math.round(lScales.front)),
+                rearScaleLeft:   String(Math.round(lScales.rear)),
+                frontScaleRight: String(Math.round(rScales.front)),
+                rearScaleRight:  String(Math.round(rScales.rear)),
+              });
+              setApplied(true);
+              setTimeout(()=>setApplied(false), 2500);
+            };
+            return (
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
+                <button onClick={apply}
+                  style={{width:"100%",background:"#050505",color:"#fff",border:"none",
+                    borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
+                    fontFamily:FB,fontWeight:"600",fontSize:13,letterSpacing:"0.03em",
+                    transition:"opacity 0.15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
+                </button>
+                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
+                  Predicted values — verify with laser after adjustment
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
@@ -2285,7 +2334,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
 }
 
 /* ── Fixed axle OOS-based adjustment (Josam After tab) ──────────── */
-function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null }) {
+function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, axle=null, onApplyToAfter=null }) {
+  const [applied, setApplied] = React.useState(false);
   const D = parseFloat(fullDistance) || 0;
 
   const distFront = afterAxle?.distanceFrontScale ?? "";
@@ -2398,6 +2448,46 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
             <WheelBox header="Left Wheel" subHeader={farScaleAimLabel} current={farL} target={leftTarget}/>
             <WheelBox header="Right Wheel" subHeader={farScaleAimLabel} current={farR} target={rightTarget}/>
           </div>
+          {onApplyToAfter&&leftTarget!==null&&rightTarget!==null&&(()=>{
+            const half = totalBeforeToe / 2;
+            const lToe = half - tgtOOS;
+            const rToe = half + tgtOOS;
+            const getScales = (targetToeWheel, farTarget) => {
+              if (farScaleSide==="rear") {
+                return { rear: farTarget, front: farTarget + targetToeWheel * D };
+              } else {
+                return { front: farTarget, rear: farTarget - targetToeWheel * D };
+              }
+            };
+            const lScales = getScales(lToe, leftTarget);
+            const rScales = getScales(rToe, rightTarget);
+            const apply = () => {
+              onApplyToAfter({
+                frontScaleLeft:  String(Math.round(lScales.front)),
+                rearScaleLeft:   String(Math.round(lScales.rear)),
+                frontScaleRight: String(Math.round(rScales.front)),
+                rearScaleRight:  String(Math.round(rScales.rear)),
+              });
+              setApplied(true);
+              setTimeout(()=>setApplied(false), 2500);
+            };
+            return (
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginTop:8}}>
+                <button onClick={apply}
+                  style={{width:"100%",background:"#050505",color:"#fff",border:"none",
+                    borderRadius:"0.3rem",padding:"12px 16px",cursor:"pointer",
+                    fontFamily:FB,fontWeight:"600",fontSize:13,letterSpacing:"0.03em",
+                    transition:"opacity 0.15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.opacity="0.82"}
+                  onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                  {applied ? "✓ Target scales applied to After tab" : "Apply Targets to After Readings"}
+                </button>
+                <div style={{fontFamily:FB,fontSize:11,color:"rgba(5,5,5,0.45)",textAlign:"center"}}>
+                  Predicted values — verify with laser after adjustment
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
@@ -2525,7 +2615,7 @@ function FixedGeoSection({ axle, up, tols=null }) {
 /* ══════════════════════════════════════════════════════════════
    AXLE PANELS
 ══════════════════════════════════════════════════════════════ */
-function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null, showAdjCalc=false }) {
+function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, steerIndex=0, frontSteerSM=null, showAdjCalc=false, onApplyToAfter=null }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const hasToeDdata=hasVal(axle.toeLeft)||hasVal(axle.toeRight)||
     (isJosam&&(hasVal(axle.frontScaleLeft)||hasVal(axle.frontScaleRight)));
@@ -2588,14 +2678,14 @@ function SteeringAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex} axle={axle}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} steerIndex={steerIndex} axle={axle} onApplyToAfter={onApplyToAfter}/>
         </CollapseSection>
       )}
     </div>
   );
 }
 
-function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
+function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false, onApplyToAfter=null }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const geoFilled=[axle.camberLeft,axle.camberRight,axle.casterLeft,axle.casterRight,
     axle.kpiLeft,axle.kpiRight,axle.maxTurnLeft,axle.maxTurnRight,
@@ -2620,14 +2710,14 @@ function RearSteerAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAd
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
+          <JosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle} onApplyToAfter={onApplyToAfter}/>
         </CollapseSection>
       )}
     </div>
   );
 }
 
-function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false }) {
+function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=false, onToggleAdj, isJosam=false, fullDistance="", beforeAxle=null, isAfter=false, allAxles=null, showAdjCalc=false, onApplyToAfter=null }) {
   const up=(f,v)=>onChange({...axle,[f]:v});
   const dual = axle.dualWheel||false;
   const geoFilled=[axle.camberLeft,axle.camberRight].filter(hasVal).length;
@@ -2651,7 +2741,7 @@ function FixedAxlePanel({ axle, onChange, showGeo=false, onToggleGeo, showAdj=fa
       </CollapseSection>
       {isJosam&&!isAfter&&showAdjCalc&&hasVal(axle.frontScaleLeft)&&hasVal(axle.frontScaleRight)&&hasVal(axle.rearScaleLeft)&&hasVal(axle.rearScaleRight)&&(
         <CollapseSection label="Adjustment Calculator" open={showAdj} onToggle={onToggleAdj} variant="calculator">
-          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle}/>
+          <FixedJosamAdjustSection afterAxle={axle} beforeAxle={beforeAxle} fullDistance={fullDistance} onChange={onChange} axle={axle} onApplyToAfter={onApplyToAfter}/>
         </CollapseSection>
       )}
     </div>
@@ -3046,7 +3136,7 @@ function cloneAxlesEmpty(axles) {
   }));
 }
 
-function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null, onAddAxleFromPicker=null, onClearAfterAxle=null }) {
+function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFullDistance, beforeAxles=null, jobRef=null, onConfigClick=null, onCreateConfig=null, showAdjCalc=false, configs=[], onApplyConfig=null, onResetConfig=null, onAddAxleFromPicker=null, onClearAfterAxle=null, onApplyAfterScales=null }) {
   const isAfterPanel = !setFullDistance && beforeAxles!==null;
   // showGeo lives HERE so it survives axle data re-renders without remounting
   const [geoOpen, setGeoOpen] = useState({});
@@ -3347,7 +3437,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
                 beforeAxle={isAfterPanel
                   ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                   : (showAdjCalc ? axle : null)}
-                steerIndex={si} frontSteerSM={frontSM} showAdjCalc={showAdjCalc}/>;
+                steerIndex={si} frontSteerSM={frontSM} showAdjCalc={showAdjCalc}
+                onApplyToAfter={onApplyAfterScales ? (scales=>onApplyAfterScales(idx,scales)) : null}/>;
             })()}
             {axle.type==="rear-steer"&&<RearSteerAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
@@ -3356,7 +3447,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               beforeAxle={isAfterPanel
                 ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                 : (showAdjCalc ? axle : null)}
-              allAxles={axles} showAdjCalc={showAdjCalc}/>}
+              allAxles={axles} showAdjCalc={showAdjCalc}
+              onApplyToAfter={onApplyAfterScales ? (scales=>onApplyAfterScales(idx,scales)) : null}/>}
             {axle.type==="fixed"&&<FixedAxlePanel axle={axle} onChange={updAxle}
               showGeo={!!geoOpen[axle.id]} onToggleGeo={()=>toggleGeo(axle.id)}
               showAdj={!!adjOpen[axle.id]} onToggleAdj={()=>toggleAdj(axle.id)}
@@ -3364,7 +3456,8 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               beforeAxle={isAfterPanel
                 ? (beforeAxles?.find(b=>b.label===axle.label)||null)
                 : (showAdjCalc ? axle : null)}
-              allAxles={axles} showAdjCalc={showAdjCalc}/>}
+              allAxles={axles} showAdjCalc={showAdjCalc}
+              onApplyToAfter={onApplyAfterScales ? (scales=>onApplyAfterScales(idx,scales)) : null}/>}
           </div>
         </div>
         );
@@ -4507,9 +4600,16 @@ function JobEditor({ job, allJobs, onSave, onBack, initialTab="job", onOpenConfi
                 "frontScaleLeft","frontScaleRight","rearScaleLeft","rearScaleRight"];
               const cleared = {};
               ALL_READING_FIELDS.forEach(f=>{ cleared[f]=""; });
-              // Match by position (after axles have different IDs from before axles)
               const beforeIdx = (j.axles||[]).findIndex(a=>a.id===id);
               return prev.map((a,i) => i===beforeIdx ? {...a,...cleared} : a);
+            })}
+            onApplyAfterScales={(axleIdx, scales)=>setAfterAxles(prev=>{
+              if (!Array.isArray(prev)) {
+                // afterAxles not yet initialised — clone from before then apply
+                const cloned = cloneAxlesEmpty(j.axles||[]);
+                return cloned.map((a,i) => i===axleIdx ? {...a,...scales} : a);
+              }
+              return prev.map((a,i) => i===axleIdx ? {...a,...scales} : a);
             })}
 />
         )}
