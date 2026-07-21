@@ -3302,7 +3302,7 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
               const beforeHasReadings = beforeAxle && ALL_READING_FIELDS.some(f=>beforeAxle[f]!=null&&beforeAxle[f]!=="");
               const afterHasReadings = ALL_READING_FIELDS.some(f=>axle[f]!=null&&axle[f]!=="");
               if (!beforeHasReadings && afterHasReadings) return (
-                <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(234,179,8,0.08)",
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:"rgba(234,179,8,0.08)",
                   border:"1px solid rgba(234,179,8,0.5)",borderRadius:"0.3rem",
                   padding:"8px 12px",marginBottom:14}}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
