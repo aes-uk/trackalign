@@ -2294,9 +2294,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         const wL = computeActual(actualL, origRearL, origFrontL);
         const wR = computeActual(actualR, origRearR, origFrontR);
 
+        const scaleLabel = farScaleSide.charAt(0).toUpperCase()+farScaleSide.slice(1)+" Scale";
         const wheelCards = [
-          { header: boxes[0].header, target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL },
-          { header: boxes[1].header, target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR },
+          { header: `Left ${scaleLabel}`, toeLabel:"Toe Left",  target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL },
+          { header: `Right ${scaleLabel}`, toeLabel:"Toe Right", target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR },
         ];
 
         const apply = () => {
@@ -2331,9 +2332,9 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           <>
             <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              {wheelCards.map(({header,target,actual,setActual,w})=>(
+              {wheelCards.map(({header,toeLabel,target,actual,setActual,w})=>(
                 <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
-                  <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+                  <span style={{fontFamily:FD,fontSize:10,letterSpacing:"0.08em",color:"#050505",
                     textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
                   <div style={{display:"flex",alignItems:"stretch",gap:6}}>
                     {/* Target (left) */}
@@ -2346,36 +2347,30 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                       </div>
                     </div>
                     <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
-                    {/* Actual input (right) */}
-                    <div style={{flex:1,minWidth:0}}>
-                      <input type="number" placeholder="Actual" value={actual}
+                    {/* Actual input — same size as target */}
+                    <div style={{flex:1,background:"#e5e5e5",border:"1.5px solid rgba(5,5,5,0.18)",
+                      borderRadius:"0.3rem",padding:"4px 4px 2px",textAlign:"center",minWidth:0}}>
+                      <div style={{fontFamily:FB,fontSize:7,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
+                        letterSpacing:"0.05em",marginBottom:1}}>Actual</div>
+                      <input type="number" value={actual}
                         onChange={e=>setActual(e.target.value)}
                         className="no-spin"
-                        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
-                          border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",outline:"none",
-                          padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
-                          fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
+                        style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",
+                          outline:"none",padding:"0 2px",color:actual===""?"rgba(5,5,5,0.3)":"#050505",
+                          fontFamily:FM,fontSize:17,fontWeight:"700",textAlign:"center",lineHeight:1}}/>
                     </div>
                   </div>
-                  {/* Est. front + actual toe */}
-                  <div style={{display:"flex",flexDirection:"column",gap:3}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
-                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Est. front scale</span>
-                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
-                        color:w.estFront!==null?"#050505":"rgba(5,5,5,0.25)"}}>
-                        {w.estFront!==null ? w.estFront.toFixed(1) : "—"}
-                      </span>
+                  {/* Toe box — matches before tab style */}
+                  {w.actualToe!==null&&(
+                    <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
+                      borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center"}}>
+                      <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
+                        textTransform:"uppercase"}}>{toeLabel}</div>
+                      <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
+                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(2)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                      </div>
                     </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
-                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Actual toe</span>
-                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
-                        color:w.actualToe!==null?"#050505":"rgba(5,5,5,0.25)"}}>
-                        {w.actualToe!==null ? `${w.actualToe.toFixed(2)} mm` : "—"}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -2532,9 +2527,10 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
         const wL = computeActual(actualL, origRearL, origFrontL);
         const wR = computeActual(actualR, origRearR, origFrontR);
 
+        const scaleLabel = farScaleSide.charAt(0).toUpperCase()+farScaleSide.slice(1)+" Scale";
         const wheelCards = [
-          { header:"Left Wheel",  target:leftTarget,  actual:actualL, setActual:setActualL, w:wL },
-          { header:"Right Wheel", target:rightTarget, actual:actualR, setActual:setActualR, w:wR },
+          { header:`Left ${scaleLabel}`,  toeLabel:"Toe Left",  target:leftTarget,  actual:actualL, setActual:setActualL, w:wL },
+          { header:`Right ${scaleLabel}`, toeLabel:"Toe Right", target:rightTarget, actual:actualR, setActual:setActualR, w:wR },
         ];
 
         const apply = () => {
@@ -2566,9 +2562,9 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
           <>
             <div style={{marginTop:16}}><SectionHead>Scale Readings</SectionHead></div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              {wheelCards.map(({header,target,actual,setActual,w})=>(
+              {wheelCards.map(({header,toeLabel,target,actual,setActual,w})=>(
                 <div key={header} style={{display:"flex",flexDirection:"column",gap:8}}>
-                  <span style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",
+                  <span style={{fontFamily:FD,fontSize:10,letterSpacing:"0.08em",color:"#050505",
                     textTransform:"uppercase",fontWeight:"600",textAlign:"center"}}>{header}</span>
                   <div style={{display:"flex",alignItems:"stretch",gap:6}}>
                     {/* Target (left) */}
@@ -2581,36 +2577,30 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                       </div>
                     </div>
                     <span style={{color:"rgba(5,5,5,0.3)",fontSize:13,alignSelf:"center",flexShrink:0}}>→</span>
-                    {/* Actual input (right) */}
-                    <div style={{flex:1,minWidth:0}}>
-                      <input type="number" placeholder="Actual" value={actual}
+                    {/* Actual input — same size as target */}
+                    <div style={{flex:1,background:"#e5e5e5",border:"1.5px solid rgba(5,5,5,0.18)",
+                      borderRadius:"0.3rem",padding:"4px 4px 2px",textAlign:"center",minWidth:0}}>
+                      <div style={{fontFamily:FB,fontSize:7,color:"rgba(5,5,5,0.45)",textTransform:"uppercase",
+                        letterSpacing:"0.05em",marginBottom:1}}>Actual</div>
+                      <input type="number" value={actual}
                         onChange={e=>setActual(e.target.value)}
                         className="no-spin"
-                        style={{width:"100%",boxSizing:"border-box",background:"#e5e5e5",
-                          border:"1.5px solid rgba(5,5,5,0.18)",borderRadius:"0.3rem",outline:"none",
-                          padding:"6px 4px",color:actual===""?"rgba(5,5,5,0.35)":"#050505",
-                          fontFamily:FM,fontSize:14,fontWeight:"600",textAlign:"center"}}/>
+                        style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",
+                          outline:"none",padding:"0 2px",color:actual===""?"rgba(5,5,5,0.3)":"#050505",
+                          fontFamily:FM,fontSize:17,fontWeight:"700",textAlign:"center",lineHeight:1}}/>
                     </div>
                   </div>
-                  {/* Est. front + actual toe */}
-                  <div style={{display:"flex",flexDirection:"column",gap:3}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
-                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Est. front scale</span>
-                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
-                        color:w.estFront!==null?"#050505":"rgba(5,5,5,0.25)"}}>
-                        {w.estFront!==null ? w.estFront.toFixed(1) : "—"}
-                      </span>
+                  {/* Toe box — matches before tab style */}
+                  {w.actualToe!==null&&(
+                    <div style={{background:"#f7f7f7",border:"1px solid rgba(5,5,5,0.10)",
+                      borderRadius:"0.3rem",padding:"6px 8px",textAlign:"center"}}>
+                      <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
+                        textTransform:"uppercase"}}>{toeLabel}</div>
+                      <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
+                        {w.actualToe>=0?"+":""}{w.actualToe.toFixed(2)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                      </div>
                     </div>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-                      padding:"3px 6px",background:"rgba(5,5,5,0.03)",borderRadius:"0.25rem"}}>
-                      <span style={{fontFamily:FB,fontSize:10,color:"rgba(5,5,5,0.5)"}}>Actual toe</span>
-                      <span style={{fontFamily:FM,fontSize:11,fontWeight:"600",
-                        color:w.actualToe!==null?"#050505":"rgba(5,5,5,0.25)"}}>
-                        {w.actualToe!==null ? `${w.actualToe.toFixed(2)} mm` : "—"}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>
