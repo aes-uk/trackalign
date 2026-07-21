@@ -3144,20 +3144,22 @@ function ReadingsPanel({ axles, setAxles, isJosam=false, fullDistance="", setFul
       {isJosam && setFullDistance && (jobRef?.configName || (jobRef?.axles||[]).length>0) && (
         <div style={{background:"rgba(235,0,0,0.06)",border:"1px solid rgba(235,0,0,0.15)",
           borderRadius:"0.3rem",padding:"12px 14px"}}>
-          <div style={{fontFamily:FB,fontSize:12,fontWeight:"600",color:"#050505",marginBottom:6}}>
+          <div style={{fontFamily:FD,fontSize:11,letterSpacing:"0.08em",color:"#050505",fontWeight:"600",textTransform:"uppercase",marginBottom:8}}>
             Josam AM — Full Scale Distance
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-<DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
-            <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
-              metres (front scale to rear scale)
-            </span>
-          </div>
-          {(!fullDistance||parseFloat(fullDistance)===0)&&(
-            <div style={{fontFamily:FB,fontSize:11,color:"#eb0000",marginTop:6}}>
-              Enter full distance to enable toe calculation
+            <DistancePicker value={fullDistance} onChange={v=>setFullDistance(v)}/>
+            <div style={{display:"flex",flexDirection:"column",gap:2,justifyContent:"center"}}>
+              <span style={{fontFamily:FB,fontSize:12,color:"rgba(5,5,5,0.5)"}}>
+                metres (front scale to rear scale)
+              </span>
+              {(!fullDistance||parseFloat(fullDistance)===0)&&(
+                <span style={{fontFamily:FB,fontSize:11,color:"#eb0000"}}>
+                  Enter full distance to enable toe calculation
+                </span>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
       {isJosam && !setFullDistance && fullDistance && (
