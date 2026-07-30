@@ -68,7 +68,7 @@ function jobToRow(job, userId) {
   return {
     id: job.id, user_id: userId,
     customer: job.customer, vehicle: job.vehicle, axles: job.axles,
-    after_axles: job.afterAxles, full_distance: job.fullDistance, notes: job.notes,
+    after_axles: job.afterAxles, full_distance: job.fullDistance, notes: job.notes, job_date: job.jobDate || null,
     config_id: job.configId, config_name: job.configName, measure_method: job.measureMethod,
     created_at: job.createdAt || new Date().toISOString(),
     updated_at: job.updatedAt || job.createdAt || new Date().toISOString(),
@@ -81,7 +81,7 @@ function jobFromRow(row) {
     customer: row.customer || {company:"",name:"",phone:"",email:""},
     vehicle: row.vehicle || {reg:"",make:"",model:"",year:"",mileage:""},
     axles: row.axles || [], afterAxles: row.after_axles || null,
-    fullDistance: row.full_distance || "", notes: row.notes || "",
+    fullDistance: row.full_distance || "", notes: row.notes || "", jobDate: row.job_date || null,
     configId: row.config_id || null, configName: row.config_name || null,
     measureMethod: row.measure_method || "direct",
   };
@@ -487,7 +487,7 @@ function makeJob(measureMethod="direct") {
     afterAxles:null, fullDistance:"",
     configId:null, configName:null,
     measureMethod,
-    notes:"" };
+    notes:"", jobDate: new Date().toISOString().slice(0,10) };
 }
 
 
@@ -2983,6 +2983,23 @@ function JobDetailsTab({ j, setJ, allJobs }) {
         </div>
       </div>
 
+      {/* Job Date */}
+      <div>
+        <SectionHead>Job Date</SectionHead>
+        <div style={{position:"relative",display:"inline-block",width:"100%"}}>
+          <div style={{background:"#e5e5e5",border:"1px solid rgba(5,5,5,0.10)",borderRadius:"0.3rem",
+            padding:"9px 10px",color:"#050505",fontFamily:FM,fontSize:13,fontWeight:"normal",
+            cursor:"pointer",userSelect:"none"}}
+            onClick={()=>document.getElementById("job-date-input").showPicker?.()}>
+            {j.jobDate
+              ? new Date(j.jobDate+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})
+              : <span style={{color:"rgba(5,5,5,0.35)"}}>Select date…</span>}
+          </div>
+          <input id="job-date-input" type="date" value={j.jobDate||""} onChange={e=>setJ(p=>({...p,jobDate:e.target.value}))}
+            style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}}/>
+        </div>
+      </div>
+
       {/* Notes */}
       <div>
         <SectionHead>Notes</SectionHead>
@@ -3024,7 +3041,7 @@ function SwipeableJobCard({ j, onOpen, onDelete }) {
   const cols = [
     { label:"Make & Model", value:[j.vehicle.make,j.vehicle.model].filter(Boolean).join(" ") },
     { label:"Mileage",      value:j.vehicle.mileage ? parseInt(j.vehicle.mileage).toLocaleString() : "" },
-    { label:"Date",         value:fmtDate(j.createdAt) },
+    { label:"Date",         value:j.jobDate ? fmtDate(j.jobDate+"T00:00:00") : fmtDate(j.createdAt) },
     { label:"Customer",     value:j.customer.company||j.customer.name||"" },
   ].filter(c=>c.value);
 
@@ -4365,7 +4382,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 WHEEL ALIGNMENT REPORT
               </div>
               <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",marginTop:4}}>
-                {fmtDate(job.createdAt)}
+                Job Date: {job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)}
               </div>
             </div>
           </div>
