@@ -91,7 +91,16 @@ async function upsertJobRemote(job, userId) {
   const row = jobToRow(job, userId);
   try {
     const { error } = await supabase.from("jobs").upsert(row, { onConflict: "id" });
-    if (error) throw error;
+    if (error) {
+      // Retry without job_date in case the column doesn't exist in this deployment
+      if (error.message?.includes("job_date") || error.code === "42703") {
+        const { job_date: _ignored, ...rowWithout } = row;
+        const { error: e2 } = await supabase.from("jobs").upsert(rowWithout, { onConflict: "id" });
+        if (e2) throw e2;
+        return true;
+      }
+      throw error;
+    }
     return true;
   } catch(e) { console.error("Job sync failed:", e?.message, e); return false; }
 }
