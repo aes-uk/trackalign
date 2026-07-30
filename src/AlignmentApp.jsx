@@ -2992,7 +2992,7 @@ function JobDetailsTab({ j, setJ, allJobs }) {
             cursor:"pointer",userSelect:"none"}}
             onClick={()=>document.getElementById("job-date-input").showPicker?.()}>
             {j.jobDate
-              ? new Date(j.jobDate+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})
+              ? new Date(j.jobDate+"T00:00:00").toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})
               : <span style={{color:"rgba(5,5,5,0.35)"}}>Select date…</span>}
           </div>
           <input id="job-date-input" type="date" value={j.jobDate||""} onChange={e=>setJ(p=>({...p,jobDate:e.target.value}))}
@@ -3861,7 +3861,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
   const axlesInnerRef = useRef(null);
   const [axleScale, setAxleScale] = useState(1);
   const D = parseFloat(job.fullDistance)||0;
-  const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  const fmtDate = iso => new Date(iso).toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"});
   const f1 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(1)}`;
   const f2 = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${v.toFixed(2)}`;
   const fDeg = v => v===null||v===undefined ? "—" : `${v>=0?"+":""}${fDM(v)}`;
@@ -4382,7 +4382,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
                 WHEEL ALIGNMENT REPORT
               </div>
               <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",marginTop:4}}>
-                Job Date: {job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)}
+                <span style={{color:"rgba(255,255,255,0.55)",fontWeight:"normal"}}>Job Date: </span><span style={{fontWeight:"bold"}}>{job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)}</span>
               </div>
             </div>
           </div>
