@@ -4381,8 +4381,8 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
               <div style={{fontSize:"12pt",fontWeight:"bold",fontFamily:FD,color:"#ffffff",letterSpacing:"0.05em"}}>
                 WHEEL ALIGNMENT REPORT
               </div>
-              <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",marginTop:4}}>
-                <span style={{color:"rgba(255,255,255,0.55)",fontWeight:"normal"}}>Job Date: </span><span style={{fontWeight:"bold"}}>{job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)}</span>
+              <div style={{fontSize:"8pt",fontFamily:FD,color:"#ffffff",fontWeight:"bold",marginTop:4}}>
+                {job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)}
               </div>
             </div>
           </div>
@@ -4393,7 +4393,7 @@ function ReportScreen({ job, company, onClose, actionsRef }) {
             {[
               ["Customer", job.customer.company||job.customer.name||"—"],
               ["Contact",  job.customer.name&&job.customer.company?job.customer.name:"—"],
-              ["Phone",    job.customer.phone||"—"],
+              ["Job Date", job.jobDate ? fmtDate(job.jobDate+"T00:00:00") : fmtDate(job.createdAt)],
               ["Vehicle",  [job.vehicle.make,job.vehicle.model,job.vehicle.year].filter(Boolean).join(" ")||"—"],
               ["Reg",      (job.vehicle.reg||"").toUpperCase()||"—"],
               ["Mileage",  job.vehicle.mileage?`${parseInt(job.vehicle.mileage).toLocaleString()} miles`:"—"],
