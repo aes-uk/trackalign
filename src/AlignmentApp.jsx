@@ -2318,12 +2318,16 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         const wR = computeActual(actualR, origRearR, origFrontR);
 
         const scaleLabel = farScaleSide.charAt(0).toUpperCase()+farScaleSide.slice(1)+" Scale";
+        // Solid front-steer axle: the drive-side wheel is the one set straight ahead
+        const straightAhead = !useIndepPath && !isSecondSteer;
+        const leftHeader  = straightAhead && !isDriveRight ? "Straight Ahead Target" : `Left ${scaleLabel}`;
+        const rightHeader = straightAhead &&  isDriveRight ? "Straight Ahead Target" : `Right ${scaleLabel}`;
         const placeholderL = farScaleSide==="rear" ? (origRearL!==null?String(Math.round(origRearL)):"") : (origFrontL!==null?String(Math.round(origFrontL)):"");
         const placeholderR = farScaleSide==="rear" ? (origRearR!==null?String(Math.round(origRearR)):"") : (origFrontR!==null?String(Math.round(origFrontR)):"");
         const bothEntered = actualL!=="" && actualR!=="";
         const wheelCards = [
-          { header: `Left ${scaleLabel}`, toeLabel:"Toe Left",  target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL, placeholder: placeholderL },
-          { header: `Right ${scaleLabel}`, toeLabel:"Toe Right", target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR, placeholder: placeholderR },
+          { header: leftHeader,  toeLabel:"Toe Left",  target: boxes[0].target, actual: actualL, setActual: setActualL, w: wL, placeholder: placeholderL },
+          { header: rightHeader, toeLabel:"Toe Right", target: boxes[1].target, actual: actualR, setActual: setActualR, w: wR, placeholder: placeholderR },
         ];
 
         const apply = () => {
