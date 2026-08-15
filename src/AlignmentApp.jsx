@@ -2113,8 +2113,9 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   const distFrontValid = df > 0 && D > 0 && df < D;
   const farScaleSide = df > dr ? "front" : "rear";
   const adjDist = Math.max(df, dr);
-  // stepDist: correct scale movement per mm/m of toe change, accounting for both scales moving
-  const stepDist = D > 0 ? (D * D) / (D + df) : 0;
+  const nearDist = Math.min(df, dr);
+  // stepDist: scale movement per mm/m of toe change (both scales move); uses the NEAR scale distance
+  const stepDist = D > 0 ? (D * D) / (D + nearDist) : 0;
   const farScaleLabel = farScaleSide === "front" ? "FRONT SCALE" : "REAR SCALE";
 
   const isIndependent = (afterAxle?.suspType || "solid") === "independent";
@@ -2172,26 +2173,28 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
     oppHeader   = `Adjust to Target — ${oppSideStr} WHEEL`;
   }
 
-  // Rear steer behaves like independent: both sides (ram + trackbar) are adjusted independently.
-  // Sign is inverted vs independent because rear steer correction subtracts rather than adds.
+  // Rear steer behaves like independent: both sides (ram + trackbar) are adjusted per-wheel.
   const useIndepPath = isIndependent || isRearSteer;
-  const rearSteerSign = isRearSteer ? -1 : 1;
+
+  // Far=front flips the direction a scale moves for a given toe change vs far=rear
+  const farSign = farScaleSide === "front" ? 1 : -1;
 
   // Solid (non-rear-steer) two-step calculations
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
   if (canCalc && !useIndepPath && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
-    driveTarget = driveFar + (driveToe * stepDist);
-    oppNow = oppFar - (driveToe * stepDist);
+    driveTarget = driveFar - farSign * (driveToe * stepDist);
+    oppNow = oppFar + farSign * (driveToe * stepDist);
     const toeToMove = totalBeforeToe - tgt;
-    oppTarget = oppNow + (toeToMove * stepDist);
+    oppTarget = oppNow - farSign * (toeToMove * stepDist);
   }
 
   // Independent / rear-steer per-wheel calculations
   let leftTarget=null, rightTarget=null;
   if (canCalc && useIndepPath && farL!==null && farR!==null && toeL!==null && toeR!==null) {
     const tpw = tgt / 2;
-    leftTarget  = farL + rearSteerSign * ((toeL - tpw) * stepDist);
-    rightTarget = farR + rearSteerSign * ((toeR - tpw) * stepDist);
+    // Target far-scale reading to move each wheel from its current toe to tpw (geometry only)
+    leftTarget  = farL + farSign * ((tpw - toeL) * stepDist);
+    rightTarget = farR + farSign * ((tpw - toeR) * stepDist);
   }
 
   // Build LEFT/RIGHT display boxes (always Left col = left wheel, Right col = right wheel)
@@ -2292,15 +2295,24 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
         const origRearR  = sf(beforeAxle?.rearScaleRight);
         const origFrontR = sf(beforeAxle?.frontScaleRight);
 
+        const _near = Math.min(df, dr);
+        const _step = D > 0 ? (D * D) / (D + _near) : 0;
+        const nearRatio = D > 0 ? _near / D : 0;
+        // Entered value is the FAR scale; estimate the near scale, then derive toe.
         const computeActual = (actualStr, origRear, origFront) => {
-          const aRear = actualStr !== "" ? sf(actualStr) : null;
-          if (aRear === null || origRear === null || origFront === null || D === 0) return { aRear, estFront: null, actualToe: null };
-          const rearMov  = aRear - origRear;
-          const frontMov = rearMov * (df / D);
-          const estFront = origFront - frontMov;
-          const actualToe = (estFront - aRear) / D;
-          return { aRear, estFront, actualToe };
+          const aFar = actualStr !== "" ? sf(actualStr) : null;
+          if (aFar === null || origRear === null || origFront === null || D === 0)
+            return { aFar, front: null, rear: null, actualToe: null };
+          if (farScaleSide === "rear") {
+            const estFront = origFront - (aFar - origRear) * nearRatio;
+            return { aFar, front: estFront, rear: aFar, actualToe: (estFront - aFar) / D };
+          }
+          const estRear = origRear - (aFar - origFront) * nearRatio;
+          return { aFar, front: aFar, rear: estRear, actualToe: (aFar - estRear) / D };
         };
+        // Residual toe below half a scale-step is unremovable rounding, not a real error → show 0.0
+        const toeSnap = _step > 0 ? 0.5 / _step : 0.05;
+        const dispToe = v => Math.abs(v) < toeSnap ? 0 : v;
 
         const wL = computeActual(actualL, origRearL, origFrontL);
         const wR = computeActual(actualR, origRearR, origFrontR);
@@ -2327,10 +2339,10 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           const lFarTarget = useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget);
           const rFarTarget = useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget);
           // Use actual inputs when entered, otherwise fall back to target-based
-          const lFront = wL.estFront !== null ? parseFloat(wL.estFront.toFixed(1)) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
-          const lRear  = wL.aRear   !== null ? wL.aRear                           : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
-          const rFront = wR.estFront !== null ? parseFloat(wR.estFront.toFixed(1)) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
-          const rRear  = wR.aRear   !== null ? wR.aRear                           : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
+          const lFront = wL.front !== null ? parseFloat(wL.front.toFixed(1)) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
+          const lRear  = wL.rear  !== null ? parseFloat(wL.rear.toFixed(1))  : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
+          const rFront = wR.front !== null ? parseFloat(wR.front.toFixed(1)) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
+          const rRear  = wR.rear  !== null ? parseFloat(wR.rear.toFixed(1))  : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
           if (lFront==null||lRear==null||rFront==null||rRear==null) return;
           onApplyToAfter({
             frontScaleLeft:  String(lFront),
@@ -2381,7 +2393,7 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {parseFloat(w.actualToe.toFixed(1))>0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {dispToe(w.actualToe)>0?"+":""}{dispToe(w.actualToe).toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
@@ -2428,6 +2440,9 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
   const distFrontValid = df > 0 && D > 0 && df < D;
   const farScaleSide = df > dr ? "front" : "rear";
   const adjDist = Math.max(df, dr);
+  const nearDist = Math.min(df, dr);
+  // stepDist: scale movement per mm/m of toe change (both scales move); uses the NEAR scale distance
+  const stepDist = D > 0 ? (D * D) / (D + nearDist) : 0;
   const farScaleLabel = farScaleSide === "front" ? "FRONT SCALE" : "REAR SCALE";
 
   function getFarScale(side) {
@@ -2467,8 +2482,8 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
     const half = totalBeforeToe / 2;
     const newLeftToe  = half - tgtOOS;
     const newRightToe = half + tgtOOS;
-    leftTarget  = farL + adjSign * ((newLeftToe  - toeL) * adjDist);
-    rightTarget = farR + adjSign * ((newRightToe - toeR) * adjDist);
+    leftTarget  = farL + adjSign * ((newLeftToe  - toeL) * stepDist);
+    rightTarget = farR + adjSign * ((newRightToe - toeR) * stepDist);
   }
 
   if (!beforeAxle) return null;
@@ -2528,15 +2543,24 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
         const origRearR  = sf(beforeAxle?.rearScaleRight);
         const origFrontR = sf(beforeAxle?.frontScaleRight);
 
+        const _near = Math.min(df, dr);
+        const _step = D > 0 ? (D * D) / (D + _near) : 0;
+        const nearRatio = D > 0 ? _near / D : 0;
+        // Entered value is the FAR scale; estimate the near scale, then derive toe.
         const computeActual = (actualStr, origRear, origFront) => {
-          const aRear = actualStr !== "" ? sf(actualStr) : null;
-          if (aRear === null || origRear === null || origFront === null || D === 0) return { aRear, estFront: null, actualToe: null };
-          const rearMov  = aRear - origRear;
-          const frontMov = rearMov * (df / D);
-          const estFront = origFront - frontMov;
-          const actualToe = (estFront - aRear) / D;
-          return { aRear, estFront, actualToe };
+          const aFar = actualStr !== "" ? sf(actualStr) : null;
+          if (aFar === null || origRear === null || origFront === null || D === 0)
+            return { aFar, front: null, rear: null, actualToe: null };
+          if (farScaleSide === "rear") {
+            const estFront = origFront - (aFar - origRear) * nearRatio;
+            return { aFar, front: estFront, rear: aFar, actualToe: (estFront - aFar) / D };
+          }
+          const estRear = origRear - (aFar - origFront) * nearRatio;
+          return { aFar, front: aFar, rear: estRear, actualToe: (aFar - estRear) / D };
         };
+        // Residual toe below half a scale-step is unremovable rounding, not a real error → show 0.0
+        const toeSnap = _step > 0 ? 0.5 / _step : 0.05;
+        const dispToe = v => Math.abs(v) < toeSnap ? 0 : v;
 
         const wL = computeActual(actualL, origRearL, origFrontL);
         const wR = computeActual(actualR, origRearR, origFrontR);
@@ -2560,10 +2584,10 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
               : { front: farTarget, rear: farTarget - targetToeWheel * D };
           };
           const half = totalBeforeToe / 2;
-          const lFront = wL.estFront !== null ? parseFloat(wL.estFront.toFixed(1)) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
-          const lRear  = wL.aRear   !== null ? wL.aRear                           : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
-          const rFront = wR.estFront !== null ? parseFloat(wR.estFront.toFixed(1)) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
-          const rRear  = wR.aRear   !== null ? wR.aRear                           : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
+          const lFront = wL.front !== null ? parseFloat(wL.front.toFixed(1)) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
+          const lRear  = wL.rear  !== null ? parseFloat(wL.rear.toFixed(1))  : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
+          const rFront = wR.front !== null ? parseFloat(wR.front.toFixed(1)) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
+          const rRear  = wR.rear  !== null ? parseFloat(wR.rear.toFixed(1))  : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
           if (lFront==null||lRear==null||rFront==null||rRear==null) return;
           onApplyToAfter({
             frontScaleLeft:  String(lFront),
@@ -2614,7 +2638,7 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
                       <div style={{fontSize:8,color:"rgba(5,5,5,0.5)",fontFamily:FB,
                         textTransform:"uppercase"}}>{toeLabel}</div>
                       <div style={{fontFamily:FM,fontSize:15,color:"#050505",fontWeight:"600"}}>
-                        {parseFloat(w.actualToe.toFixed(1))>0?"+":""}{w.actualToe.toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
+                        {dispToe(w.actualToe)>0?"+":""}{dispToe(w.actualToe).toFixed(1)}<span style={{fontSize:10,color:"rgba(5,5,5,0.4)",marginLeft:2}}>mm</span>
                       </div>
                     </div>
                   )}
