@@ -2113,6 +2113,8 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   const distFrontValid = df > 0 && D > 0 && df < D;
   const farScaleSide = df > dr ? "front" : "rear";
   const adjDist = Math.max(df, dr);
+  // stepDist: correct scale movement per mm/m of toe change, accounting for both scales moving
+  const stepDist = D > 0 ? (D * D) / (D + df) : 0;
   const farScaleLabel = farScaleSide === "front" ? "FRONT SCALE" : "REAR SCALE";
 
   const isIndependent = (afterAxle?.suspType || "solid") === "independent";
@@ -2178,18 +2180,18 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
   // Solid (non-rear-steer) two-step calculations
   let driveNow=driveFar, driveTarget=null, oppNow=null, oppTarget=null;
   if (canCalc && !useIndepPath && driveFar!==null && oppFar!==null && driveToe!==null && oppToe!==null) {
-    driveTarget = driveFar + (driveToe * adjDist);
-    oppNow = oppFar - (driveToe * adjDist);
+    driveTarget = driveFar + (driveToe * stepDist);
+    oppNow = oppFar - (driveToe * stepDist);
     const toeToMove = totalBeforeToe - tgt;
-    oppTarget = oppNow + (toeToMove * adjDist);
+    oppTarget = oppNow + (toeToMove * stepDist);
   }
 
   // Independent / rear-steer per-wheel calculations
   let leftTarget=null, rightTarget=null;
   if (canCalc && useIndepPath && farL!==null && farR!==null && toeL!==null && toeR!==null) {
     const tpw = tgt / 2;
-    leftTarget  = farL + rearSteerSign * ((toeL - tpw) * adjDist);
-    rightTarget = farR + rearSteerSign * ((toeR - tpw) * adjDist);
+    leftTarget  = farL + rearSteerSign * ((toeL - tpw) * stepDist);
+    rightTarget = farR + rearSteerSign * ((toeR - tpw) * stepDist);
   }
 
   // Build LEFT/RIGHT display boxes (always Left col = left wheel, Right col = right wheel)
