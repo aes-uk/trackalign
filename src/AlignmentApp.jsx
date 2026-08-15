@@ -2338,17 +2338,28 @@ function JosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange, ste
           let rToe = useIndepPath ? tgt/2 : (isDriveRight ? 0   : tgt);
           const lFarTarget = useIndepPath ? leftTarget  : (isDriveRight ? oppTarget  : driveTarget);
           const rFarTarget = useIndepPath ? rightTarget : (isDriveRight ? driveTarget : oppTarget);
-          // Use actual inputs when entered, otherwise fall back to target-based
-          const lFront = wL.front !== null ? parseFloat(wL.front.toFixed(1)) : (getScales(lToe, lFarTarget)?.front != null ? Math.round(getScales(lToe, lFarTarget).front) : null);
-          const lRear  = wL.rear  !== null ? parseFloat(wL.rear.toFixed(1))  : (getScales(lToe, lFarTarget)?.rear  != null ? Math.round(getScales(lToe, lFarTarget).rear)  : null);
-          const rFront = wR.front !== null ? parseFloat(wR.front.toFixed(1)) : (getScales(rToe, rFarTarget)?.front != null ? Math.round(getScales(rToe, rFarTarget).front) : null);
-          const rRear  = wR.rear  !== null ? parseFloat(wR.rear.toFixed(1))  : (getScales(rToe, rFarTarget)?.rear  != null ? Math.round(getScales(rToe, rFarTarget).rear)  : null);
-          if (lFront==null||lRear==null||rFront==null||rRear==null) return;
+          // Real scales read whole numbers; round the estimated near scale to the integer
+          // whose resulting toe is closest to the intended per-wheel toe.
+          const wheelApply = (w, intendedToe, farTarget) => {
+            if (w.aFar !== null) {
+              const far = Math.round(w.aFar);
+              const estNear = farScaleSide === "rear" ? w.front : w.rear;
+              const lo = Math.floor(estNear), hi = Math.ceil(estNear);
+              const toeOf = n => (farScaleSide === "rear" ? (n - far) : (far - n)) / D;
+              const near = Math.abs(toeOf(lo) - intendedToe) <= Math.abs(toeOf(hi) - intendedToe) ? lo : hi;
+              return farScaleSide === "rear" ? { front: near, rear: far } : { front: far, rear: near };
+            }
+            const s = getScales(intendedToe, farTarget);
+            return s ? { front: Math.round(s.front), rear: Math.round(s.rear) } : null;
+          };
+          const L = wheelApply(wL, lToe, lFarTarget);
+          const R = wheelApply(wR, rToe, rFarTarget);
+          if (!L || !R) return;
           onApplyToAfter({
-            frontScaleLeft:  String(lFront),
-            rearScaleLeft:   String(lRear),
-            frontScaleRight: String(rFront),
-            rearScaleRight:  String(rRear),
+            frontScaleLeft:  String(L.front),
+            rearScaleLeft:   String(L.rear),
+            frontScaleRight: String(R.front),
+            rearScaleRight:  String(R.rear),
           });
           setApplied(true);
           setTimeout(()=>setApplied(false), 2500);
@@ -2584,16 +2595,28 @@ function FixedJosamAdjustSection({ afterAxle, beforeAxle, fullDistance, onChange
               : { front: farTarget, rear: farTarget - targetToeWheel * D };
           };
           const half = totalBeforeToe / 2;
-          const lFront = wL.front !== null ? parseFloat(wL.front.toFixed(1)) : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.front):null; })();
-          const lRear  = wL.rear  !== null ? parseFloat(wL.rear.toFixed(1))  : (()=>{ const s=getScales(half-tgtOOS,leftTarget); return s?Math.round(s.rear):null; })();
-          const rFront = wR.front !== null ? parseFloat(wR.front.toFixed(1)) : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.front):null; })();
-          const rRear  = wR.rear  !== null ? parseFloat(wR.rear.toFixed(1))  : (()=>{ const s=getScales(half+tgtOOS,rightTarget); return s?Math.round(s.rear):null; })();
-          if (lFront==null||lRear==null||rFront==null||rRear==null) return;
+          // Real scales read whole numbers; round the estimated near scale to the integer
+          // whose resulting toe is closest to the intended per-wheel toe.
+          const wheelApply = (w, intendedToe, farTarget) => {
+            if (w.aFar !== null) {
+              const far = Math.round(w.aFar);
+              const estNear = farScaleSide === "rear" ? w.front : w.rear;
+              const lo = Math.floor(estNear), hi = Math.ceil(estNear);
+              const toeOf = n => (farScaleSide === "rear" ? (n - far) : (far - n)) / D;
+              const near = Math.abs(toeOf(lo) - intendedToe) <= Math.abs(toeOf(hi) - intendedToe) ? lo : hi;
+              return farScaleSide === "rear" ? { front: near, rear: far } : { front: far, rear: near };
+            }
+            const s = getScales(intendedToe, farTarget);
+            return s ? { front: Math.round(s.front), rear: Math.round(s.rear) } : null;
+          };
+          const L = wheelApply(wL, half - tgtOOS, leftTarget);
+          const R = wheelApply(wR, half + tgtOOS, rightTarget);
+          if (!L || !R) return;
           onApplyToAfter({
-            frontScaleLeft:  String(lFront),
-            rearScaleLeft:   String(lRear),
-            frontScaleRight: String(rFront),
-            rearScaleRight:  String(rRear),
+            frontScaleLeft:  String(L.front),
+            rearScaleLeft:   String(L.rear),
+            frontScaleRight: String(R.front),
+            rearScaleRight:  String(R.rear),
           });
           setApplied(true);
           setTimeout(()=>setApplied(false), 2500);
